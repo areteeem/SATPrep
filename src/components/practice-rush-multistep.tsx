@@ -1,5 +1,7 @@
 "use client";
 
+import { AnnotatedPassage } from "./annotated-passage";
+
 import React, {
   useRef,
   useEffect,
@@ -600,7 +602,7 @@ interface AnswerOptionsProps {
   questionId: string;
   selectedAnswer: string | null;
   disabledOptions: { [key: string]: boolean };
-  onAnswerSelect: (key: string) => void;
+  onAnswerSelect: (key: string | null) => void;
   onToggleDisabled: (key: string) => void;
   showStrikethrough: boolean;
   correctAnswers?: string[];
@@ -725,12 +727,15 @@ const AnswerOptions = React.memo(function AnswerOptions({
             {showStrikethrough && (
               <Button
                 variant={"ghost"}
-                className="h-full w-14 cursor-pointer"
+                type="button"
+                aria-label={`${disabledOptions[key] ? "Restore" : "Eliminate"} option ${String.fromCharCode(65 + index)}`}
+                aria-pressed={Boolean(disabledOptions[key])}
+                className="h-12 w-14 shrink-0 cursor-pointer"
                 onClick={() => {
-                  if (selectedAnswer?.trim() !== trimmedKey) {
-                    playSound("button-pressed.wav");
-                    onToggleDisabled(key);
-                  }
+                  if (isAnswerChecked || isReviewMode) return;
+                  if (selectedAnswer?.trim() === trimmedKey) onAnswerSelect(null);
+                  playSound("button-pressed.wav");
+                  onToggleDisabled(key);
                 }}
               >
                 {disabledOptions[key] ? (
@@ -1370,6 +1375,26 @@ export default function PracticeRushMultistep({
     () => (state.questions ? state.questions[state.currentQuestionStep] : null),
     [state.questions, state.currentQuestionStep],
   );
+
+  // A passage can stay in view only when it fits within the visible viewport.
+  useEffect(() => {
+    const passage = document.querySelector<HTMLElement>(".sat-passage");
+    if (!passage || practiceSelections?.subject !== "reading-writing") return;
+    const update = () => {
+      const height = window.visualViewport?.height ?? window.innerHeight;
+      passage.classList.toggle("sat-passage-fits", passage.offsetHeight <= height - 48);
+    };
+    const observer = new ResizeObserver(update);
+    observer.observe(passage);
+    window.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("resize", update);
+    update();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", update);
+      window.visualViewport?.removeEventListener("resize", update);
+    };
+  }, [currentQuestion, practiceSelections?.subject]);
 
   // Convert QuestionState to QuestionById_Data format for SaveButton compatibility
   const currentQuestionForSave = useMemo(() => {
@@ -3814,6 +3839,11 @@ export default function PracticeRushMultistep({
                         </Tooltip>
                       )}
 
+                    <Button type="button" variant="outline" onClick={() => {
+                      if (document.fullscreenElement) void document.exitFullscreen();
+                      else void document.documentElement.requestFullscreen?.();
+                    }}>Full screen</Button>
+
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -3954,26 +3984,17 @@ export default function PracticeRushMultistep({
                 <div
                   className={`col-span-4 ${
                     practiceSelections?.subject === "reading-writing"
-                      ? "lg:col-span-5"
+                      ? "lg:col-span-5 sat-passage-column"
                       : "lg:col-span-3"
                   }  flex flex-col gap-6 h-full relative`}
                 >
                   <React.Fragment>
                     {currentQuestion.stimulus && (
-                      <MathJax
-                        inline
-                        dynamic
-                        id="stimulus"
-                        className="text-xl text-justify answer-option"
-                      >
-                        <span
-                          dangerouslySetInnerHTML={{
-                            __html: currentQuestion.stimulus
-                              ? currentQuestion.stimulus
-                              : "",
-                          }}
-                        ></span>
-                      </MathJax>
+                      practiceSelections?.subject === "reading-writing" ? (
+                        <AnnotatedPassage questionId={currentQuestion.plainQuestion.questionId} html={currentQuestion.stimulus} className="text-xl sat-passage" />
+                      ) : (
+                        <MathJax inline dynamic className="text-xl answer-option"><span dangerouslySetInnerHTML={{__html: currentQuestion.stimulus}} /></MathJax>
+                      )
                     )}
 
                     {practiceSelections?.subject !== "reading-writing" &&

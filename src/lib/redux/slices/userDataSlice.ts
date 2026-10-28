@@ -20,6 +20,9 @@ import type {
 import type { MigrationSummary } from "@/lib/types/api";
 import type { QuestionNotes } from "@/types/questionNotes";
 import type { PracticePerformanceData } from "@/types/vocabulary";
+import { localApiFetch, getLocalData, saveLocalData } from "@/lib/localStorageApi";
+
+const fetch = localApiFetch;
 
 // ─── Async Thunks ────────────────────────────────────────────────────────────
 

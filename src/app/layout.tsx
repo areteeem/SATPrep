@@ -10,11 +10,8 @@ import FooterSection from "@/components/footer";
 import { MathJaxContext } from "better-react-mathjax";
 
 import { Toaster } from "sonner";
-import { Banner } from "@/components/ui/banner";
-import { AnnouncementBanner } from "@/components/ui/announcement-banner";
 
 import { AssessmentProvider } from "@/contexts/assessment-context";
-import Dialog02 from "@/components/ui/popup-tour";
 import { ReduxProvider } from "@/lib/redux/Provider";
 import { AuthSessionProvider } from "@/components/auth/AuthSessionProvider";
 import { SessionInitializer } from "@/components/auth/SessionInitializer";
@@ -35,8 +32,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "MySATPrep - Free SAT Practice Questions & Test Prep",
-    template: "%s | MySATPrep",
+    default: "SAT Prep - Free SAT Practice Questions & Test Prep",
+    template: "%s | SAT Prep",
   },
   description:
     "Master the SAT with our comprehensive question bank featuring real College Board practice questions. Track your progress, identify weak areas, and boost your SAT scores with targeted practice sessions.",
@@ -52,16 +49,16 @@ export const metadata: Metadata = {
     "practice questions",
     "SAT score improvement",
   ],
-  authors: [{ name: "MySATPrep Team" }],
-  creator: "MySATPrep",
-  publisher: "MySATPrep",
+  authors: [{ name: "SAT Prep Team" }],
+  creator: "SAT Prep",
+  publisher: "SAT Prep",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_BASE_URL || "https://mysatprep.vercel.app",
+    process.env.NEXT_PUBLIC_BASE_URL || "https://study-platform.vercel.app",
   ),
   alternates: {
     canonical: "/",
@@ -70,26 +67,26 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    title: "MySATPrep - Free SAT Practice Questions & Test Prep",
+    title: "SAT Prep - Free SAT Practice Questions & Test Prep",
     description:
       "Master the SAT with our comprehensive question bank featuring real College Board practice questions. Track your progress and boost your SAT scores.",
-    siteName: "MySATPrep",
+    siteName: "SAT Prep",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "MySATPrep - SAT Test Preparation Platform",
+        alt: "SAT Prep - SAT Test Preparation Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MySATPrep - Free SAT Practice Questions & Test Prep",
+    title: "SAT Prep - Free SAT Practice Questions & Test Prep",
     description:
       "Master the SAT with our comprehensive question bank featuring real College Board practice questions. Track your progress and boost your SAT scores.",
     images: ["/og-image.png"],
-    creator: "@mysatprep",
+    creator: "@study-platform",
   },
   robots: {
     index: true,
@@ -130,7 +127,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* User declared canonical URL */}
-        <link rel="canonical" href="https://www.mysatprep.fun" />
+        <link rel="canonical" href="https://www.study-platform.local" />
 
         {/* Additional SEO meta tags */}
         <meta
@@ -149,27 +146,27 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "EducationalOrganization",
-              "@id": "https://www.mysatprep.fun/#organization",
-              name: "MySATPrep",
+              "@id": "https://www.study-platform.local/#organization",
+              name: "SAT Prep",
               alternateName: "My SAT Prep",
-              url: "https://www.mysatprep.fun",
+              url: "https://www.study-platform.local",
               logo: {
                 "@type": "ImageObject",
-                url: "https://www.mysatprep.fun/icon-512x512.png",
+                url: "https://www.study-platform.local/icon-512x512.png",
                 width: 512,
                 height: 512,
               },
               contactPoint: {
                 "@type": "ContactPoint",
                 contactType: "customer service",
-                email: "support@mysatprep.fun",
+                email: "support@study-platform.local",
                 availableLanguage: ["English"],
               },
               sameAs: [
-                "https://www.facebook.com/mysatprep",
-                "https://www.twitter.com/mysatprep",
-                "https://www.instagram.com/mysatprep",
-                "https://www.youtube.com/mysatprep",
+                "https://www.facebook.com/study-platform",
+                "https://www.twitter.com/study-platform",
+                "https://www.instagram.com/study-platform",
+                "https://www.youtube.com/study-platform",
               ],
               foundingDate: "2024",
               description:
@@ -195,28 +192,6 @@ export default function RootLayout({
         /> */}
 
         <ErrorBoundary>
-          <AnnouncementBanner
-            className="bg-white dark:bg-transparent"
-            announcements={[
-              {
-                id: "fix-dark-mode",
-                content:
-                  "We just fixed dark mode! You can now activate it on bottom right.",
-              },
-              {
-                id: "banner-bug-fix-update",
-                content:
-                  "Bugs affecting unauthenticated users have been fixed — you may no longer need to log in. Bug reports welcome at /report-bug",
-              },
-              {
-                id: "banner-new-cb-questions",
-                content:
-                  "College Board just released new questions on July 31st — check them out on /questionbank!",
-              },
-            ]}
-          />
-
-          <Banner />
           <AssessmentProvider>
             <MathJaxContext version={3} config={config}>
               <ReduxProvider>
@@ -229,8 +204,6 @@ export default function RootLayout({
             </MathJaxContext>
           </AssessmentProvider>
         </ErrorBoundary>
-
-        <Dialog02 />
 
         <GoogleAnalytics gaId={process.env.GA_KEY || ""} />
         <GoogleTagManager gtmId={process.env.GT_KEY || ""} />

@@ -139,15 +139,15 @@ export function MigrateHeroSection(
                           className="flex flex-col items-center"
                         >
                           <h1 className="mb-3 text-3xl font-bold text-blue-500 sm:text-4xl">
-                            We are migrating back to MySATPrep.fun!
+                            We are migrating back to SAT Prep.fun!
                           </h1>
                           <p className="max-w-2xl text-gray-500 sm:text-lg">
                             User Authentication is now available. Sign in on
-                            MySATPrep.fun, export your data here and import your
+                            SAT Prep.fun, export your data here and import your
                             backup there to sync your data into the cloud and
                             keep it across devices. You can also sync your
                             different device data to the cloud after signing in
-                            on MySatPrep.fun.
+                            on SAT Prep.fun.
                           </p>
                         </motion.div>
 
@@ -174,7 +174,7 @@ export function MigrateHeroSection(
                               Sign in
                             </h2>
                             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                              Use your account on MySATPrep.fun to unlock cloud
+                              Use your account on SAT Prep.fun to unlock cloud
                               sync.
                             </p>
                           </div>
@@ -218,7 +218,7 @@ export function MigrateHeroSection(
                         <p className="mt-4 max-w-2xl text-sm text-gray-500">
                           Export downloads a JSON backup. Import loads that same
                           file back into your local data so you can sign in and
-                          sync it to the cloud on MySATPrep.fun.
+                          sync it to the cloud on SAT Prep.fun.
                         </p>
 
                         {message && (

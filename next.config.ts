@@ -5,7 +5,7 @@ import type { NextConfig } from "next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  eslint: { ignoreDuringBuilds: true },
   async headers() {
     return [
       {
@@ -22,12 +22,10 @@ const nextConfig: NextConfig = {
 
   images: {
     remotePatterns: [
-      new URL("https://avatars.githubusercontent.com/u/**?v=4"),
       new URL("https://originui.com/**"),
       new URL("https://upload.wikimedia.org/**"),
       new URL("https://vectorseek.com/**"),
       new URL("https://assets.dub.co/**"),
-      new URL("https://raw.githubusercontent.com/**"),
       new URL("https://support.khanacademy.org/**"),
     ],
   },

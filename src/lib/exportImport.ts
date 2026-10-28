@@ -62,7 +62,7 @@ export function downloadExportedData(exportedData: ExportedData): void {
       .toISOString()
       .replace(/[:.]/g, "-")
       .slice(0, -5); // Remove milliseconds
-    link.download = `mysatprep-backup-${timestamp}.json`;
+    link.download = `study-platform-backup-${timestamp}.json`;
 
     // Trigger download
     document.body.appendChild(link);

@@ -148,7 +148,7 @@ export const SiteHeader = ({
                           href="/contributors"
                           title="Contributors"
                         >
-                          Meet the amazing people behind MySATPrep
+                          Meet the amazing people behind SAT Prep
                         </CommunityListItem>
                         <CommunityListItem
                           href="/report-bug"
@@ -160,7 +160,7 @@ export const SiteHeader = ({
                           href="/suggest-feature"
                           title="Suggest a Feature"
                         >
-                          Share your ideas to make MySATPrep better
+                          Share your ideas to make SAT Prep better
                         </CommunityListItem>
                       </ul>
                     </NavigationMenuContent>

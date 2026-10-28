@@ -3,7 +3,7 @@ export type Contributor = {
   role: string;
 };
 
-export type GitHubUser = {
+export type communityUser = {
   login: string;
   name: string | null;
   avatar_url: string;

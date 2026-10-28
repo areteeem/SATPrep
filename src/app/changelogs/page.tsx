@@ -3,14 +3,14 @@ import React from "react";
 import { SiteHeader } from "../navbar";
 import type { Metadata } from "next";
 import FooterSection from "@/components/footer";
-import { members, type GitHubUser } from "@/lib/contributors";
+import { members, type communityUser } from "@/lib/contributors";
 
-async function fetchGitHubUser(username: string): Promise<GitHubUser | null> {
+async function fetchcommunityUser(username: string): Promise<communityUser | null> {
   try {
-    const response = await fetch(`https://api.github.com/users/${username}`, {
+    const response = await fetch(`/${username}`, {
       headers: {
         Accept: "application/vnd.github+json",
-        "User-Agent": "MySATPrep",
+        "User-Agent": "SAT Prep",
       },
       cache: "force-cache",
       next: { revalidate: 86400 },
@@ -28,11 +28,11 @@ async function fetchGitHubUser(username: string): Promise<GitHubUser | null> {
 }
 
 export const metadata: Metadata = {
-  title: "MySATPrep Changelog - Latest Updates, Fixes & Release Notes",
+  title: "SAT Prep Changelog - Latest Updates, Fixes & Release Notes",
   description:
-    "Read the latest MySATPrep changelog for product updates, new features, bug fixes, and release notes across SAT practice, question bank, vocab, and study tools.",
+    "Read the latest SAT Prep changelog for product updates, new features, bug fixes, and release notes across SAT practice, question bank, vocab, and study tools.",
   keywords: [
-    "MySATPrep changelog",
+    "SAT Prep changelog",
     "release notes",
     "product updates",
     "feature updates",
@@ -44,9 +44,9 @@ export const metadata: Metadata = {
     "site changelog",
   ],
   openGraph: {
-    title: "MySATPrep Changelog - Latest Updates, Fixes & Release Notes",
+    title: "SAT Prep Changelog - Latest Updates, Fixes & Release Notes",
     description:
-      "See the latest MySATPrep product updates, feature releases, and bug fixes for SAT practice, vocab, and study tools.",
+      "See the latest SAT Prep product updates, feature releases, and bug fixes for SAT practice, vocab, and study tools.",
     type: "website",
     url: "/changelogs",
     images: [
@@ -54,15 +54,15 @@ export const metadata: Metadata = {
         url: "/seo/dashboard-layout.png",
         width: 1200,
         height: 630,
-        alt: "MySATPrep changelog and product updates",
+        alt: "SAT Prep changelog and product updates",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MySATPrep Changelog - Latest Updates, Fixes & Release Notes",
+    title: "SAT Prep Changelog - Latest Updates, Fixes & Release Notes",
     description:
-      "Read the latest MySATPrep updates, feature releases, and bug fixes.",
+      "Read the latest SAT Prep updates, feature releases, and bug fixes.",
     images: ["/seo/dashboard-layout.png"],
   },
   alternates: {
@@ -77,14 +77,14 @@ export const metadata: Metadata = {
 export default async function Page() {
   const contributors = await Promise.all(
     members.map(async (member) => {
-      const githubUser = await fetchGitHubUser(member.username);
+      const githubUser = await fetchcommunityUser(member.username);
       return {
         username: member.username,
         name: githubUser?.name ?? githubUser?.login ?? member.username,
         designation: member.role,
         image:
           githubUser?.avatar_url ??
-          `https://github.com/${member.username}.png?size=460`,
+          "/icon-192x192.png",
       };
     }),
   );

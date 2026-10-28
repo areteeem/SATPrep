@@ -52,10 +52,10 @@ export const metadata: Metadata = {
     "vocabulary practice exercises",
     "digital SAT vocabulary practice",
   ],
-  authors: [{ name: "MySATPrep Team" }],
-  creator: "MySATPrep",
-  publisher: "MySATPrep",
-  applicationName: "MySATPrep",
+  authors: [{ name: "SAT Prep Team" }],
+  creator: "SAT Prep",
+  publisher: "SAT Prep",
+  applicationName: "SAT Prep",
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
   category: "Education",
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "MySATPrep Vocab Practice",
+    title: "SAT Prep Vocab Practice",
     statusBarStyle: "default",
   },
   openGraph: {
@@ -76,11 +76,11 @@ export const metadata: Metadata = {
     description:
       "Master SAT vocabulary with AI-powered practice modes featuring 800+ College Board words. Adaptive learning, personalized quizzes, and intelligent spaced repetition.",
     type: "website",
-    url: "https://www.mysatprep.fun/dashboard/vocabs/practice",
-    siteName: "MySATPrep",
+    url: "https://www.study-platform.local/dashboard/vocabs/practice",
+    siteName: "SAT Prep",
     locale: "en_US",
     countryName: "United States",
-    emails: ["support@mysatprep.fun"],
+    emails: ["support@study-platform.local"],
     phoneNumbers: [],
     faxNumbers: [],
     images: [
@@ -88,28 +88,28 @@ export const metadata: Metadata = {
         url: "/seo/vocabs-practice-modes.png",
         width: 1200,
         height: 630,
-        alt: "AI-Powered SAT Vocabulary Practice - Multiple Study Modes | MySATPrep",
+        alt: "AI-Powered SAT Vocabulary Practice - Multiple Study Modes | SAT Prep",
         type: "image/png",
       },
       {
         url: "/seo/vocabs-practice-match.png",
         width: 1200,
         height: 630,
-        alt: "SAT Vocabulary Matching Game - Interactive Practice | MySATPrep",
+        alt: "SAT Vocabulary Matching Game - Interactive Practice | SAT Prep",
         type: "image/png",
       },
       {
         url: "/seo/vocabs-ai-feedbacks.png",
         width: 1200,
         height: 630,
-        alt: "AI-Powered Vocabulary Feedback System - Smart Learning | MySATPrep",
+        alt: "AI-Powered Vocabulary Feedback System - Smart Learning | SAT Prep",
         type: "image/png",
       },
       {
         url: "/icon-512x512.png",
         width: 512,
         height: 512,
-        alt: "MySATPrep Logo",
+        alt: "SAT Prep Logo",
         type: "image/png",
       },
     ],
@@ -118,20 +118,20 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "@MySATPrep",
-    creator: "@MySATPrep",
+    site: "@SAT Prep",
+    creator: "@SAT Prep",
     title: "AI-Powered SAT Vocabulary Practice | Multiple Study Modes",
     description:
       "Master 800+ SAT vocabulary words with AI-powered practice modes. Adaptive learning, personalized quizzes, and intelligent coaching from College Board content.",
     images: {
       url: "/seo/vocabs-practice-modes.png",
-      alt: "AI-Powered SAT Vocabulary Practice - MySATPrep",
+      alt: "AI-Powered SAT Vocabulary Practice - SAT Prep",
     },
   },
   alternates: {
-    canonical: "https://www.mysatprep.fun/dashboard/vocabs/practice",
+    canonical: "https://www.study-platform.local/dashboard/vocabs/practice",
     languages: {
-      "en-US": "https://www.mysatprep.fun/dashboard/vocabs/practice",
+      "en-US": "https://www.study-platform.local/dashboard/vocabs/practice",
     },
   },
   robots: {
@@ -151,16 +151,16 @@ export const metadata: Metadata = {
     yandex: process.env.YANDEX_VERIFICATION,
     yahoo: process.env.YAHOO_SITE_VERIFICATION,
     other: {
-      me: ["support@mysatprep.fun"],
+      me: ["support@study-platform.local"],
     },
   },
-  metadataBase: new URL("https://www.mysatprep.fun"),
+  metadataBase: new URL("https://www.study-platform.local"),
   other: {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "MySATPrep Vocab Practice",
-    "application-name": "MySATPrep",
+    "apple-mobile-web-app-title": "SAT Prep Vocab Practice",
+    "application-name": "SAT Prep",
     "msapplication-TileColor": "#0066cc",
     "msapplication-config": "/browserconfig.xml",
     "theme-color": "#0066cc",
@@ -170,22 +170,22 @@ export const metadata: Metadata = {
     HandheldFriendly: "true",
     MobileOptimized: "width",
     "DC.title": "AI-Powered SAT Vocabulary Practice - Multiple Study Modes",
-    "DC.creator": "MySATPrep Team",
+    "DC.creator": "SAT Prep Team",
     "DC.subject":
       "SAT Vocabulary Practice, AI Learning, Test Preparation, Educational Resources",
     "DC.description":
       "AI-powered SAT vocabulary practice with adaptive learning and multiple study modes",
-    "DC.publisher": "MySATPrep",
+    "DC.publisher": "SAT Prep",
     "DC.contributor": "College Board",
     "DC.date": "2024-01-01",
     "DC.type": "Text.Homepage.Educational",
     "DC.format": "text/html",
-    "DC.identifier": "https://www.mysatprep.fun/dashboard/vocabs/practice",
-    "DC.source": "https://www.mysatprep.fun",
+    "DC.identifier": "https://www.study-platform.local/dashboard/vocabs/practice",
+    "DC.source": "https://www.study-platform.local",
     "DC.language": "en",
-    "DC.relation": "https://www.mysatprep.fun",
+    "DC.relation": "https://www.study-platform.local",
     "DC.coverage": "Worldwide",
-    "DC.rights": "© 2024 MySATPrep. All rights reserved.",
+    "DC.rights": "© 2024 SAT Prep. All rights reserved.",
     rating: "general",
     distribution: "global",
     "revisit-after": "7 days",
@@ -207,7 +207,7 @@ export default function VocabsPracticePage() {
     name: "AI-Powered SAT Vocabulary Practice - Practice With 800+ Common Words",
     description:
       "Master SAT vocabulary with AI-powered practice modes featuring 800+ College Board words. Adaptive learning, personalized quizzes, context-based exercises, and intelligent spaced repetition.",
-    url: "https://www.mysatprep.fun/dashboard/vocabs/practice",
+    url: "https://www.study-platform.local/dashboard/vocabs/practice",
     mainEntity: {
       "@type": "Course",
       name: "AI-Powered SAT Vocabulary Practice",
@@ -215,12 +215,12 @@ export default function VocabsPracticePage() {
         "Interactive AI-driven vocabulary practice with multiple learning modes and adaptive algorithms",
       provider: {
         "@type": "EducationalOrganization",
-        name: "MySATPrep",
-        url: "https://www.mysatprep.fun",
+        name: "SAT Prep",
+        url: "https://www.study-platform.local",
         sameAs: [
-          "https://twitter.com/MySATPrep",
-          "https://facebook.com/MySATPrep",
-          "https://instagram.com/MySATPrep",
+          "https://twitter.com/SAT Prep",
+          "https://facebook.com/SAT Prep",
+          "https://instagram.com/SAT Prep",
         ],
       },
       educationalLevel: "High School",
@@ -273,35 +273,35 @@ export default function VocabsPracticePage() {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: "https://www.mysatprep.fun",
+          item: "https://www.study-platform.local",
         },
         {
           "@type": "ListItem",
           position: 2,
           name: "Dashboard",
-          item: "https://www.mysatprep.fun/dashboard",
+          item: "https://www.study-platform.local/dashboard",
         },
         {
           "@type": "ListItem",
           position: 3,
           name: "Vocabulary",
-          item: "https://www.mysatprep.fun/dashboard/vocabs",
+          item: "https://www.study-platform.local/dashboard/vocabs",
         },
         {
           "@type": "ListItem",
           position: 4,
           name: "Practice",
-          item: "https://www.mysatprep.fun/dashboard/vocabs/practice",
+          item: "https://www.study-platform.local/dashboard/vocabs/practice",
         },
       ],
     },
     provider: {
       "@type": "Organization",
-      name: "MySATPrep",
-      url: "https://www.mysatprep.fun",
+      name: "SAT Prep",
+      url: "https://www.study-platform.local",
       logo: {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/icon-512x512.png",
+        url: "https://www.study-platform.local/icon-512x512.png",
       },
     },
     about: [
@@ -324,30 +324,30 @@ export default function VocabsPracticePage() {
     dateModified: new Date().toISOString().split("T")[0],
     publisher: {
       "@type": "Organization",
-      name: "MySATPrep",
+      name: "SAT Prep",
       logo: {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/icon-512x512.png",
+        url: "https://www.study-platform.local/icon-512x512.png",
       },
     },
     image: [
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/vocabs-practice-modes.png",
+        url: "https://www.study-platform.local/seo/vocabs-practice-modes.png",
         width: 1200,
         height: 630,
         caption: "AI-Powered SAT Vocabulary Practice Modes Interface",
       },
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/vocabs-practice-match.png",
+        url: "https://www.study-platform.local/seo/vocabs-practice-match.png",
         width: 1200,
         height: 630,
         caption: "Interactive Vocabulary Matching Game",
       },
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/vocabs-ai-feedbacks.png",
+        url: "https://www.study-platform.local/seo/vocabs-ai-feedbacks.png",
         width: 1200,
         height: 630,
         caption: "AI-Powered Learning Feedback System",
@@ -355,7 +355,7 @@ export default function VocabsPracticePage() {
     ],
     screenshot: {
       "@type": "ImageObject",
-      url: "https://www.mysatprep.fun/seo/vocabs-practice-modes.png",
+      url: "https://www.study-platform.local/seo/vocabs-practice-modes.png",
       caption: "SAT Vocabulary Practice Modes Main Interface",
     },
   };
@@ -378,7 +378,7 @@ export default function VocabsPracticePage() {
       <div className="hidden" aria-hidden="true">
         <h1>
           AI-Powered SAT Vocabulary Practice - Practice With 800+ Common Words |
-          MySATPrep
+          SAT Prep
         </h1>
 
         <h2>Advanced AI-Powered Vocabulary Practice</h2>
@@ -511,12 +511,12 @@ export default function VocabsPracticePage() {
         <footer>
           <address>
             <p>
-              Contact MySATPrep:{" "}
-              <a href="mailto:support@mysatprep.fun">support@mysatprep.fun</a>
+              Contact SAT Prep:{" "}
+              <a href="mailto:support@study-platform.local">support@study-platform.local</a>
             </p>
           </address>
           <p>
-            © 2024 MySATPrep. AI-powered SAT vocabulary practice based on
+            © 2024 SAT Prep. AI-powered SAT vocabulary practice based on
             official College Board materials.
           </p>
           <p>
@@ -537,8 +537,8 @@ export default function VocabsPracticePage() {
             itemScope
             itemType="https://schema.org/Organization"
           >
-            <span itemProp="name">MySATPrep</span>
-            <span itemProp="url">https://www.mysatprep.fun</span>
+            <span itemProp="name">SAT Prep</span>
+            <span itemProp="url">https://www.study-platform.local</span>
           </span>
           <span itemProp="educationalLevel">High School</span>
           <span itemProp="teaches">

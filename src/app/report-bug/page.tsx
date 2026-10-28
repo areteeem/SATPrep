@@ -4,12 +4,12 @@ import type { Metadata } from "next";
 import FooterSection from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "Report a Bug - MySATPrep",
+  title: "Report a Bug - SAT Prep",
   description:
-    "Report bugs, broken pages, or unexpected behavior on MySATPrep so we can improve the SAT practice and study experience.",
+    "Report bugs, broken pages, or unexpected behavior on SAT Prep so we can improve the SAT practice and study experience.",
   keywords: [
     "report a bug",
-    "MySATPrep bug report",
+    "SAT Prep bug report",
     "submit feedback",
     "site issue",
     "broken page",
@@ -18,8 +18,8 @@ export const metadata: Metadata = {
     "report problem",
   ],
   openGraph: {
-    title: "Report a Bug - MySATPrep",
-    description: "Send bug reports and site feedback for MySATPrep.",
+    title: "Report a Bug - SAT Prep",
+    description: "Send bug reports and site feedback for SAT Prep.",
     type: "website",
     url: "/report-bug",
     images: [
@@ -27,14 +27,14 @@ export const metadata: Metadata = {
         url: "/seo/dashboard-layout.png",
         width: 1200,
         height: 630,
-        alt: "MySATPrep bug report form",
+        alt: "SAT Prep bug report form",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Report a Bug - MySATPrep",
-    description: "Report bugs and share feedback about MySATPrep.",
+    title: "Report a Bug - SAT Prep",
+    description: "Report bugs and share feedback about SAT Prep.",
     images: ["/seo/dashboard-layout.png"],
   },
   alternates: {
@@ -59,16 +59,16 @@ export default function Page() {
               </h2>
               <p className="text-muted-foreground mt-6">
                 Let us know about broken pages, unexpected behavior, or other
-                issues you run into while using MySATPrep.
+                issues you run into while using SAT Prep.
               </p>
               <p className="text-muted-foreground text-sm lg:px-36 mt-4">
                 Alternatively, you can also report bugs and share feedback by
                 creating an issue on our{" "}
                 <a
-                  href="https://github.com/aldhanekaa/MySATPrep/"
+                  href="/ Prep/"
                   className="text-blue-500 hover:underline"
                 >
-                  open source GitHub repository.
+                  open source community repository.
                 </a>{" "}
                 Then, if the issue is valid and actionable, I would add you to
                 our{" "}

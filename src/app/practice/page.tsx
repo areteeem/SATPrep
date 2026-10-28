@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     "SAT score improvement",
   ],
   openGraph: {
-    title: "SAT Practice Questions | MySATPrep",
+    title: "SAT Practice Questions | SAT Prep",
     description:
       "Practice with authentic SAT questions from College Board's official question bank. Improve your SAT scores with real test questions covering Math, Reading, and Writing sections.",
     type: "website",
@@ -42,13 +42,13 @@ export const metadata: Metadata = {
         url: "/og-practice.png",
         width: 1200,
         height: 630,
-        alt: "MySATPrep Practice - Authentic SAT questions for effective preparation",
+        alt: "SAT Prep Practice - Authentic SAT questions for effective preparation",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SAT Practice Questions | MySATPrep",
+    title: "SAT Practice Questions | SAT Prep",
     description:
       "Master the SAT with authentic College Board practice questions. Interactive practice sessions for Math, Reading, and Writing sections.",
     images: ["/og-practice.png"],

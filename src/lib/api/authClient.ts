@@ -5,19 +5,12 @@
  * Validates: Requirements 2.1, 2.2, 3.1, 3.2, 17.1
  */
 
-import { cloudflareClient } from "better-auth-cloudflare/client";
-import { createAuthClient } from "better-auth/react";
 import type {
   LoginCredentials,
   RegisterCredentials,
   User,
 } from "@/lib/types/auth";
-
-// Initialize the Better Auth client
-const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_BASE_URL,
-  plugins: [cloudflareClient()],
-});
+import { getLocalUser, saveLocalUser } from "@/lib/localStorageApi";
 
 /**
  * Initiates Google OAuth sign-in by redirecting to the Google consent screen.
@@ -25,10 +18,7 @@ const authClient = createAuthClient({
  * Validates: Requirement 2.1
  */
 export async function loginWithGoogle(callbackURL?: string): Promise<void> {
-  await authClient.signIn.social({
-    provider: "google",
-    callbackURL: callbackURL ?? "/",
-  });
+  throw new Error("Social sign-in is unavailable in local-only mode. Use email sign-in.");
 }
 
 /**
@@ -39,20 +29,11 @@ export async function loginWithGoogle(callbackURL?: string): Promise<void> {
 export async function loginWithEmail(
   credentials: LoginCredentials,
 ): Promise<User> {
-  const result = await authClient.signIn.email({
-    email: credentials.email,
-    password: credentials.password,
-  });
-
-  if (result.error) {
-    throw new Error(result.error.message ?? "Invalid credentials");
-  }
-
-  if (!result.data?.user) {
-    throw new Error("Sign-in failed: no user returned");
-  }
-
-  return mapBetterAuthUser(result.data.user);
+  const existing = getLocalUser();
+  if (existing && existing.email !== credentials.email) throw new Error("No local account exists for this email.");
+  const user = existing ?? { id: crypto.randomUUID(), email: credentials.email, name: null, provider: "email" as const, createdAt: new Date().toISOString() };
+  saveLocalUser(user);
+  return user;
 }
 
 /**
@@ -63,21 +44,9 @@ export async function loginWithEmail(
 export async function registerWithEmail(
   credentials: RegisterCredentials,
 ): Promise<User> {
-  const result = await authClient.signUp.email({
-    email: credentials.email,
-    password: credentials.password,
-    name: credentials.name ?? "",
-  });
-
-  if (result.error) {
-    throw new Error(result.error.message ?? "Registration failed");
-  }
-
-  if (!result.data?.user) {
-    throw new Error("Registration failed: no user returned");
-  }
-
-  return mapBetterAuthUser(result.data.user);
+  const user = { id: crypto.randomUUID(), email: credentials.email, name: credentials.name ?? null, provider: "email" as const, createdAt: new Date().toISOString() };
+  saveLocalUser(user);
+  return user;
 }
 
 /**
@@ -85,11 +54,7 @@ export async function registerWithEmail(
  * Validates: Requirement 17.1
  */
 export async function logout(): Promise<void> {
-  const result = await authClient.signOut();
-
-  if (result.error) {
-    throw new Error(result.error.message ?? "Logout failed");
-  }
+  saveLocalUser(null);
 }
 
 /**
@@ -112,27 +77,7 @@ export class ConnectionTimeoutError extends Error {
  * Validates: Requirement 10.2
  */
 export async function checkSession(): Promise<User | null> {
-  const result = await authClient.getSession();
-
-  // Better Auth surfaces server errors via result.error.status.
-  // A 5xx means the server itself failed (DB timeout, etc.) — this is
-  // distinct from "no session" (which gives a null result with no error).
-  if (result.error) {
-    const status = (result.error as { status?: number }).status;
-    if (status !== undefined && status >= 500) {
-      throw new ConnectionTimeoutError(
-        result.error.message ?? "Database connection timeout",
-      );
-    }
-    // Any other auth error (401, 403…) → not authenticated, not an outage
-    return null;
-  }
-
-  if (!result.data?.user) {
-    return null;
-  }
-
-  return mapBetterAuthUser(result.data.user);
+  return getLocalUser();
 }
 
 /**

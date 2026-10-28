@@ -54,10 +54,10 @@ export const metadata: Metadata = {
     "free SAT tracker",
     "comprehensive SAT analytics",
   ],
-  authors: [{ name: "MySATPrep Team" }],
-  creator: "MySATPrep",
-  publisher: "MySATPrep",
-  applicationName: "MySATPrep",
+  authors: [{ name: "SAT Prep Team" }],
+  creator: "SAT Prep",
+  publisher: "SAT Prep",
+  applicationName: "SAT Prep",
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
   category: "Education",
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "MySATPrep Tracker",
+    title: "SAT Prep Tracker",
     statusBarStyle: "default",
   },
   openGraph: {
@@ -79,11 +79,11 @@ export const metadata: Metadata = {
     description:
       "Track your College Board SAT Suite Question Bank progress with detailed analytics. Monitor performance on official Collegeboard questions, view accuracy rates, and track improvement trends.",
     type: "website",
-    url: "https://www.mysatprep.fun/dashboard/tracker",
-    siteName: "MySATPrep",
+    url: "https://www.study-platform.local/dashboard/tracker",
+    siteName: "SAT Prep",
     locale: "en_US",
     countryName: "United States",
-    emails: ["support@mysatprep.fun"],
+    emails: ["support@study-platform.local"],
     phoneNumbers: [],
     faxNumbers: [],
     images: [
@@ -91,28 +91,28 @@ export const metadata: Metadata = {
         url: "/seo/personalized-stats.png",
         width: 1200,
         height: 630,
-        alt: "SAT Progress Tracker - College Board Question Bank Analytics | MySATPrep",
+        alt: "SAT Progress Tracker - College Board Question Bank Analytics | SAT Prep",
         type: "image/png",
       },
       {
         url: "/seo/questionbank-tracker.png",
         width: 1200,
         height: 630,
-        alt: "SAT Question Bank Progress Tracking - Performance Analytics | MySATPrep",
+        alt: "SAT Question Bank Progress Tracking - Performance Analytics | SAT Prep",
         type: "image/png",
       },
       {
         url: "/seo/dashboard-layout.png",
         width: 1200,
         height: 630,
-        alt: "SAT Dashboard with Progress Analytics - MySATPrep",
+        alt: "SAT Dashboard with Progress Analytics - SAT Prep",
         type: "image/png",
       },
       {
         url: "/icon-512x512.png",
         width: 512,
         height: 512,
-        alt: "MySATPrep Logo",
+        alt: "SAT Prep Logo",
         type: "image/png",
       },
     ],
@@ -121,21 +121,21 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "@MySATPrep",
-    creator: "@MySATPrep",
+    site: "@SAT Prep",
+    creator: "@SAT Prep",
     title:
       "SAT Progress Tracker | Track College Board Question Bank Performance",
     description:
       "Monitor your SAT Suite Question Bank preparation with detailed analytics. Track accuracy on official Collegeboard questions, time spent, and improvement trends.",
     images: {
       url: "/seo/personalized-stats.png",
-      alt: "SAT Progress Tracker - MySATPrep",
+      alt: "SAT Progress Tracker - SAT Prep",
     },
   },
   alternates: {
-    canonical: "https://www.mysatprep.fun/dashboard/tracker",
+    canonical: "https://www.study-platform.local/dashboard/tracker",
     languages: {
-      "en-US": "https://www.mysatprep.fun/dashboard/tracker",
+      "en-US": "https://www.study-platform.local/dashboard/tracker",
     },
   },
   robots: {
@@ -155,16 +155,16 @@ export const metadata: Metadata = {
     yandex: process.env.YANDEX_VERIFICATION,
     yahoo: process.env.YAHOO_SITE_VERIFICATION,
     other: {
-      me: ["support@mysatprep.fun"],
+      me: ["support@study-platform.local"],
     },
   },
-  metadataBase: new URL("https://www.mysatprep.fun"),
+  metadataBase: new URL("https://www.study-platform.local"),
   other: {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "MySATPrep Tracker",
-    "application-name": "MySATPrep",
+    "apple-mobile-web-app-title": "SAT Prep Tracker",
+    "application-name": "SAT Prep",
     "msapplication-TileColor": "#0066cc",
     "msapplication-config": "/browserconfig.xml",
     "theme-color": "#0066cc",
@@ -174,22 +174,22 @@ export const metadata: Metadata = {
     HandheldFriendly: "true",
     MobileOptimized: "width",
     "DC.title": "SAT Progress Tracker - College Board Question Bank Analytics",
-    "DC.creator": "MySATPrep Team",
+    "DC.creator": "SAT Prep Team",
     "DC.subject":
       "SAT Progress Tracking, Analytics, Test Preparation, Educational Resources",
     "DC.description":
       "Comprehensive SAT progress tracker with detailed analytics for College Board questions",
-    "DC.publisher": "MySATPrep",
+    "DC.publisher": "SAT Prep",
     "DC.contributor": "College Board",
     "DC.date": "2024-01-01",
     "DC.type": "Text.Homepage.Educational",
     "DC.format": "text/html",
-    "DC.identifier": "https://www.mysatprep.fun/dashboard/tracker",
-    "DC.source": "https://www.mysatprep.fun",
+    "DC.identifier": "https://www.study-platform.local/dashboard/tracker",
+    "DC.source": "https://www.study-platform.local",
     "DC.language": "en",
-    "DC.relation": "https://www.mysatprep.fun",
+    "DC.relation": "https://www.study-platform.local",
     "DC.coverage": "Worldwide",
-    "DC.rights": "© 2024 MySATPrep. All rights reserved.",
+    "DC.rights": "© 2024 SAT Prep. All rights reserved.",
     rating: "general",
     distribution: "global",
     "revisit-after": "7 days",
@@ -211,7 +211,7 @@ export default function SessionsPage() {
     name: "SAT Progress Tracker - Track Your College Board Question Bank Progress",
     description:
       "Track your College Board SAT Suite Question Bank progress with detailed analytics. Monitor your performance on official Collegeboard questions across Math, Reading, and Writing sections.",
-    url: "https://www.mysatprep.fun/dashboard/tracker",
+    url: "https://www.study-platform.local/dashboard/tracker",
     mainEntity: {
       "@type": "SoftwareApplication",
       name: "SAT Progress Tracker",
@@ -226,12 +226,12 @@ export default function SessionsPage() {
       },
       provider: {
         "@type": "EducationalOrganization",
-        name: "MySATPrep",
-        url: "https://www.mysatprep.fun",
+        name: "SAT Prep",
+        url: "https://www.study-platform.local",
         sameAs: [
-          "https://twitter.com/MySATPrep",
-          "https://facebook.com/MySATPrep",
-          "https://instagram.com/MySATPrep",
+          "https://twitter.com/SAT Prep",
+          "https://facebook.com/SAT Prep",
+          "https://instagram.com/SAT Prep",
         ],
       },
       featureList: [
@@ -246,7 +246,7 @@ export default function SessionsPage() {
       ],
       screenshot: {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/personalized-stats.png",
+        url: "https://www.study-platform.local/seo/personalized-stats.png",
       },
     },
     breadcrumb: {
@@ -256,29 +256,29 @@ export default function SessionsPage() {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: "https://www.mysatprep.fun",
+          item: "https://www.study-platform.local",
         },
         {
           "@type": "ListItem",
           position: 2,
           name: "Dashboard",
-          item: "https://www.mysatprep.fun/dashboard",
+          item: "https://www.study-platform.local/dashboard",
         },
         {
           "@type": "ListItem",
           position: 3,
           name: "Progress Tracker",
-          item: "https://www.mysatprep.fun/dashboard/tracker",
+          item: "https://www.study-platform.local/dashboard/tracker",
         },
       ],
     },
     provider: {
       "@type": "Organization",
-      name: "MySATPrep",
-      url: "https://www.mysatprep.fun",
+      name: "SAT Prep",
+      url: "https://www.study-platform.local",
       logo: {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/icon-512x512.png",
+        url: "https://www.study-platform.local/icon-512x512.png",
       },
     },
     about: [
@@ -301,30 +301,30 @@ export default function SessionsPage() {
     dateModified: new Date().toISOString().split("T")[0],
     publisher: {
       "@type": "Organization",
-      name: "MySATPrep",
+      name: "SAT Prep",
       logo: {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/icon-512x512.png",
+        url: "https://www.study-platform.local/icon-512x512.png",
       },
     },
     image: [
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/personalized-stats.png",
+        url: "https://www.study-platform.local/seo/personalized-stats.png",
         width: 1200,
         height: 630,
         caption: "Personalized SAT Progress Analytics Dashboard",
       },
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/questionbank-tracker.png",
+        url: "https://www.study-platform.local/seo/questionbank-tracker.png",
         width: 1200,
         height: 630,
         caption: "SAT Question Bank Progress Tracking Interface",
       },
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/dashboard-layout.png",
+        url: "https://www.study-platform.local/seo/dashboard-layout.png",
         width: 1200,
         height: 630,
         caption: "Comprehensive SAT Dashboard Layout",
@@ -332,7 +332,7 @@ export default function SessionsPage() {
     ],
     screenshot: {
       "@type": "ImageObject",
-      url: "https://www.mysatprep.fun/seo/personalized-stats.png",
+      url: "https://www.study-platform.local/seo/personalized-stats.png",
       caption: "SAT Progress Tracker Main Interface",
     },
   };
@@ -354,7 +354,7 @@ export default function SessionsPage() {
       <div className="hidden" aria-hidden="true">
         <h1>
           SAT Progress Tracker - Track Your College Board Question Bank Progress
-          | MySATPrep
+          | SAT Prep
         </h1>
 
         <h2>Advanced SAT Progress Analytics</h2>
@@ -479,12 +479,12 @@ export default function SessionsPage() {
         <footer>
           <address>
             <p>
-              Contact MySATPrep:{" "}
-              <a href="mailto:support@mysatprep.fun">support@mysatprep.fun</a>
+              Contact SAT Prep:{" "}
+              <a href="mailto:support@study-platform.local">support@study-platform.local</a>
             </p>
           </address>
           <p>
-            © 2024 MySATPrep. SAT progress tracking based on official College
+            © 2024 SAT Prep. SAT progress tracking based on official College
             Board question performance.
           </p>
           <p>
@@ -517,8 +517,8 @@ export default function SessionsPage() {
             itemScope
             itemType="https://schema.org/Organization"
           >
-            <span itemProp="name">MySATPrep</span>
-            <span itemProp="url">https://www.mysatprep.fun</span>
+            <span itemProp="name">SAT Prep</span>
+            <span itemProp="url">https://www.study-platform.local</span>
           </span>
         </div>
 

@@ -494,3 +494,7 @@ td {
 .questionProblemCard tr:hover td {
   background: var(--accent) !important;
 }
+
+@media (min-width: 1024px) {
+  .sat-passage-column .sat-passage-fits { position: sticky; top: 24px; align-self: start; }
+}

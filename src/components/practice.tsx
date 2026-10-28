@@ -6,6 +6,7 @@ import { SiteHeader } from "@/app/navbar";
 import PracticeOnboarding from "@/components/practice-onboarding";
 import PracticeRushMultistep from "@/components/practice-rush-multistep";
 import PracticeRushCelebration from "@/components/celebrating-section/practice-rush-celebration";
+import { ShareRushResult } from "@/components/share-rush-result";
 // import type { Metadata } from "next";
 
 import {
@@ -1073,11 +1074,11 @@ function Practice() {
           )}
 
           {!shouldRestoreSession && sessionComplete && sessionData ? (
-            <PracticeRushCelebration
+            <><PracticeRushCelebration
               sessionData={sessionData}
               onContinue={handleContinuePracticing}
               correctAnswerChoices={correctAnswers || {}}
-            />
+            /><ShareRushResult session={sessionData} /></>
           ) : !shouldRestoreSession && !onboardingComplete ? (
             <React.Fragment>
               <PracticeOnboarding onComplete={handleOnboardingComplete} />

@@ -51,10 +51,10 @@ export const metadata: Metadata = {
     "free SAT questions",
     "SAT question categories",
   ],
-  authors: [{ name: "MySATPrep Team" }],
-  creator: "MySATPrep",
-  publisher: "MySATPrep",
-  applicationName: "MySATPrep",
+  authors: [{ name: "SAT Prep Team" }],
+  creator: "SAT Prep",
+  publisher: "SAT Prep",
+  applicationName: "SAT Prep",
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
   category: "Education",
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "MySATPrep Question Bank",
+    title: "SAT Prep Question Bank",
     statusBarStyle: "default",
   },
   openGraph: {
@@ -75,11 +75,11 @@ export const metadata: Metadata = {
     description:
       "Access the complete SAT Question Bank with 2000+ official College Board questions. Browse SAT Suite Question Bank with real exam questions for all sections.",
     type: "website",
-    url: "https://www.mysatprep.fun/questionbank",
-    siteName: "MySATPrep",
+    url: "https://www.study-platform.local/questionbank",
+    siteName: "SAT Prep",
     locale: "en_US",
     countryName: "United States",
-    emails: ["support@mysatprep.fun"],
+    emails: ["support@study-platform.local"],
     phoneNumbers: [],
     faxNumbers: [],
     images: [
@@ -87,28 +87,28 @@ export const metadata: Metadata = {
         url: "/seo/question-bank.png",
         width: 1200,
         height: 630,
-        alt: "SAT Question Bank - 2000+ Official College Board Questions | MySATPrep",
+        alt: "SAT Question Bank - 2000+ Official College Board Questions | SAT Prep",
         type: "image/png",
       },
       {
         url: "/seo/questionbank-tracker.png",
         width: 1200,
         height: 630,
-        alt: "SAT Question Bank Progress Tracker - MySATPrep",
+        alt: "SAT Question Bank Progress Tracker - SAT Prep",
         type: "image/png",
       },
       {
         url: "/seo/save-important-questions.png",
         width: 1200,
         height: 630,
-        alt: "Save Important SAT Questions Feature - MySATPrep",
+        alt: "Save Important SAT Questions Feature - SAT Prep",
         type: "image/png",
       },
       {
         url: "/icon-512x512.png",
         width: 512,
         height: 512,
-        alt: "MySATPrep Logo",
+        alt: "SAT Prep Logo",
         type: "image/png",
       },
     ],
@@ -117,20 +117,20 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "@MySATPrep",
-    creator: "@MySATPrep",
+    site: "@SAT Prep",
+    creator: "@SAT Prep",
     title: "SAT Question Bank | 2000+ Official College Board Questions",
     description:
       "Browse the complete SAT Question Bank with 2000+ official College Board questions. Real SAT Suite questions for comprehensive test preparation.",
     images: {
       url: "/seo/question-bank.png",
-      alt: "SAT Question Bank - MySATPrep",
+      alt: "SAT Question Bank - SAT Prep",
     },
   },
   alternates: {
-    canonical: "https://www.mysatprep.fun/questionbank",
+    canonical: "https://www.study-platform.local/questionbank",
     languages: {
-      "en-US": "https://www.mysatprep.fun/questionbank",
+      "en-US": "https://www.study-platform.local/questionbank",
     },
   },
   robots: {
@@ -150,16 +150,16 @@ export const metadata: Metadata = {
     yandex: process.env.YANDEX_VERIFICATION,
     yahoo: process.env.YAHOO_SITE_VERIFICATION,
     other: {
-      me: ["support@mysatprep.fun"],
+      me: ["support@study-platform.local"],
     },
   },
-  metadataBase: new URL("https://www.mysatprep.fun"),
+  metadataBase: new URL("https://www.study-platform.local"),
   other: {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "MySATPrep Question Bank",
-    "application-name": "MySATPrep",
+    "apple-mobile-web-app-title": "SAT Prep Question Bank",
+    "application-name": "SAT Prep",
     "msapplication-TileColor": "#0066cc",
     "msapplication-config": "/browserconfig.xml",
     "theme-color": "#0066cc",
@@ -169,21 +169,21 @@ export const metadata: Metadata = {
     HandheldFriendly: "true",
     MobileOptimized: "width",
     "DC.title": "SAT Question Bank - 2000+ Official College Board Questions",
-    "DC.creator": "MySATPrep Team",
+    "DC.creator": "SAT Prep Team",
     "DC.subject": "SAT Test Preparation, Educational Resources",
     "DC.description":
       "Complete SAT Question Bank with official College Board questions",
-    "DC.publisher": "MySATPrep",
+    "DC.publisher": "SAT Prep",
     "DC.contributor": "College Board",
     "DC.date": "2024-01-01",
     "DC.type": "Text.Homepage.Educational",
     "DC.format": "text/html",
-    "DC.identifier": "https://www.mysatprep.fun/questionbank",
-    "DC.source": "https://www.mysatprep.fun",
+    "DC.identifier": "https://www.study-platform.local/questionbank",
+    "DC.source": "https://www.study-platform.local",
     "DC.language": "en",
-    "DC.relation": "https://www.mysatprep.fun",
+    "DC.relation": "https://www.study-platform.local",
     "DC.coverage": "Worldwide",
-    "DC.rights": "© 2024 MySATPrep. All rights reserved.",
+    "DC.rights": "© 2024 SAT Prep. All rights reserved.",
     rating: "general",
     distribution: "global",
     "revisit-after": "7 days",
@@ -205,17 +205,17 @@ export default function QuestionbankPage() {
     name: "SAT Question Bank - 2000+ Official College Board Questions",
     description:
       "Access the complete SAT Question Bank with 2000+ official College Board questions. Browse SAT Suite Question Bank with real exam questions for Math, Reading, and Writing sections.",
-    url: "https://www.mysatprep.fun/questionbank",
+    url: "https://www.study-platform.local/questionbank",
     mainEntity: {
       "@type": "EducationalOrganization",
-      name: "MySATPrep",
-      url: "https://www.mysatprep.fun",
+      name: "SAT Prep",
+      url: "https://www.study-platform.local",
       description:
         "Complete SAT test preparation platform with official College Board questions",
       sameAs: [
-        "https://twitter.com/MySATPrep",
-        "https://facebook.com/MySATPrep",
-        "https://instagram.com/MySATPrep",
+        "https://twitter.com/SAT Prep",
+        "https://facebook.com/SAT Prep",
+        "https://instagram.com/SAT Prep",
       ],
     },
     breadcrumb: {
@@ -225,23 +225,23 @@ export default function QuestionbankPage() {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: "https://www.mysatprep.fun",
+          item: "https://www.study-platform.local",
         },
         {
           "@type": "ListItem",
           position: 2,
           name: "Question Bank",
-          item: "https://www.mysatprep.fun/questionbank",
+          item: "https://www.study-platform.local/questionbank",
         },
       ],
     },
     provider: {
       "@type": "Organization",
-      name: "MySATPrep",
-      url: "https://www.mysatprep.fun",
+      name: "SAT Prep",
+      url: "https://www.study-platform.local",
       logo: {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/icon-512x512.png",
+        url: "https://www.study-platform.local/icon-512x512.png",
       },
     },
     about: [
@@ -264,30 +264,30 @@ export default function QuestionbankPage() {
     dateModified: new Date().toISOString().split("T")[0],
     publisher: {
       "@type": "Organization",
-      name: "MySATPrep",
+      name: "SAT Prep",
       logo: {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/icon-512x512.png",
+        url: "https://www.study-platform.local/icon-512x512.png",
       },
     },
     image: [
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/question-bank.png",
+        url: "https://www.study-platform.local/seo/question-bank.png",
         width: 1200,
         height: 630,
         caption: "SAT Question Bank Interface",
       },
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/questionbank-tracker.png",
+        url: "https://www.study-platform.local/seo/questionbank-tracker.png",
         width: 1200,
         height: 630,
         caption: "Question Bank Progress Tracker",
       },
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/save-important-questions.png",
+        url: "https://www.study-platform.local/seo/save-important-questions.png",
         width: 1200,
         height: 630,
         caption: "Save Important Questions Feature",
@@ -295,7 +295,7 @@ export default function QuestionbankPage() {
     ],
     screenshot: {
       "@type": "ImageObject",
-      url: "https://www.mysatprep.fun/seo/question-bank.png",
+      url: "https://www.study-platform.local/seo/question-bank.png",
       caption: "SAT Question Bank Main Interface",
     },
   };
@@ -313,7 +313,7 @@ export default function QuestionbankPage() {
       {/* Hidden SEO Elements */}
       <div className="hidden" aria-hidden="true">
         <h1>
-          SAT Question Bank - 2000+ Official College Board Questions | MySATPrep
+          SAT Question Bank - 2000+ Official College Board Questions | SAT Prep
         </h1>
 
         <h2>Official SAT Suite Question Bank</h2>
@@ -366,7 +366,7 @@ export default function QuestionbankPage() {
 
         <article>
           <header>
-            <h4>Why Choose MySATPrep Question Bank?</h4>
+            <h4>Why Choose SAT Prep Question Bank?</h4>
           </header>
           <section>
             <h5>Official College Board Questions</h5>
@@ -410,12 +410,12 @@ export default function QuestionbankPage() {
         <footer>
           <address>
             <p>
-              Contact MySATPrep:{" "}
-              <a href="mailto:support@mysatprep.fun">support@mysatprep.fun</a>
+              Contact SAT Prep:{" "}
+              <a href="mailto:support@study-platform.local">support@study-platform.local</a>
             </p>
           </address>
           <p>
-            © 2024 MySATPrep. Official SAT questions used under license from
+            © 2024 SAT Prep. Official SAT questions used under license from
             College Board.
           </p>
           <p>
@@ -426,13 +426,13 @@ export default function QuestionbankPage() {
 
         {/* Additional semantic elements for SEO */}
         <div itemScope itemType="https://schema.org/EducationalOrganization">
-          <span itemProp="name">MySATPrep</span>
+          <span itemProp="name">SAT Prep</span>
           <span itemProp="description">
             Complete SAT preparation platform with official College Board
             questions
           </span>
-          <span itemProp="url">https://www.mysatprep.fun</span>
-          <span itemProp="email">support@mysatprep.fun</span>
+          <span itemProp="url">https://www.study-platform.local</span>
+          <span itemProp="email">support@study-platform.local</span>
         </div>
 
         <div itemScope itemType="https://schema.org/Course">
@@ -445,7 +445,7 @@ export default function QuestionbankPage() {
             itemScope
             itemType="https://schema.org/Organization"
           >
-            <span itemProp="name">MySATPrep</span>
+            <span itemProp="name">SAT Prep</span>
           </span>
           <span itemProp="educationalLevel">High School</span>
           <span itemProp="teaches">SAT Test Preparation</span>

@@ -11,7 +11,7 @@
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-// Prevent imports that pull in better-auth or Next.js server code
+// Prevent imports that pull in local auth or Next.js server code
 jest.mock("@/lib/api/authClient", () => ({
   loginWithGoogle: jest.fn(),
   loginWithEmail: jest.fn(),

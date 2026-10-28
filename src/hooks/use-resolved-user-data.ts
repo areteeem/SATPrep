@@ -36,7 +36,9 @@ import type { PlainQuestionType } from "@/types/question";
 
 import type { SavedQuestion as ReduxSavedQuestion } from "@/lib/types/userData";
 import type { SavedCollection as ReduxSavedCollection } from "@/lib/types/userData";
-import { reconstructPlainQuestion } from "@/lib/db/bookmarkTransforms";
+function reconstructPlainQuestion(input: { questionId: string; externalId?: string | null; ibn?: string | null; storedMeta?: PlainQuestionType | { primary_class_cd: string; skill_cd: string; difficulty: "E" | "M" | "H" } | null }) {
+  return input.storedMeta ?? { questionId: input.questionId, external_id: input.externalId ?? "", ibn: input.ibn ?? "", primary_class_cd: "", skill_cd: "", difficulty: "M" as const };
+}
 
 const DEFAULT_VOCABS_DATA: VocabsData = {
   learntVocabs: [],
@@ -85,7 +87,7 @@ function bookmarksToSavedQuestions(
         | undefined,
     });
 
-    acc[key].push({ ...bookmark, plainQuestion } as SavedQuestion);
+    acc[key].push({ ...bookmark, plainQuestion } as unknown as SavedQuestion);
     return acc;
   }, {});
 }

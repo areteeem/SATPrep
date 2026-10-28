@@ -120,6 +120,8 @@ export interface PracticeSession {
   sessionId: string;
   timestamp: string; // ISO 8601 format
   status: SessionStatus;
+  /** Optional user-defined name shown in the practice-set history. */
+  name?: string;
 
   // Practice configuration
   practiceSelections: PracticeSelections;

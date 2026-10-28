@@ -133,7 +133,7 @@ export const EmailPasswordForm = memo(function EmailPasswordForm({
     // If the thunk fulfilled without error, show success toast and call the success callback
     if (result.meta.requestStatus === "fulfilled") {
       if (isSignUp) {
-        toast.success("Account created! Welcome to MySATPrep.");
+        toast.success("Account created! Welcome to SAT Prep.");
       } else {
         toast.success("Welcome back!");
       }

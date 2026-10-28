@@ -14,19 +14,25 @@ import {
   ChevronUp,
   Trash2,
   AlertTriangle,
-  CopyIcon,
+  Search,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { playSound } from "@/lib/playSound";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import { useStore } from "react-redux";
+import type { RootState } from "@/lib/redux/store";
 import { removeSession } from "@/lib/redux/slices/userDataSlice";
 import {
   selectIsAuthenticated,
   selectUserSessions,
 } from "@/lib/redux/selectors";
 import { useResolvedPracticeStatistics } from "@/hooks/use-resolved-user-data";
+import { updatePracticeSession } from "@/lib/utils/dataSync";
 
 interface QuestionResult {
   questionId: string;
@@ -45,11 +51,53 @@ export function SessionsTab() {
   const [sessionToDelete, setSessionToDelete] =
     useState<PracticeSession | null>(null);
   const [isCurrentSession, setIsCurrentSession] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState("");
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const store = useStore<RootState>();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const reduxSessions = useAppSelector(selectUserSessions);
   const practiceStatistics = useResolvedPracticeStatistics();
+
+  const getSessionName = (session: PracticeSession) =>
+    session.name?.trim() ||
+    `${session.practiceSelections.assessment} - ${session.practiceSelections.subject}`;
+
+  const filteredPracticeHistory = practiceHistory.filter((session) => {
+    const query = searchQuery.trim().toLowerCase();
+    return !query || getSessionName(session).toLowerCase().includes(query);
+  });
+
+  const startEditingName = (session: PracticeSession) => {
+    setEditingSessionId(session.sessionId);
+    setDraftName(getSessionName(session));
+  };
+
+  const cancelEditingName = () => {
+    setEditingSessionId(null);
+    setDraftName("");
+  };
+
+  const saveSessionName = (session: PracticeSession) => {
+    const name = draftName.trim().slice(0, 80);
+    const updatedSession = { ...session, name: name || undefined };
+
+    setPracticeHistory((current) =>
+      current.map((item) =>
+        item.sessionId === session.sessionId ? updatedSession : item,
+      ),
+    );
+    updatePracticeSession(
+      session.sessionId,
+      { name: name || undefined },
+      dispatch,
+      store.getState(),
+    );
+    toast.success(name ? "Practice set renamed" : "Practice set name cleared");
+    cancelEditingName();
+  };
 
   useEffect(() => {
     const loadSessions = () => {
@@ -264,13 +312,27 @@ export function SessionsTab() {
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Practice Sessions</h2>
         <div className="text-sm text-muted-foreground">
-          {practiceHistory.length} total sessions
+          {filteredPracticeHistory.length} of {practiceHistory.length} sessions
         </div>
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Review your past practice sessions and performance history.
+        Name your practice sets and quickly find them when you want to review.
       </p>
+
+      {practiceHistory.length > 0 && (
+        <div className="relative max-w-xl">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search practice sets by name"
+            aria-label="Search practice sets by name"
+            className="w-full rounded-md border bg-background py-2 pl-9 pr-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+          />
+        </div>
+      )}
 
       {practiceHistory.length === 0 ? (
         <div className="text-center py-8">
@@ -281,9 +343,13 @@ export function SessionsTab() {
             <Button variant="outline">Start Your First Practice Session</Button>
           </Link>
         </div>
+      ) : filteredPracticeHistory.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No practice sets match “{searchQuery}”.</p>
+        </div>
       ) : (
         <div className="space-y-3">
-          {practiceHistory.map((session, index) => {
+          {filteredPracticeHistory.map((session, index) => {
             const sessionId = session.sessionId || `session-${index}`;
             const isExpanded = expandedSessions.has(sessionId);
             const questionResults = getQuestionResults(session);
@@ -296,10 +362,35 @@ export function SessionsTab() {
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium">
-                        {session.practiceSelections.assessment} -{" "}
-                        {session.practiceSelections.subject}
-                      </h3>
+                      {editingSessionId === sessionId ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            autoFocus
+                            value={draftName}
+                            onChange={(event) => setDraftName(event.target.value)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") saveSessionName(session);
+                              if (event.key === "Escape") cancelEditingName();
+                            }}
+                            maxLength={80}
+                            aria-label="Practice set name"
+                            className="h-8 w-56 rounded-md border bg-background px-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                          />
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => saveSessionName(session)} aria-label="Save practice set name">
+                            <Check className="h-4 w-4 text-green-600" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={cancelEditingName} aria-label="Cancel renaming">
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <h3 className="font-medium">{getSessionName(session)}</h3>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEditingName(session)} aria-label={`Rename ${getSessionName(session)}`}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </>
+                      )}
                       <Badge
                         variant="outline"
                         className={getStatusColor(session.status)}
@@ -307,6 +398,11 @@ export function SessionsTab() {
                         {formatStatusText(session.status)}
                       </Badge>
                     </div>
+                    {session.name?.trim() && (
+                      <p className="text-xs text-muted-foreground mb-1">
+                        {session.practiceSelections.assessment} · {session.practiceSelections.subject}
+                      </p>
+                    )}
                     <p className="text-sm text-muted-foreground mb-1">
                       {session.practiceSelections.domains
                         .map((d) => d.text)

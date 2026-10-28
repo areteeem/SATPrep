@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "MySATPrep - SAT Practice & Question Bank with 2000+ Official College Board Questions",
-    short_name: "MySATPrep",
+    name: "SAT Prep - SAT Practice & Question Bank with 2000+ Official College Board Questions",
+    short_name: "SAT Prep",
     description:
       "Complete SAT preparation platform with 2000+ official College Board questions, interactive vocabulary flashcards, progress tracking, and personalized learning. Free SAT practice for better scores.",
     start_url: "/?utm_source=pwa",
@@ -130,7 +130,7 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
         form_factor: "wide",
         label:
-          "MySATPrep new dashboard interface with comprehensive SAT practice tools, progress tracking, and personalized learning analytics",
+          "SAT Prep new dashboard interface with comprehensive SAT practice tools, progress tracking, and personalized learning analytics",
       },
       {
         src: "/screenshots/news-questionbank.png",

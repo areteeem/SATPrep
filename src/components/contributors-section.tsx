@@ -1,11 +1,11 @@
-import { Contributor, GitHubUser, members } from "@/lib/contributors";
+import { Contributor, communityUser, members } from "@/lib/contributors";
 
-async function fetchGitHubUser(username: string): Promise<GitHubUser | null> {
+async function fetchcommunityUser(username: string): Promise<communityUser | null> {
   try {
-    const response = await fetch(`https://api.github.com/users/${username}`, {
+    const response = await fetch(`/${username}`, {
       headers: {
         Accept: "application/vnd.github+json",
-        "User-Agent": "MySATPrep",
+        "User-Agent": "SAT Prep",
       },
       cache: "force-cache",
       next: { revalidate: 86400 },
@@ -26,16 +26,16 @@ async function fetchGitHubUser(username: string): Promise<GitHubUser | null> {
 export default async function ContributorsSection() {
   const contributors = await Promise.all(
     members.map(async (member) => {
-      const githubUser = await fetchGitHubUser(member.username);
+      const githubUser = await fetchcommunityUser(member.username);
 
       return {
         ...member,
         avatar:
           githubUser?.avatar_url ??
-          `https://github.com/${member.username}.png?size=460`,
+          "/icon-192x192.png",
         displayName: githubUser?.name ?? githubUser?.login ?? member.username,
         profileUrl:
-          githubUser?.html_url ?? `https://github.com/${member.username}`,
+          "/",
       };
     }),
   );
@@ -50,12 +50,12 @@ export default async function ContributorsSection() {
           <p>
             Want to be featured? Visit our{" "}
             <a
-              href="https://github.com/aldhanekaa/MySATPrep/"
+              href="/ Prep/"
               className="text-blue-500 hover:underline"
             >
-              open source GitHub repository
+              open source community repository
             </a>{" "}
-            and make contributinos by reporting issues on the GitHub or making
+            and make contributinos by reporting issues on the community or making
             pull requests. <br />
             <br />
             We welcome all contributions, big or small, and are grateful for the

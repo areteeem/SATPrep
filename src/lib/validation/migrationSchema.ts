@@ -48,6 +48,7 @@ export const PracticeSessionSchema = z.object({
   sessionId: z.string(),
   timestamp: z.string().optional(),
   status: z.string().optional(),
+  name: z.string().max(80).optional(),
   practiceSelections: z.unknown().optional(),
   currentQuestionStep: z.number().optional(),
   questionAnswers: z.record(z.string(), z.string().nullable()).optional(),

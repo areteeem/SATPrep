@@ -72,10 +72,10 @@ export const metadata: Metadata = {
     "SAT word definition cards",
     "visual SAT vocabulary learning",
   ],
-  authors: [{ name: "MySATPrep Team" }],
-  creator: "MySATPrep",
-  publisher: "MySATPrep",
-  applicationName: "MySATPrep",
+  authors: [{ name: "SAT Prep Team" }],
+  creator: "SAT Prep",
+  publisher: "SAT Prep",
+  applicationName: "SAT Prep",
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
   category: "Education",
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "MySATPrep Flashcards",
+    title: "SAT Prep Flashcards",
     statusBarStyle: "default",
   },
   openGraph: {
@@ -96,11 +96,11 @@ export const metadata: Metadata = {
     description:
       "Learn SAT vocabulary with interactive flashcards featuring 800+ essential words from College Board's SAT Suite Question Bank. Master SAT vocab through spaced repetition and quiz mode.",
     type: "website",
-    url: "https://www.mysatprep.fun/dashboard/vocabs/learn",
-    siteName: "MySATPrep",
+    url: "https://www.study-platform.local/dashboard/vocabs/learn",
+    siteName: "SAT Prep",
     locale: "en_US",
     countryName: "United States",
-    emails: ["support@mysatprep.fun"],
+    emails: ["support@study-platform.local"],
     phoneNumbers: [],
     faxNumbers: [],
     images: [
@@ -108,28 +108,28 @@ export const metadata: Metadata = {
         url: "/seo/vocabs-flashcard.png",
         width: 1200,
         height: 630,
-        alt: "SAT Vocabulary Flashcards - Interactive Learning with 800+ Words | MySATPrep",
+        alt: "SAT Vocabulary Flashcards - Interactive Learning with 800+ Words | SAT Prep",
         type: "image/png",
       },
       {
         url: "/seo/vocabs-practice-modes.png",
         width: 1200,
         height: 630,
-        alt: "SAT Vocabulary Practice Modes - Multiple Learning Methods | MySATPrep",
+        alt: "SAT Vocabulary Practice Modes - Multiple Learning Methods | SAT Prep",
         type: "image/png",
       },
       {
         url: "/seo/vocabs-ai-feedbacks.png",
         width: 1200,
         height: 630,
-        alt: "SAT Vocabulary AI Feedback - Smart Learning System | MySATPrep",
+        alt: "SAT Vocabulary AI Feedback - Smart Learning System | SAT Prep",
         type: "image/png",
       },
       {
         url: "/icon-512x512.png",
         width: 512,
         height: 512,
-        alt: "MySATPrep Logo",
+        alt: "SAT Prep Logo",
         type: "image/png",
       },
     ],
@@ -138,20 +138,20 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "@MySATPrep",
-    creator: "@MySATPrep",
+    site: "@SAT Prep",
+    creator: "@SAT Prep",
     title: "SAT Vocabulary Flashcards | Learn 800+ SAT Words",
     description:
       "Master SAT vocabulary with interactive flashcards. 800+ words from College Board questions with spaced repetition, definitions, and quiz mode.",
     images: {
       url: "/seo/vocabs-flashcard.png",
-      alt: "SAT Vocabulary Flashcards - MySATPrep",
+      alt: "SAT Vocabulary Flashcards - SAT Prep",
     },
   },
   alternates: {
-    canonical: "https://www.mysatprep.fun/dashboard/vocabs/learn",
+    canonical: "https://www.study-platform.local/dashboard/vocabs/learn",
     languages: {
-      "en-US": "https://www.mysatprep.fun/dashboard/vocabs/learn",
+      "en-US": "https://www.study-platform.local/dashboard/vocabs/learn",
     },
   },
   robots: {
@@ -171,16 +171,16 @@ export const metadata: Metadata = {
     yandex: process.env.YANDEX_VERIFICATION,
     yahoo: process.env.YAHOO_SITE_VERIFICATION,
     other: {
-      me: ["support@mysatprep.fun"],
+      me: ["support@study-platform.local"],
     },
   },
-  metadataBase: new URL("https://www.mysatprep.fun"),
+  metadataBase: new URL("https://www.study-platform.local"),
   other: {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "MySATPrep Flashcards",
-    "application-name": "MySATPrep",
+    "apple-mobile-web-app-title": "SAT Prep Flashcards",
+    "application-name": "SAT Prep",
     "msapplication-TileColor": "#0066cc",
     "msapplication-config": "/browserconfig.xml",
     "theme-color": "#0066cc",
@@ -190,22 +190,22 @@ export const metadata: Metadata = {
     HandheldFriendly: "true",
     MobileOptimized: "width",
     "DC.title": "SAT Vocabulary Flashcards - Learn 800+ Common Words",
-    "DC.creator": "MySATPrep Team",
+    "DC.creator": "SAT Prep Team",
     "DC.subject":
       "SAT Vocabulary, Flashcards, Test Preparation, Educational Resources",
     "DC.description":
       "Interactive SAT vocabulary flashcards with 800+ essential words",
-    "DC.publisher": "MySATPrep",
+    "DC.publisher": "SAT Prep",
     "DC.contributor": "College Board",
     "DC.date": "2024-01-01",
     "DC.type": "Text.Homepage.Educational",
     "DC.format": "text/html",
-    "DC.identifier": "https://www.mysatprep.fun/dashboard/vocabs/learn",
-    "DC.source": "https://www.mysatprep.fun",
+    "DC.identifier": "https://www.study-platform.local/dashboard/vocabs/learn",
+    "DC.source": "https://www.study-platform.local",
     "DC.language": "en",
-    "DC.relation": "https://www.mysatprep.fun",
+    "DC.relation": "https://www.study-platform.local",
     "DC.coverage": "Worldwide",
-    "DC.rights": "© 2024 MySATPrep. All rights reserved.",
+    "DC.rights": "© 2024 SAT Prep. All rights reserved.",
     rating: "general",
     distribution: "global",
     "revisit-after": "7 days",
@@ -227,7 +227,7 @@ export default function VocabsPage() {
     name: "SAT Vocabulary Flashcards - Learn 800+ Common Words",
     description:
       "Learn SAT vocabulary with interactive flashcards featuring 800+ essential words from College Board's SAT Suite Question Bank. Master SAT vocab through spaced repetition, definitions, examples, and quiz mode.",
-    url: "https://www.mysatprep.fun/dashboard/vocabs/learn",
+    url: "https://www.study-platform.local/dashboard/vocabs/learn",
     mainEntity: {
       "@type": "Course",
       name: "SAT Vocabulary Flashcards",
@@ -235,12 +235,12 @@ export default function VocabsPage() {
         "Interactive flashcard system to learn 800+ essential SAT vocabulary words",
       provider: {
         "@type": "EducationalOrganization",
-        name: "MySATPrep",
-        url: "https://www.mysatprep.fun",
+        name: "SAT Prep",
+        url: "https://www.study-platform.local",
         sameAs: [
-          "https://twitter.com/MySATPrep",
-          "https://facebook.com/MySATPrep",
-          "https://instagram.com/MySATPrep",
+          "https://twitter.com/SAT Prep",
+          "https://facebook.com/SAT Prep",
+          "https://instagram.com/SAT Prep",
         ],
       },
       educationalLevel: "High School",
@@ -287,35 +287,35 @@ export default function VocabsPage() {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: "https://www.mysatprep.fun",
+          item: "https://www.study-platform.local",
         },
         {
           "@type": "ListItem",
           position: 2,
           name: "Dashboard",
-          item: "https://www.mysatprep.fun/dashboard",
+          item: "https://www.study-platform.local/dashboard",
         },
         {
           "@type": "ListItem",
           position: 3,
           name: "Vocabulary",
-          item: "https://www.mysatprep.fun/dashboard/vocabs",
+          item: "https://www.study-platform.local/dashboard/vocabs",
         },
         {
           "@type": "ListItem",
           position: 4,
           name: "Flashcards",
-          item: "https://www.mysatprep.fun/dashboard/vocabs/learn",
+          item: "https://www.study-platform.local/dashboard/vocabs/learn",
         },
       ],
     },
     provider: {
       "@type": "Organization",
-      name: "MySATPrep",
-      url: "https://www.mysatprep.fun",
+      name: "SAT Prep",
+      url: "https://www.study-platform.local",
       logo: {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/icon-512x512.png",
+        url: "https://www.study-platform.local/icon-512x512.png",
       },
     },
     about: [
@@ -338,30 +338,30 @@ export default function VocabsPage() {
     dateModified: new Date().toISOString().split("T")[0],
     publisher: {
       "@type": "Organization",
-      name: "MySATPrep",
+      name: "SAT Prep",
       logo: {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/icon-512x512.png",
+        url: "https://www.study-platform.local/icon-512x512.png",
       },
     },
     image: [
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/vocabs-flashcard.png",
+        url: "https://www.study-platform.local/seo/vocabs-flashcard.png",
         width: 1200,
         height: 630,
         caption: "Interactive SAT Vocabulary Flashcards Interface",
       },
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/vocabs-practice-modes.png",
+        url: "https://www.study-platform.local/seo/vocabs-practice-modes.png",
         width: 1200,
         height: 630,
         caption: "Multiple Vocabulary Practice Modes",
       },
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/vocabs-ai-feedbacks.png",
+        url: "https://www.study-platform.local/seo/vocabs-ai-feedbacks.png",
         width: 1200,
         height: 630,
         caption: "AI-Powered Learning Feedback System",
@@ -369,7 +369,7 @@ export default function VocabsPage() {
     ],
     screenshot: {
       "@type": "ImageObject",
-      url: "https://www.mysatprep.fun/seo/vocabs-flashcard.png",
+      url: "https://www.study-platform.local/seo/vocabs-flashcard.png",
       caption: "SAT Vocabulary Flashcards Main Interface",
     },
   };
@@ -398,7 +398,7 @@ export default function VocabsPage() {
 
       {/* Hidden SEO Elements */}
       <div className="hidden" aria-hidden="true">
-        <h1>SAT Vocabulary Flashcards - Learn 800+ Common Words | MySATPrep</h1>
+        <h1>SAT Vocabulary Flashcards - Learn 800+ Common Words | SAT Prep</h1>
 
         <h2>Interactive SAT Vocabulary Flashcards</h2>
         <p>
@@ -514,12 +514,12 @@ export default function VocabsPage() {
         <footer>
           <address>
             <p>
-              Contact MySATPrep:{" "}
-              <a href="mailto:support@mysatprep.fun">support@mysatprep.fun</a>
+              Contact SAT Prep:{" "}
+              <a href="mailto:support@study-platform.local">support@study-platform.local</a>
             </p>
           </address>
           <p>
-            © 2024 MySATPrep. SAT vocabulary flashcards based on official
+            © 2024 SAT Prep. SAT vocabulary flashcards based on official
             College Board materials.
           </p>
           <p>
@@ -540,8 +540,8 @@ export default function VocabsPage() {
             itemScope
             itemType="https://schema.org/Organization"
           >
-            <span itemProp="name">MySATPrep</span>
-            <span itemProp="url">https://www.mysatprep.fun</span>
+            <span itemProp="name">SAT Prep</span>
+            <span itemProp="url">https://www.study-platform.local</span>
           </span>
           <span itemProp="educationalLevel">High School</span>
           <span itemProp="teaches">

@@ -303,7 +303,7 @@ const baseReleases: ReleaseItem[] = [
   {
     title: "v2.0.1: Fix Invalid Questions & Invalid Answers",
     date: "May 14, 2026",
-    issueLink: "https://github.com/Aldhanekaa/MySATPrep/issues/3",
+    issueLink: "/ Prep/issues/3",
     image: createPlaceholderImage({
       title: "Fix Invalid QA",
       startColor: "#FFF6E8",
@@ -338,7 +338,7 @@ const baseReleases: ReleaseItem[] = [
             <h3>v2.0.1 - Fix Invalid Questions & Invalid Answers</h3>
             <p>
               <a
-                href="https://github.com/Aldhanekaa/MySATPrep/issues/3"
+                href="/ Prep/issues/3"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -360,7 +360,7 @@ const baseReleases: ReleaseItem[] = [
         <h3>v2.0.1 - Fix Invalid Questions & Invalid Answers</h3>
         <p>
           <a
-            href="https://github.com/Aldhanekaa/MySATPrep/issues/3"
+            href="/ Prep/issues/3"
             target="_blank"
             rel="noreferrer"
           >
@@ -734,7 +734,7 @@ export const Component = ({ githubUsersMap }: ChangelogComponentProps) => {
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Open on GitHub</p>
+                          <p>Open on community</p>
                         </TooltipContent>
                       </Tooltip>
                     )}

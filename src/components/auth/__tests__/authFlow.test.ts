@@ -12,7 +12,7 @@
  * Validates: Requirement 20.7
  */
 
-// ─── Mock API client (ESM-only better-auth requires this) ────────────────────
+// ─── Mock API client (ESM-only local auth requires this) ────────────────────
 
 jest.mock("@/lib/api/authClient", () => ({
   loginWithGoogle: jest.fn(),

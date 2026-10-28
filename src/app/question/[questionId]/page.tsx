@@ -52,7 +52,7 @@ export async function generateMetadata({
 
     if (!result.data) {
       return {
-        title: "Question Not Found - MySATPrep",
+        title: "Question Not Found - SAT Prep",
         description:
           "The requested SAT practice question could not be found. Browse our question bank for more SAT practice questions. We use official SAT Suite Question Bank Questions.",
         robots: {
@@ -82,7 +82,7 @@ export async function generateMetadata({
         ?.substring(0, 120) || "Practice SAT question";
 
     return {
-      title: `${questionType} Practice Question #${question.questionId} - MySATPrep`,
+      title: `${questionType} Practice Question #${question.questionId} - SAT Prep`,
       description: `Practice this ${difficulty.toLowerCase()} ${questionType.toLowerCase()} SAT question. ${questionPreview}... We use official SAT Suite Question Bank Questions. Master SAT concepts with detailed explanations and step-by-step solutions.`,
       keywords: [
         "SAT practice question",
@@ -101,7 +101,7 @@ export async function generateMetadata({
       ],
       openGraph: {
         title: `${questionType} SAT Practice Question #${question.questionId}`,
-        description: `Practice this ${difficulty.toLowerCase()} ${questionType.toLowerCase()} SAT question with detailed explanations. Improve your SAT scores with MySATPrep.`,
+        description: `Practice this ${difficulty.toLowerCase()} ${questionType.toLowerCase()} SAT question with detailed explanations. Improve your SAT scores with SAT Prep.`,
         type: "article",
         url: `/question/${questionId}`,
         images: [
@@ -109,7 +109,7 @@ export async function generateMetadata({
             url: "/og-question.png",
             width: 1200,
             height: 630,
-            alt: `SAT ${questionType} Practice Question - MySATPrep`,
+            alt: `SAT ${questionType} Practice Question - SAT Prep`,
           },
         ],
       },
@@ -130,7 +130,7 @@ export async function generateMetadata({
   } catch {
     // Fallback metadata if question fetch fails
     return {
-      title: "SAT Practice Question - MySATPrep",
+      title: "SAT Practice Question - SAT Prep",
       description:
         "Practice SAT questions with detailed explanations and solutions. Improve your test scores with comprehensive SAT preparation.",
       robots: {

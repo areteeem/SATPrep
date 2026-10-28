@@ -127,7 +127,7 @@ export const SignInModal = memo(function SignInModal({
               id={titleId}
               className="text-lg font-semibold text-gray-900 dark:text-gray-100"
             >
-              Sign in to MySATPrep
+              Sign in to SAT Prep
             </h2>
             <button
               type="button"

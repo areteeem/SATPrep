@@ -8,7 +8,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "SAT Question Search - Find Specific Questions by ID | MySATPrep",
+  title: "SAT Question Search - Find Specific Questions by ID | SAT Prep",
   description:
     "Search for specific SAT questions by ID from the College Board question bank. We use official SAT Suite Question Bank Questions. Access detailed solutions, explanations, and practice with targeted SAT questions to improve your test scores.",
   keywords: [
@@ -43,10 +43,10 @@ export const metadata: Metadata = {
     "study efficiency",
     "targeted learning",
   ],
-  authors: [{ name: "MySATPrep Team" }],
-  creator: "MySATPrep",
-  publisher: "MySATPrep",
-  applicationName: "MySATPrep",
+  authors: [{ name: "SAT Prep Team" }],
+  creator: "SAT Prep",
+  publisher: "SAT Prep",
+  applicationName: "SAT Prep",
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
   category: "Education",
@@ -59,19 +59,19 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "MySATPrep Question Search",
+    title: "SAT Prep Question Search",
     statusBarStyle: "default",
   },
   openGraph: {
-    title: "SAT Question Search - Find Specific Questions by ID | MySATPrep",
+    title: "SAT Question Search - Find Specific Questions by ID | SAT Prep",
     description:
       "Search for specific SAT questions by ID from the College Board question bank. Access detailed solutions and practice with targeted questions.",
     type: "website",
-    url: "https://www.mysatprep.fun/question",
-    siteName: "MySATPrep",
+    url: "https://www.study-platform.local/question",
+    siteName: "SAT Prep",
     locale: "en_US",
     countryName: "United States",
-    emails: ["support@mysatprep.fun"],
+    emails: ["support@study-platform.local"],
     images: [
       {
         url: "/seo/question-bank.png",
@@ -84,7 +84,7 @@ export const metadata: Metadata = {
         url: "/seo/dashboard-layout.png",
         width: 1200,
         height: 630,
-        alt: "MySATPrep Question Search Interface",
+        alt: "SAT Prep Question Search Interface",
         type: "image/png",
       },
       {
@@ -98,16 +98,16 @@ export const metadata: Metadata = {
         url: "/icon-512x512.png",
         width: 512,
         height: 512,
-        alt: "MySATPrep Logo",
+        alt: "SAT Prep Logo",
         type: "image/png",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    site: "@MySATPrep",
-    creator: "@MySATPrep",
-    title: "SAT Question Search - Find Specific Questions by ID | MySATPrep",
+    site: "@SAT Prep",
+    creator: "@SAT Prep",
+    title: "SAT Question Search - Find Specific Questions by ID | SAT Prep",
     description:
       "Search for specific SAT questions by ID from the College Board question bank. Access detailed solutions and targeted practice.",
     images: {
@@ -116,9 +116,9 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://www.mysatprep.fun/question",
+    canonical: "https://www.study-platform.local/question",
     languages: {
-      "en-US": "https://www.mysatprep.fun/question",
+      "en-US": "https://www.study-platform.local/question",
     },
   },
   robots: {
@@ -138,16 +138,16 @@ export const metadata: Metadata = {
     yandex: process.env.YANDEX_VERIFICATION,
     yahoo: process.env.YAHOO_SITE_VERIFICATION,
     other: {
-      me: ["support@mysatprep.fun"],
+      me: ["support@study-platform.local"],
     },
   },
-  metadataBase: new URL("https://www.mysatprep.fun"),
+  metadataBase: new URL("https://www.study-platform.local"),
   other: {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "MySATPrep Question Search",
-    "application-name": "MySATPrep Question Search",
+    "apple-mobile-web-app-title": "SAT Prep Question Search",
+    "application-name": "SAT Prep Question Search",
     "msapplication-TileColor": "#0066cc",
     "msapplication-config": "/browserconfig.xml",
     "theme-color": "#0066cc",
@@ -157,22 +157,22 @@ export const metadata: Metadata = {
     HandheldFriendly: "true",
     MobileOptimized: "width",
     "DC.title": "SAT Question Search - Find Specific Questions by ID",
-    "DC.creator": "MySATPrep Team",
+    "DC.creator": "SAT Prep Team",
     "DC.subject":
       "SAT Question Search, College Board Questions, Educational Tools",
     "DC.description":
       "Advanced search tool for finding specific SAT questions by ID from the College Board question bank",
-    "DC.publisher": "MySATPrep",
+    "DC.publisher": "SAT Prep",
     "DC.contributor": "College Board",
     "DC.date": "2024-01-01",
     "DC.type": "Text.Interactive.SearchInterface",
     "DC.format": "text/html",
-    "DC.identifier": "https://www.mysatprep.fun/question",
-    "DC.source": "https://www.mysatprep.fun",
+    "DC.identifier": "https://www.study-platform.local/question",
+    "DC.source": "https://www.study-platform.local",
     "DC.language": "en",
-    "DC.relation": "https://www.mysatprep.fun/questionbank",
+    "DC.relation": "https://www.study-platform.local/questionbank",
     "DC.coverage": "SAT Question Database",
-    "DC.rights": "© 2024 MySATPrep. All rights reserved.",
+    "DC.rights": "© 2024 SAT Prep. All rights reserved.",
     rating: "general",
     distribution: "global",
     "revisit-after": "7 days",
@@ -197,19 +197,19 @@ export default function QuestionLayout({
     "@graph": [
       {
         "@type": "WebPage",
-        "@id": "https://www.mysatprep.fun/question#webpage",
-        url: "https://www.mysatprep.fun/question",
+        "@id": "https://www.study-platform.local/question#webpage",
+        url: "https://www.study-platform.local/question",
         name: "SAT Question Search - Find Specific Questions by ID",
         isPartOf: {
-          "@id": "https://www.mysatprep.fun/#website",
+          "@id": "https://www.study-platform.local/#website",
         },
         about: {
-          "@id": "https://www.mysatprep.fun/#organization",
+          "@id": "https://www.study-platform.local/#organization",
         },
         description:
           "Search for specific SAT questions by ID from the College Board question bank. Access detailed solutions, explanations, and practice with targeted SAT questions.",
         breadcrumb: {
-          "@id": "https://www.mysatprep.fun/question#breadcrumb",
+          "@id": "https://www.study-platform.local/question#breadcrumb",
         },
         inLanguage: "en-US",
         potentialAction: [
@@ -217,7 +217,7 @@ export default function QuestionLayout({
             "@type": "SearchAction",
             target: {
               "@type": "EntryPoint",
-              urlTemplate: "https://www.mysatprep.fun/question/{question_id}",
+              urlTemplate: "https://www.study-platform.local/question/{question_id}",
             },
             "query-input": "required name=question_id",
           },
@@ -225,30 +225,30 @@ export default function QuestionLayout({
       },
       {
         "@type": "BreadcrumbList",
-        "@id": "https://www.mysatprep.fun/question#breadcrumb",
+        "@id": "https://www.study-platform.local/question#breadcrumb",
         itemListElement: [
           {
             "@type": "ListItem",
             position: 1,
             name: "Home",
-            item: "https://www.mysatprep.fun",
+            item: "https://www.study-platform.local",
           },
           {
             "@type": "ListItem",
             position: 2,
             name: "Question Search",
-            item: "https://www.mysatprep.fun/question",
+            item: "https://www.study-platform.local/question",
           },
         ],
       },
       {
         "@type": "SearchAction",
-        "@id": "https://www.mysatprep.fun/question#search",
+        "@id": "https://www.study-platform.local/question#search",
         name: "SAT Question ID Search",
         description: "Search for specific SAT questions using question IDs",
         target: {
           "@type": "EntryPoint",
-          urlTemplate: "https://www.mysatprep.fun/question/{question_id}",
+          urlTemplate: "https://www.study-platform.local/question/{question_id}",
           actionPlatform: [
             "http://schema.org/DesktopWebPlatform",
             "http://schema.org/MobileWebPlatform",
@@ -275,7 +275,7 @@ export default function QuestionLayout({
         applicationCategory: "EducationalApplication",
         operatingSystem: ["Web", "iOS", "Android"],
         browserRequirements: "HTML5, JavaScript enabled",
-        url: "https://www.mysatprep.fun/question",
+        url: "https://www.study-platform.local/question",
         description:
           "Advanced search interface for finding specific SAT questions by ID",
         featureList: [
@@ -286,12 +286,12 @@ export default function QuestionLayout({
           "Real-time Search Results",
           "College Board Question Access",
         ],
-        screenshot: "https://www.mysatprep.fun/seo/question-bank.png",
+        screenshot: "https://www.study-platform.local/seo/question-bank.png",
         author: {
-          "@id": "https://www.mysatprep.fun/#organization",
+          "@id": "https://www.study-platform.local/#organization",
         },
         publisher: {
-          "@id": "https://www.mysatprep.fun/#organization",
+          "@id": "https://www.study-platform.local/#organization",
         },
       },
       {
@@ -300,7 +300,7 @@ export default function QuestionLayout({
         description:
           "Comprehensive access to College Board SAT questions through ID-based search",
         provider: {
-          "@id": "https://www.mysatprep.fun/#organization",
+          "@id": "https://www.study-platform.local/#organization",
         },
         educationalLevel: "High School",
         teaches: [
@@ -315,7 +315,7 @@ export default function QuestionLayout({
           "@type": "CourseInstance",
           courseMode: "online",
           instructor: {
-            "@id": "https://www.mysatprep.fun/#organization",
+            "@id": "https://www.study-platform.local/#organization",
           },
         },
         about: [

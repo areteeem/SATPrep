@@ -3,7 +3,7 @@
  * Validates: Requirement 20.1
  */
 
-// Mock the API client so Jest doesn't need to parse ESM-only better-auth packages.
+// Mock the API client so Jest doesn't need to parse ESM-only local auth packages.
 // These tests only exercise Redux reducer logic, not the async thunks.
 jest.mock("@/lib/api/authClient", () => ({
   loginWithGoogle: jest.fn(),

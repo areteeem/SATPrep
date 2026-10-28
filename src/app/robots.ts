@@ -10,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/private/", "/api/*"],
       },
     ],
-    sitemap: "https://www.mysatprep.fun/sitemap2.xml",
+    sitemap: "https://www.study-platform.local/sitemap2.xml",
   };
 }

@@ -4,12 +4,12 @@ import type { Metadata } from "next";
 import FooterSection from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "Suggest a Feature - MySATPrep",
+  title: "Suggest a Feature - SAT Prep",
   description:
-    "Suggest new features, improvements, or product ideas for MySATPrep to help shape the SAT practice and study experience.",
+    "Suggest new features, improvements, or product ideas for SAT Prep to help shape the SAT practice and study experience.",
   keywords: [
     "suggest a feature",
-    "MySATPrep feature request",
+    "SAT Prep feature request",
     "submit feedback",
     "product idea",
     "feature request form",
@@ -18,8 +18,8 @@ export const metadata: Metadata = {
     "suggestion form",
   ],
   openGraph: {
-    title: "Suggest a Feature - MySATPrep",
-    description: "Send feature requests and product ideas for MySATPrep.",
+    title: "Suggest a Feature - SAT Prep",
+    description: "Send feature requests and product ideas for SAT Prep.",
     type: "website",
     url: "/suggest-feature",
     images: [
@@ -27,14 +27,14 @@ export const metadata: Metadata = {
         url: "/seo/dashboard-layout.png",
         width: 1200,
         height: 630,
-        alt: "MySATPrep feature suggestion form",
+        alt: "SAT Prep feature suggestion form",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Suggest a Feature - MySATPrep",
-    description: "Suggest features and share product ideas for MySATPrep.",
+    title: "Suggest a Feature - SAT Prep",
+    description: "Suggest features and share product ideas for SAT Prep.",
     images: ["/seo/dashboard-layout.png"],
   },
   alternates: {
@@ -59,16 +59,16 @@ export default function Page() {
               </h2>
               <p className="text-muted-foreground mt-6">
                 Share product ideas, request improvements, or suggest new
-                features to help shape the MySATPrep experience.
+                features to help shape the SAT Prep experience.
               </p>
               <p className="text-muted-foreground text-sm lg:px-36 mt-4">
                 Alternatively, you can also suggest features by creating an
                 issue on our{" "}
                 <a
-                  href="https://github.com/aldhanekaa/MySATPrep/"
+                  href="/ Prep/"
                   className="text-blue-500 hover:underline"
                 >
-                  open source GitHub repository.
+                  open source community repository.
                 </a>{" "}
                 Then, if it is feasible, I would add you to our{" "}
                 <a

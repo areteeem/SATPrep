@@ -56,10 +56,10 @@ export const metadata: Metadata = {
     "College Board SAT vocabulary",
     "official SAT Suite words",
   ],
-  authors: [{ name: "MySATPrep Team" }],
-  creator: "MySATPrep",
-  publisher: "MySATPrep",
-  applicationName: "MySATPrep",
+  authors: [{ name: "SAT Prep Team" }],
+  creator: "SAT Prep",
+  publisher: "SAT Prep",
+  applicationName: "SAT Prep",
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
   category: "Education",
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "MySATPrep Vocabulary",
+    title: "SAT Prep Vocabulary",
     statusBarStyle: "default",
   },
   openGraph: {
@@ -80,11 +80,11 @@ export const metadata: Metadata = {
     description:
       "Master 800+ essential SAT vocabulary words with our comprehensive wordbank. Study high-frequency SAT vocab from College Board questions with definitions and examples.",
     type: "website",
-    url: "https://www.mysatprep.fun/dashboard/vocabs",
-    siteName: "MySATPrep",
+    url: "https://www.study-platform.local/dashboard/vocabs",
+    siteName: "SAT Prep",
     locale: "en_US",
     countryName: "United States",
-    emails: ["support@mysatprep.fun"],
+    emails: ["support@study-platform.local"],
     phoneNumbers: [],
     faxNumbers: [],
     images: [
@@ -92,35 +92,35 @@ export const metadata: Metadata = {
         url: "/seo/vocabs-wordbank.png",
         width: 1200,
         height: 630,
-        alt: "SAT Vocabulary Wordbank - 800+ Essential SAT Words | MySATPrep",
+        alt: "SAT Vocabulary Wordbank - 800+ Essential SAT Words | SAT Prep",
         type: "image/png",
       },
       {
         url: "/seo/vocabs-flashcard.png",
         width: 1200,
         height: 630,
-        alt: "SAT Vocabulary Flashcards - Interactive Learning | MySATPrep",
+        alt: "SAT Vocabulary Flashcards - Interactive Learning | SAT Prep",
         type: "image/png",
       },
       {
         url: "/seo/vocabs-practice-modes.png",
         width: 1200,
         height: 630,
-        alt: "SAT Vocabulary Practice Modes - Multiple Study Options | MySATPrep",
+        alt: "SAT Vocabulary Practice Modes - Multiple Study Options | SAT Prep",
         type: "image/png",
       },
       {
         url: "/seo/vocabs-ai-feedbacks.png",
         width: 1200,
         height: 630,
-        alt: "SAT Vocabulary AI Feedback - Personalized Learning | MySATPrep",
+        alt: "SAT Vocabulary AI Feedback - Personalized Learning | SAT Prep",
         type: "image/png",
       },
       {
         url: "/icon-512x512.png",
         width: 512,
         height: 512,
-        alt: "MySATPrep Logo",
+        alt: "SAT Prep Logo",
         type: "image/png",
       },
     ],
@@ -129,20 +129,20 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "@MySATPrep",
-    creator: "@MySATPrep",
+    site: "@SAT Prep",
+    creator: "@SAT Prep",
     title: "SAT Vocabulary Wordbank | 800+ Essential SAT Words",
     description:
       "Study 800+ high-frequency SAT vocabulary words from College Board questions. Comprehensive wordbank with definitions, examples, and practice exercises.",
     images: {
       url: "/seo/vocabs-wordbank.png",
-      alt: "SAT Vocabulary Wordbank - MySATPrep",
+      alt: "SAT Vocabulary Wordbank - SAT Prep",
     },
   },
   alternates: {
-    canonical: "https://www.mysatprep.fun/dashboard/vocabs",
+    canonical: "https://www.study-platform.local/dashboard/vocabs",
     languages: {
-      "en-US": "https://www.mysatprep.fun/dashboard/vocabs",
+      "en-US": "https://www.study-platform.local/dashboard/vocabs",
     },
   },
   robots: {
@@ -162,16 +162,16 @@ export const metadata: Metadata = {
     yandex: process.env.YANDEX_VERIFICATION,
     yahoo: process.env.YAHOO_SITE_VERIFICATION,
     other: {
-      me: ["support@mysatprep.fun"],
+      me: ["support@study-platform.local"],
     },
   },
-  metadataBase: new URL("https://www.mysatprep.fun"),
+  metadataBase: new URL("https://www.study-platform.local"),
   other: {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "MySATPrep Vocabulary",
-    "application-name": "MySATPrep",
+    "apple-mobile-web-app-title": "SAT Prep Vocabulary",
+    "application-name": "SAT Prep",
     "msapplication-TileColor": "#0066cc",
     "msapplication-config": "/browserconfig.xml",
     "theme-color": "#0066cc",
@@ -181,21 +181,21 @@ export const metadata: Metadata = {
     HandheldFriendly: "true",
     MobileOptimized: "width",
     "DC.title": "SAT Vocabulary Wordbank - 800+ Essential SAT Words",
-    "DC.creator": "MySATPrep Team",
+    "DC.creator": "SAT Prep Team",
     "DC.subject": "SAT Vocabulary, Test Preparation, Educational Resources",
     "DC.description":
       "Comprehensive SAT vocabulary wordbank with 800+ essential words",
-    "DC.publisher": "MySATPrep",
+    "DC.publisher": "SAT Prep",
     "DC.contributor": "College Board",
     "DC.date": "2024-01-01",
     "DC.type": "Text.Homepage.Educational",
     "DC.format": "text/html",
-    "DC.identifier": "https://www.mysatprep.fun/dashboard/vocabs",
-    "DC.source": "https://www.mysatprep.fun",
+    "DC.identifier": "https://www.study-platform.local/dashboard/vocabs",
+    "DC.source": "https://www.study-platform.local",
     "DC.language": "en",
-    "DC.relation": "https://www.mysatprep.fun",
+    "DC.relation": "https://www.study-platform.local",
     "DC.coverage": "Worldwide",
-    "DC.rights": "© 2024 MySATPrep. All rights reserved.",
+    "DC.rights": "© 2024 SAT Prep. All rights reserved.",
     rating: "general",
     distribution: "global",
     "revisit-after": "7 days",
@@ -217,7 +217,7 @@ export default function VocabsPage() {
     name: "SAT Vocabulary Wordbank - 800+ Essential SAT Words",
     description:
       "Master 800+ essential SAT vocabulary words with our comprehensive wordbank. Study high-frequency SAT vocab from College Board questions with definitions, examples, and practice exercises.",
-    url: "https://www.mysatprep.fun/dashboard/vocabs",
+    url: "https://www.study-platform.local/dashboard/vocabs",
     mainEntity: {
       "@type": "Course",
       name: "SAT Vocabulary Wordbank",
@@ -225,12 +225,12 @@ export default function VocabsPage() {
         "Comprehensive collection of 800+ essential SAT vocabulary words",
       provider: {
         "@type": "EducationalOrganization",
-        name: "MySATPrep",
-        url: "https://www.mysatprep.fun",
+        name: "SAT Prep",
+        url: "https://www.study-platform.local",
         sameAs: [
-          "https://twitter.com/MySATPrep",
-          "https://facebook.com/MySATPrep",
-          "https://instagram.com/MySATPrep",
+          "https://twitter.com/SAT Prep",
+          "https://facebook.com/SAT Prep",
+          "https://instagram.com/SAT Prep",
         ],
       },
       educationalLevel: "High School",
@@ -260,29 +260,29 @@ export default function VocabsPage() {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: "https://www.mysatprep.fun",
+          item: "https://www.study-platform.local",
         },
         {
           "@type": "ListItem",
           position: 2,
           name: "Dashboard",
-          item: "https://www.mysatprep.fun/dashboard",
+          item: "https://www.study-platform.local/dashboard",
         },
         {
           "@type": "ListItem",
           position: 3,
           name: "Vocabulary Wordbank",
-          item: "https://www.mysatprep.fun/dashboard/vocabs",
+          item: "https://www.study-platform.local/dashboard/vocabs",
         },
       ],
     },
     provider: {
       "@type": "Organization",
-      name: "MySATPrep",
-      url: "https://www.mysatprep.fun",
+      name: "SAT Prep",
+      url: "https://www.study-platform.local",
       logo: {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/icon-512x512.png",
+        url: "https://www.study-platform.local/icon-512x512.png",
       },
     },
     about: [
@@ -305,44 +305,44 @@ export default function VocabsPage() {
     dateModified: new Date().toISOString().split("T")[0],
     publisher: {
       "@type": "Organization",
-      name: "MySATPrep",
+      name: "SAT Prep",
       logo: {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/icon-512x512.png",
+        url: "https://www.study-platform.local/icon-512x512.png",
       },
     },
     image: [
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/vocabs-wordbank.png",
+        url: "https://www.study-platform.local/seo/vocabs-wordbank.png",
         width: 1200,
         height: 630,
         caption: "SAT Vocabulary Wordbank Interface",
       },
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/vocabs-flashcard.png",
+        url: "https://www.study-platform.local/seo/vocabs-flashcard.png",
         width: 1200,
         height: 630,
         caption: "Interactive Vocabulary Flashcards",
       },
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/vocabs-practice-modes.png",
+        url: "https://www.study-platform.local/seo/vocabs-practice-modes.png",
         width: 1200,
         height: 630,
         caption: "Multiple Vocabulary Practice Modes",
       },
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/vocabs-ai-feedbacks.png",
+        url: "https://www.study-platform.local/seo/vocabs-ai-feedbacks.png",
         width: 1200,
         height: 630,
         caption: "AI-Powered Vocabulary Feedback",
       },
       {
         "@type": "ImageObject",
-        url: "https://www.mysatprep.fun/seo/vocabs-practice-match.png",
+        url: "https://www.study-platform.local/seo/vocabs-practice-match.png",
         width: 1200,
         height: 630,
         caption: "Vocabulary Matching Practice Game",
@@ -350,7 +350,7 @@ export default function VocabsPage() {
     ],
     screenshot: {
       "@type": "ImageObject",
-      url: "https://www.mysatprep.fun/seo/vocabs-wordbank.png",
+      url: "https://www.study-platform.local/seo/vocabs-wordbank.png",
       caption: "SAT Vocabulary Wordbank Main Interface",
     },
   };
@@ -370,7 +370,7 @@ export default function VocabsPage() {
 
       {/* Hidden SEO Elements */}
       <div className="hidden" aria-hidden="true">
-        <h1>SAT Vocabulary Wordbank - 800+ Essential SAT Words | MySATPrep</h1>
+        <h1>SAT Vocabulary Wordbank - 800+ Essential SAT Words | SAT Prep</h1>
 
         <h2>Master SAT Vocabulary with 800+ Essential Words</h2>
         <p>
@@ -423,7 +423,7 @@ export default function VocabsPage() {
 
         <article>
           <header>
-            <h4>Why Study SAT Vocabulary with MySATPrep?</h4>
+            <h4>Why Study SAT Vocabulary with SAT Prep?</h4>
           </header>
 
           <section>
@@ -480,12 +480,12 @@ export default function VocabsPage() {
         <footer>
           <address>
             <p>
-              Contact MySATPrep:{" "}
-              <a href="mailto:support@mysatprep.fun">support@mysatprep.fun</a>
+              Contact SAT Prep:{" "}
+              <a href="mailto:support@study-platform.local">support@study-platform.local</a>
             </p>
           </address>
           <p>
-            © 2024 MySATPrep. SAT vocabulary words compiled from official
+            © 2024 SAT Prep. SAT vocabulary words compiled from official
             College Board materials.
           </p>
           <p>
@@ -496,12 +496,12 @@ export default function VocabsPage() {
 
         {/* Additional semantic elements for SEO */}
         <div itemScope itemType="https://schema.org/EducationalOrganization">
-          <span itemProp="name">MySATPrep</span>
+          <span itemProp="name">SAT Prep</span>
           <span itemProp="description">
             Complete SAT preparation platform with vocabulary and question bank
           </span>
-          <span itemProp="url">https://www.mysatprep.fun</span>
-          <span itemProp="email">support@mysatprep.fun</span>
+          <span itemProp="url">https://www.study-platform.local</span>
+          <span itemProp="email">support@study-platform.local</span>
         </div>
 
         <div itemScope itemType="https://schema.org/Course">
@@ -514,7 +514,7 @@ export default function VocabsPage() {
             itemScope
             itemType="https://schema.org/Organization"
           >
-            <span itemProp="name">MySATPrep</span>
+            <span itemProp="name">SAT Prep</span>
           </span>
           <span itemProp="educationalLevel">High School</span>
           <span itemProp="teaches">SAT Vocabulary and Test Preparation</span>
@@ -535,7 +535,7 @@ export default function VocabsPage() {
             itemScope
             itemType="https://schema.org/Organization"
           >
-            <span itemProp="name">MySATPrep</span>
+            <span itemProp="name">SAT Prep</span>
           </span>
         </div>
 

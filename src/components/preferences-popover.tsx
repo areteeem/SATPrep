@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useStore } from "react-redux";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
@@ -32,6 +33,7 @@ type Theme = "light" | "dark";
  * underlying content when closed.
  */
 export function FloatingPreferencesButton() {
+  const pathname = usePathname();
   const dispatch = useAppDispatch();
   const store = useStore<RootState>();
   const reduxPrefs = useAppSelector(selectUserPreferences);
@@ -106,6 +108,8 @@ export function FloatingPreferencesButton() {
   };
 
   // ── Render ─────────────────────────────────────────────────────────────
+
+  if (pathname === "/" || pathname === "/practice" || pathname === "/full-test" || pathname === "/assignment" || pathname === "/results") return null;
 
   return (
     /*

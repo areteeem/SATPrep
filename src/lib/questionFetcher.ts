@@ -335,7 +335,7 @@ export async function fetchQuestionData(
       // Handle regular questions - try internal API first, then fall back to qbank-api
       const internalApiUrl = getInternalAPITargetURL();
 
-      // Try internal API (Neon database) first
+      // Try the local question API first
       try {
         const internalResponse = await fetch(
           `${internalApiUrl}/api/student-qb/question/${questionId}`,
