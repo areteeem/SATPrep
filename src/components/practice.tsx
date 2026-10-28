@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { SiteHeader } from "@/app/navbar";
 import PracticeOnboarding from "@/components/practice-onboarding";
 import PracticeRushMultistep from "@/components/practice-rush-multistep";
 import PracticeRushCelebration from "@/components/celebrating-section/practice-rush-celebration";
@@ -34,7 +33,6 @@ import {
   validPracticeTypes,
 } from "@/static-data/validation";
 import { PracticeSessionRestorer } from "@/components/practice-session-restorer";
-import FooterSection from "@/components/footer";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
   fetchSessions,
@@ -1020,8 +1018,6 @@ function Practice() {
 
   return (
     <React.Fragment>
-      <SiteHeader />
-
       {/* Data prefetch loading screen — shown while checking session and fetching
           sessions + notes for authenticated users. */}
       {!prefetchComplete ? (
@@ -1035,11 +1031,7 @@ function Practice() {
               : "Loading your practice data"
           }
         >
-          <div className="flex space-x-1.5">
-            <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s] [animation-duration:0.6s]" />
-            <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s] [animation-duration:0.6s]" />
-            <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-duration:0.6s]" />
-          </div>
+          <div className="sat-loading-spinner h-8 w-8 rounded-full border-2 border-neutral-900 border-t-transparent" aria-hidden="true" />
           <p className="text-sm text-muted-foreground animate-pulse">
             {!sessionChecked
               ? "Checking your session…"
@@ -1130,8 +1122,6 @@ function Practice() {
           ) : null}
         </>
       )}
-
-      <FooterSection />
     </React.Fragment>
   );
 }

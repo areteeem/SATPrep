@@ -3,8 +3,10 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { MathJax } from "better-react-mathjax";
+import { fillQuestionBlank } from "@/lib/assessment-blanks";
 import {
   Highlighter,
+  Calculator,
   Minus,
   Underline as UnderlineIcon,
   X,
@@ -36,10 +38,14 @@ function AnnotatedPassageView({
   html,
   questionId,
   className = "",
+  blankOptions,
+  selectedBlankAnswer,
 }: {
   html: string;
   questionId: string;
   className?: string;
+  blankOptions?: Record<string, string> | null;
+  selectedBlankAnswer?: string | null;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const selectionRange = useRef<Range | null>(null);
@@ -53,14 +59,51 @@ function AnnotatedPassageView({
   const key = `sat-passage-annotations-v1:${questionId}`;
   useEffect(() => {
     try {
-      setContent(localStorage.getItem(key) || html);
+      setContent(
+        fillQuestionBlank(
+          localStorage.getItem(key) || html,
+          blankOptions,
+          selectedBlankAnswer,
+        ),
+      );
     } catch {
       setContent(html);
     }
     setMessage("");
     setPopover(null);
     selectionRange.current = null;
-  }, [key, html]);
+  }, [key, html, blankOptions, selectedBlankAnswer]);
+  useEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    root.querySelectorAll("table").forEach((table) => {
+      if (table.parentElement?.classList.contains("assessment-table-wrap")) return;
+      const wrapper = document.createElement("div");
+      wrapper.className = "assessment-table-wrap";
+      table.parentNode?.insertBefore(wrapper, table);
+      wrapper.appendChild(table);
+      const copy = document.createElement("button");
+      copy.type = "button";
+      copy.className = "assessment-table-desmos";
+      copy.dataset.tableCopyControl = "true";
+      copy.setAttribute("aria-label", "Copy table to Desmos");
+      copy.title = "Copy table to Desmos";
+      copy.innerHTML = '<span class="assessment-table-desmos-icon">▦</span><span>Desmos</span>';
+      copy.addEventListener("click", async () => {
+        const text = Array.from(table.rows)
+          .map((row) => Array.from(row.cells).map((cell) => cell.innerText.trim().replace(/\s+/g, " ")).join("\t"))
+          .join("\n");
+        try {
+          await navigator.clipboard.writeText(text);
+          window.dispatchEvent(new CustomEvent("sat-open-desmos"));
+          setMessage("Table copied. Paste it into Desmos.");
+        } catch {
+          setMessage("Allow clipboard access to copy this table into Desmos.");
+        }
+      });
+      wrapper.append(copy);
+    });
+  }, [content]);
   useEffect(() => {
     const dismissClearedSelection = () => {
       const selection = window.getSelection();
@@ -91,12 +134,30 @@ function AnnotatedPassageView({
     )
       return;
     const range = selection.getRangeAt(0).cloneRange();
-    const rect = range.getBoundingClientRect();
+    let rect = range.getBoundingClientRect();
     selectionRange.current = range;
+    const menuHeight = 156;
+    const topGap = 12;
+    const scrollAmount = menuHeight + topGap - rect.top;
+    if (scrollAmount > 0) {
+      let parent = root.parentElement;
+      let scrollParent: HTMLElement | null = null;
+      while (parent && parent !== document.body) {
+        const style = window.getComputedStyle(parent);
+        if (/(auto|scroll)/.test(style.overflowY) && parent.scrollHeight > parent.clientHeight) {
+          scrollParent = parent;
+          break;
+        }
+        parent = parent.parentElement;
+      }
+      if (scrollParent) scrollParent.scrollTop += scrollAmount;
+      else window.scrollBy({ top: scrollAmount, behavior: "auto" });
+      rect = range.getBoundingClientRect();
+    }
     setPopover({
       x: Math.max(
-        150,
-        Math.min(window.innerWidth - 150, rect.left + rect.width / 2),
+        144,
+        Math.min(window.innerWidth - 144, rect.left + rect.width / 2),
       ),
       y: Math.max(12, rect.top),
       highlightOptions: false,
@@ -122,7 +183,14 @@ function AnnotatedPassageView({
       window.getSelection()?.removeAllRanges();
       selectionRange.current = null;
       setPopover(null);
-      const next = root.innerHTML;
+      const clone = root.cloneNode(true) as HTMLDivElement;
+      clone.querySelectorAll("[data-table-copy-control]").forEach((el) => el.remove());
+      clone.querySelectorAll(".assessment-table-wrap").forEach((wrapper) => {
+        const parent = wrapper.parentNode;
+        while (wrapper.firstChild) parent?.insertBefore(wrapper.firstChild, wrapper);
+        wrapper.remove();
+      });
+      const next = clone.innerHTML;
       setContent(next);
       try {
         localStorage.setItem(key, next);
@@ -151,7 +219,7 @@ function AnnotatedPassageView({
           className="fixed z-[100] w-72 -translate-x-1/2 rounded-xl border border-neutral-300 bg-white p-3 text-neutral-950 shadow-xl dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-50"
           style={{
             left: popover.x,
-            top: popover.y > 130 ? popover.y - 118 : popover.y + 24,
+          top: Math.max(8, popover.y - 148),
           }}
           onMouseDown={(e) => e.preventDefault()}
           onPointerDown={(e) => e.preventDefault()}

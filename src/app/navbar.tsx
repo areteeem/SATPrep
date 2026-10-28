@@ -17,7 +17,6 @@ import {
 const menuItems = [
   { name: "Dashboard", href: "/dashboard" },
   { name: "Question Bank", href: "/questionbank" },
-  { name: "Resources", href: "/resources" },
 ];
 
 export const SiteHeader = ({
@@ -152,13 +151,15 @@ export const SiteHeader = ({
                   asChild
                   size="sm"
                   variant="outline"
+                  aria-label="Search questions"
+                  title="Search questions"
                   className={cn(
                     `border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white ${
                       isScrolled ? "lg:inline-flex" : "inline-flex"
                     }`,
                   )}
                 >
-                  <Link href="/question">
+                  <Link href="/question" aria-label="Search questions">
                     <Search className="w-4 h-4" />
                   </Link>
                 </Button>

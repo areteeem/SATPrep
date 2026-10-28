@@ -23,6 +23,7 @@ export type LocalAssessment = {
   status: string;
   questions: LocalQuestion[];
   fullTest?: unknown;
+  assignmentToken?:string;
   selections?: PracticeSelections;
 };
 export const LOCAL_HISTORY_KEY = "sat-assessment-history-v1";

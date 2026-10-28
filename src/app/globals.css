@@ -905,6 +905,8 @@ a img,
 .assessment-player button { border-width:1px!important;font-weight:500!important; }
 .assessment-player .font-black { font-weight:600!important; }
 .practice-progress-track { transition-property:transform!important;transition-duration:450ms!important;transition-timing-function:cubic-bezier(.2,.8,.2,1)!important; }
+.sat-loading-spinner {animation:sat-loading-spin .8s linear infinite!important;}
+@keyframes sat-loading-spin {to { transform:rotate(360deg); }}
 .vocab-study-cta h3 { color:#fff!important; }
 .vocab-study-cta p { color:#d4d4d8!important; }
 .vocab-study-cta a button { background:#fff!important;color:#171717!important;border:1px solid #fff!important; }
@@ -928,3 +930,79 @@ a img,
   .assessment-question-grid > .assessment-math-panel { order:2; }
   .assessment-player { padding:16px!important; }
 }
+
+/* Reading and explanation workspace: fixed chrome with independently scrolling content. */
+.teacher-review { position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;background:var(--background);color:var(--foreground); }
+.teacher-review-header { display:flex;flex-shrink:0;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;border-bottom:1px solid var(--border);padding:16px 24px; }
+.teacher-review-scroll { min-height:0;flex:1;overflow:auto;padding:0 24px 32px; }
+.teacher-review-footer { display:flex;flex-shrink:0;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--border);padding:12px 24px;padding-bottom:max(12px,env(safe-area-inset-bottom));background:var(--background); }
+.assessment-sticky-navigation { position:sticky;bottom:0;z-index:40;display:flex;flex-wrap:wrap;align-items:center;gap:8px;border-top:1px solid var(--border);background:var(--background);padding:12px 0;padding-bottom:max(12px,env(safe-area-inset-bottom)); }
+.assessment-control:hover { background:#e5e5e5!important;color:#171717!important; }
+.assessment-primary,.assessment-primary:hover { background:#171717!important;color:#fff!important; }
+.assessment-primary:hover { background:#404040!important; }
+.dark .assessment-primary { background:#f5f5f5!important;color:#171717!important; }
+.dark .assessment-primary:hover { background:#d4d4d4!important;color:#171717!important; }
+[role="dialog"] button[class~="text-white"]:hover { background:#404040!important;color:white!important; }
+[role="dialog"] button:not([class~="text-white"]):hover { background:#e5e5e5;color:#171717; }
+.review-section-select { appearance:auto;min-width:210px;max-width:min(100%,380px);background:var(--background);color:var(--foreground); }
+.sat-whiteboard-question img { max-width:100%;height:auto;pointer-events:none; }
+.sat-whiteboard-question a { pointer-events:none;color:inherit;text-decoration:none; }
+@media(max-width:700px) { .teacher-review-header {padding:12px;gap:8px;} .teacher-review-scroll {padding:0 12px 24px;} .teacher-review-footer {padding-inline:12px;} .teacher-review-header h1 {font-size:1rem;} }
+.assessment-full-page {padding-bottom:100px;}
+.assessment-full-page > div > header {position:sticky;top:0;z-index:45;background:var(--background);padding-top:12px;}
+.assessment-full-page .assessment-sticky-navigation {position:fixed;left:0;right:0;bottom:0;margin-top:0;padding-inline:max(20px,calc((100vw - 1280px)/2));}
+.assessment-rush-previous,.assessment-rush-next {position:fixed!important;bottom:max(14px,env(safe-area-inset-bottom))!important;z-index:100!important;min-width:52px!important;min-height:48px!important;border:1px solid #a3a3a3!important;border-radius:14px!important;background:#171717!important;color:#fff!important;box-shadow:0 4px 18px #0003!important;}
+.assessment-rush-previous {left:16px!important;}
+.assessment-rush-next {right:16px!important;}
+.assessment-rush-previous:hover,.assessment-rush-next:hover {background:#404040!important;color:#fff!important;}
+@media(max-width:700px) { .assessment-rush-previous,.assessment-rush-next {bottom:max(10px,env(safe-area-inset-bottom))!important;} }
+body.assessment-active header nav.fixed {display:none!important;}
+.assessment-rush-toolbar {align-items:center!important;}
+.assessment-rush-toolbar .assessment-workspace-actions {margin-right:6px;border-right:1px solid var(--border);padding-right:8px;}
+.assessment-split-divider {width:10px;min-height:360px;cursor:col-resize;touch-action:none;border-radius:999px;background:#e5e5e5;align-self:stretch;}
+.assessment-split-divider:hover {background:#a3a3a3;}
+.assessment-rush-toolbar .assessment-icon-button {width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;padding:0!important;flex:0 0 44px!important;}
+.assessment-rush-toolbar .assessment-rush-text-button {width:auto!important;min-width:max-content!important;height:44px!important;min-height:44px!important;padding-inline:14px!important;flex:0 0 auto!important;white-space:nowrap!important;}
+.assessment-icon-button {width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;padding:0!important;}
+.assessment-whiteboard-menu {background:#fff!important;color:#171717!important;}
+.assessment-whiteboard-menu-item {min-height:40px;border-radius:8px;padding:8px 10px;text-align:left;font-size:13px;}
+.assessment-whiteboard-menu-item:hover:not(:disabled) {background:#e5e5e5;color:#171717;}
+.assessment-whiteboard-menu-item:disabled {opacity:.45;cursor:not-allowed;}
+.assessment-timer {display:flex;align-items:center;}
+.assessment-timer-button {display:inline-flex;min-height:40px;align-items:center;gap:8px;border:1px solid var(--border)!important;border-radius:10px;background:var(--background)!important;padding:8px 12px!important;color:var(--foreground)!important;font-variant-numeric:tabular-nums;}
+.assessment-timer-hidden,.assessment-timer-pinned {position:fixed;top:8px;left:8px;z-index:95;}
+.assessment-timer-hidden {width:36px;height:36px;}
+.assessment-timer-hidden .assessment-timer-button {width:36px;height:36px;min-height:36px;justify-content:center;border:0!important;background:transparent!important;padding:0!important;opacity:0;}
+.assessment-timer-hidden:hover .assessment-timer-button,.assessment-timer-hidden:focus-within .assessment-timer-button {width:auto;min-width:36px;opacity:1;background:var(--background)!important;border:1px solid var(--border)!important;padding:8px 12px!important;}
+.assessment-answer-in-blank {display:inline-block;min-width:7rem;border-bottom:2px solid currentColor;background:#f4f4f5;padding-inline:.25rem;text-align:center;}
+.assessment-table-wrap {position:relative;display:block;margin:1rem 2.5rem 1rem 0;overflow:visible;}
+.assessment-table-desmos {position:absolute;right:-2.5rem;top:0;display:flex;align-items:center;gap:4px;border:1px solid #d4d4d4;border-radius:8px;background:#fff;padding:6px;color:#171717;font-size:11px;opacity:0;transition:opacity .15s;}
+.assessment-table-wrap:hover .assessment-table-desmos,.assessment-table-desmos:focus-visible {opacity:1;}
+.assessment-table-desmos-icon {font-size:16px;}
+.sat-quickdraw-app .qd-root {position:absolute!important;inset:0!important;width:100%!important;height:100%!important;background:transparent!important;}
+.sat-quickdraw-app canvas.qd-canvas {z-index:20;pointer-events:auto;}
+.sat-quickdraw-app canvas.qd-overlay {z-index:21;pointer-events:none;}
+.sat-quickdraw-app .qd-ui {z-index:100!important;pointer-events:none;}
+.sat-quickdraw-app .qd-ui button,.sat-quickdraw-app .qd-ui input,.sat-quickdraw-app .qd-ui [role="dialog"],.sat-quickdraw-app .qd-ui .qd-popover {pointer-events:auto;}
+.sat-quickdraw-app canvas.qd-canvas,.sat-quickdraw-app canvas.qd-overlay {mix-blend-mode:normal;}
+.sat-quickdraw-scene {background-color:#fbf9f4;background-image:linear-gradient(rgba(60,50,30,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(60,50,30,.12) 1px,transparent 1px);background-size:80px 80px;}
+.sat-quickdraw-world {position:absolute;left:0;top:0;z-index:10;transform-origin:0 0;pointer-events:none;padding:20px 32px;}
+.sat-quickdraw-question-inner {margin:auto;max-width:1500px;padding:8px;}
+.sat-quickdraw-question-inner table {border-collapse:collapse;max-width:100%;}
+.sat-quickdraw-question-inner td,.sat-quickdraw-question-inner th {border:1px solid #a3a3a3;padding:6px 8px;}
+.sat-quickdraw-world [data-whiteboard-control] {pointer-events:auto;}
+.sat-quickdraw-map {position:absolute;right:12px;bottom:12px;z-index:50;width:150px;height:94px;border:1px solid #a3a3a3;border-radius:8px;background:rgba(255,255,255,.9);box-shadow:0 2px 8px #0002;cursor:crosshair;}
+.sat-quickdraw-map-content {position:absolute;border:1px solid #171717;background:#17171722;pointer-events:none;}
+.sat-quickdraw-exporting .qd-ui,.sat-quickdraw-exporting .sat-quickdraw-map,.sat-quickdraw-exporting .assessment-table-desmos,.sat-quickdraw-exporting [aria-label^="Show correct answer"],.sat-quickdraw-exporting [aria-label^="Hide correct answer"] {display:none!important;}
+.teacher-review-progress {position:relative;display:flex;height:36px;flex:1;max-width:640px;align-items:center;justify-content:center;overflow:hidden;border-radius:999px;background:#e5e5e5;color:#171717;font-size:12px;font-variant-numeric:tabular-nums;}
+.teacher-review-progress-fill {position:absolute;inset:0 auto 0 0;background:#bdbdbd;transition:width .2s ease;}
+.teacher-review-progress span {position:relative;z-index:1;}
+.teacher-review-footer {justify-content:space-between;}
+.assessment-full-page {height:100dvh;overflow:auto;padding-top:12px!important;padding-bottom:76px!important;}
+.assessment-full-page .assessment-question-grid {gap:20px!important;}
+.assessment-full-page .assessment-question-grid > .rounded-xl.border {padding:16px!important;}
+.assessment-player {padding:12px!important;}
+.assessment-player > .h-screen {height:auto!important;min-height:calc(100dvh - 76px);}
+.assessment-player .grid.grid-cols-12.justify-between {margin-bottom:12px!important;}
+.assessment-full-page .assessment-math-panel iframe {height:min(45dvh,420px)!important;max-height:none!important;}
+@media(max-width:900px) { .assessment-split-divider {display:none;} }

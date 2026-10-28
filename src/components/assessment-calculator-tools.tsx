@@ -91,6 +91,14 @@ export function AssessmentToolsProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(KEY, JSON.stringify(calculation));
       } catch {}
   }, [calculation, hydrated]);
+  useEffect(() => {
+    const openDesmos = () => {
+      setActiveTool("desmos");
+      setWindows((old) => ({ ...old, desmos: true }));
+    };
+    window.addEventListener("sat-open-desmos", openDesmos);
+    return () => window.removeEventListener("sat-open-desmos", openDesmos);
+  }, []);
   const setExpression = (value: string) => {
     setCalculation((old) => ({
       ...old,

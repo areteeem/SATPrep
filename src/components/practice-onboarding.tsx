@@ -85,7 +85,8 @@ export default function PracticeOnboarding({
     );
   return (
     <section
-      className={`${embedded ? "" : "mx-auto min-h-dvh max-w-4xl px-5 pb-16 pt-28"} space-y-7`}
+      className={`${embedded ? "" : "mx-auto min-h-dvh max-w-7xl px-5 pb-4 pt-3"} space-y-3`}
+      data-step={step + 1}
       data-no-image-viewer
     >
       <div>
@@ -185,7 +186,7 @@ export default function PracticeOnboarding({
         </div>
       )}
       {step === 2 && (
-        <div className="space-y-7">
+        <div className="space-y-4">
           <p className="text-sm text-neutral-500">
             Select domains and then choose specific skills within each domain.
             You must select at least one skill to continue.
@@ -226,7 +227,7 @@ export default function PracticeOnboarding({
                     type="button"
                     aria-expanded={open}
                     aria-label={`${domain.text} skills`}
-                    className="flex w-full items-start gap-3 p-5 text-left"
+                    className="flex w-full items-start gap-3 p-3 text-left"
                     onClick={() => {
                       setExpanded((old) =>
                         open
@@ -247,7 +248,7 @@ export default function PracticeOnboarding({
                       <strong className="block font-semibold">
                         {domain.text}
                       </strong>
-                      <span className="mt-2 block text-xs text-neutral-500">
+                      <span className="mt-1 block text-xs text-neutral-500">
                         {
                           domain.skill.filter((s) =>
                             skills.includes(s.skill_cd),
@@ -259,11 +260,11 @@ export default function PracticeOnboarding({
                     {selected && <Check size={18} />}
                   </button>
                   {open ? (
-                    <div className="space-y-2 border-t border-neutral-200 p-4 dark:border-neutral-700">
+                    <div className="space-y-1 border-t border-neutral-200 p-3 dark:border-neutral-700">
                       {domain.skill.map((skill) => (
                         <label
                           key={skill.skill_cd}
-                          className="flex cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 p-3 text-sm dark:border-neutral-700"
+                          className="flex cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 px-3 py-2 text-sm dark:border-neutral-700"
                         >
                           <input
                             type="checkbox"
@@ -276,7 +277,7 @@ export default function PracticeOnboarding({
                       ))}
                     </div>
                   ) : (
-                    <ul className="space-y-1 px-5 pb-5 text-sm text-neutral-500">
+                    <ul className="space-y-0.5 px-3 pb-3 text-xs text-neutral-500">
                       {domain.skill.slice(0, 3).map((skill) => (
                         <li key={skill.skill_cd}>{skill.text}</li>
                       ))}
@@ -289,8 +290,8 @@ export default function PracticeOnboarding({
               );
             })}
           </div>
-          <fieldset className="space-y-3">
-            <legend className="mb-3 text-lg font-semibold">
+          <fieldset className="space-y-2">
+            <legend className="mb-2 text-lg font-semibold">
               Select Difficulty Levels
             </legend>
             <div className="grid gap-3 sm:grid-cols-3">
@@ -318,7 +319,7 @@ export default function PracticeOnboarding({
               ))}
             </div>
           </fieldset>
-          <fieldset className="space-y-3 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700">
+          <fieldset className="space-y-2 rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
             <legend className="px-1 font-medium">Practice settings</legend>
             <label className="flex items-center justify-between gap-4 text-sm">
               Randomize question order

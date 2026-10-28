@@ -10,6 +10,7 @@ import {
 } from "@/lib/local-assessments";
 import type { LocalAssessment, LocalQuestion } from "@/lib/local-assessments";
 import type { API_Response_Question } from "@/types/question";
+import { AssessmentExplanation } from "@/components/assessment-workspace-actions";
 import { AnnotatedPassage } from "@/components/annotated-passage";
 import {
   AssessmentAnswerInput,
@@ -33,6 +34,12 @@ const domainNames: Record<string, string> = {
   S: "Geometry and Trigonometry",
 };
 export function LocalAssessmentHistory() {
+  const [sort, setSort] = useState("newest"),
+    [search, setSearch] = useState(""),
+    [sessionStatus, setSessionStatus] = useState("all"),
+    [subjectFilter, setSubjectFilter] = useState("all"),
+    [from, setFrom] = useState(""),
+    [to, setTo] = useState("");
   const [sessions, setSessions] = useState<LocalAssessment[]>([]),
     [selected, setSelected] = useState<LocalAssessment | null>(null),
     [filter, setFilter] = useState("all"),
@@ -179,6 +186,67 @@ export function LocalAssessmentHistory() {
           <option value="saved">Saved for later</option>
         </select>
       </div>
+      <div className="grid gap-3 rounded-xl border p-4 sm:grid-cols-2 lg:grid-cols-3">
+        <input
+          aria-label="Search sessions"
+          placeholder="Search sessions…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="rounded-xl border bg-transparent p-3"
+        />
+        <select
+          aria-label="Sort sessions"
+          className={button}
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+        >
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="updated">Recently updated</option>
+          <option value="title">Title A–Z</option>
+          <option value="answered">Most answered</option>
+        </select>
+        <select
+          aria-label="Session status"
+          className={button}
+          value={sessionStatus}
+          onChange={(e) => setSessionStatus(e.target.value)}
+        >
+          <option value="all">Any status</option>
+          <option value="completed">Completed</option>
+          <option value="saved">Saved / in progress</option>
+        </select>
+        <select
+          aria-label="Session subject"
+          className={button}
+          value={subjectFilter}
+          onChange={(e) => setSubjectFilter(e.target.value)}
+        >
+          <option value="all">Any subject</option>
+          <option value="math">Math</option>
+          <option value="reading">Reading & Writing</option>
+        </select>
+        <label className="text-xs">
+          From
+          <input
+            aria-label="Sessions from date"
+            type="date"
+            className="mt-1 block w-full rounded-xl border bg-transparent p-2"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+          />
+        </label>
+        <label className="text-xs">
+          To
+          <input
+            aria-label="Sessions to date"
+            type="date"
+            className="mt-1 block w-full rounded-xl border bg-transparent p-2"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+          />
+        </label>
+      </div>
       {!sessions.length && (
         <p className="rounded-xl border p-5 text-neutral-500">
           No sessions are saved on this device yet. Completed and saved tests
@@ -187,6 +255,38 @@ export function LocalAssessmentHistory() {
       )}
       <div className="grid gap-3 sm:grid-cols-2">
         {sessions
+          .filter(
+            (session) =>
+              session.title.toLowerCase().includes(search.toLowerCase()) &&
+              (sessionStatus === "all" ||
+                (sessionStatus === "completed"
+                  ? session.status === "completed"
+                  : session.status !== "completed")) &&
+              (subjectFilter === "all" ||
+                session.questions.some(
+                  (q) =>
+                    ["H", "P", "Q", "S"].includes(q.domain) ===
+                    (subjectFilter === "math"),
+                )) &&
+              (!from || Date.parse(session.startedAt) >= Date.parse(from)) &&
+              (!to ||
+                Date.parse(session.startedAt) < Date.parse(to) + 86400000),
+          )
+          .sort((a, b) =>
+            sort === "title"
+              ? a.title.localeCompare(b.title)
+              : sort === "answered"
+                ? b.questions.filter((q) => q.answer).length -
+                  a.questions.filter((q) => q.answer).length
+                : sort === "oldest"
+                  ? (Date.parse(a.startedAt) || 0) -
+                    (Date.parse(b.startedAt) || 0)
+                  : sort === "updated"
+                    ? (Date.parse(b.updatedAt) || 0) -
+                      (Date.parse(a.updatedAt) || 0)
+                    : (Date.parse(b.startedAt) || 0) -
+                      (Date.parse(a.startedAt) || 0),
+          )
           .filter(
             (session) =>
               filter === "all" ||
@@ -212,6 +312,15 @@ export function LocalAssessmentHistory() {
                 {session.kind === "full" ? 98 : session.questions.length}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
+                <Link
+                  className={button}
+                  href={`/review-session?local=${encodeURIComponent(session.id)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <BookOpen size={15} />
+                  Review ↗
+                </Link>
                 <button
                   className={button}
                   onClick={() => {
@@ -222,8 +331,7 @@ export function LocalAssessmentHistory() {
                     setFinished(false);
                   }}
                 >
-                  <BookOpen size={15} />
-                  Review
+                  Practice mistakes
                 </button>
                 {session.kind === "full" && session.status !== "completed" && (
                   <Link
@@ -386,23 +494,6 @@ export function LocalAssessmentHistory() {
                           )}
                         />
                       )}
-                      {(!practice || checked) && (
-                        <div className="mt-5 rounded-xl border p-4">
-                          <p>
-                            Correct answer: {detail.correct_answer?.join(", ")}
-                          </p>
-                          <h3 className="mt-3 font-semibold">Explanation</h3>
-                          <MathJax dynamic>
-                            <div
-                              dangerouslySetInnerHTML={{
-                                __html:
-                                  detail.rationale ||
-                                  "No explanation available.",
-                              }}
-                            />
-                          </MathJax>
-                        </div>
-                      )}
                     </>
                   ) : (
                     <p>
@@ -412,8 +503,14 @@ export function LocalAssessmentHistory() {
                     </p>
                   )}
                 </div>
+                {detail && (!practice || checked) && (
+                  <AssessmentExplanation
+                    html={detail.rationale}
+                    questionId={question.id}
+                  />
+                )}
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="assessment-sticky-navigation">
                 <button
                   className={button}
                   disabled={index === 0}

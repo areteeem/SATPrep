@@ -109,7 +109,7 @@ export function FloatingPreferencesButton() {
 
   // ── Render ─────────────────────────────────────────────────────────────
 
-  if (pathname === "/" || pathname === "/practice" || pathname === "/full-test" || pathname === "/assignment" || pathname === "/results") return null;
+  if (pathname === "/" || pathname === "/practice" || pathname === "/full-test" || pathname === "/assignment" || pathname === "/results" || pathname === "/review-session" || pathname === "/whiteboard" || pathname === "/whiteboards" || pathname === "/previous-questions") return null;
 
   return (
     /*

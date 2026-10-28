@@ -3,6 +3,13 @@ import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { MathJax } from "better-react-mathjax";
+import {
+  AssessmentWorkspaceActions,
+  AssessmentExplanation,
+} from "@/components/assessment-workspace-actions";
+import { AssessmentCompletion } from "@/components/assessment-completion";
+import { practiceScore } from "@/lib/practice-score";
+import { fillQuestionBlank } from "@/lib/assessment-blanks";
 import { Save } from "lucide-react";
 import {
   AssessmentCalculatorTools,
@@ -373,6 +380,23 @@ export default function FullTest() {
         session.details[q.questionId]?.correct_answer,
       ),
     ).length;
+  const workspaceQuestions = session.modules.flatMap((mod, m) =>
+    mod.map((q) => ({
+      id: q.questionId,
+      externalId: q.external_id || q.ibn || "",
+      domain: q.primary_class_cd,
+      answer: session.answers[q.questionId] || "",
+      detail: session.details[q.questionId],
+      module: [
+        "Reading & Writing · Module 1",
+        "Reading & Writing · Module 2",
+        "Math · Module 1",
+        "Math · Module 2",
+      ][m],
+      notes: session.notes[q.questionId],
+    })),
+  );
+  const estimated = practiceScore(workspaceQuestions);
   return (
     <main
       className="assessment-full-page min-h-dvh bg-background px-5 py-6 text-foreground"
@@ -385,6 +409,28 @@ export default function FullTest() {
             ← Practice sessions
           </Link>
           <div className="flex flex-wrap items-center gap-3">
+            {stage === "done" && review && (
+              <select
+                aria-label="Review module"
+                className={`${button} review-section-select`}
+                value={reviewModule}
+                onChange={(e) => {
+                  setReviewModule(Number(e.target.value));
+                  setSession((old) => ({ ...old, index: 0 }));
+                }}
+              >
+                {[
+                  "Reading and Writing 1",
+                  "Reading and Writing 2",
+                  "Math 1",
+                  "Math 2",
+                ].map((name, i) => (
+                  <option key={i} value={i}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            )}
             {(active || stage === "break") && !session.paused && (
               <Countdown deadline={session.deadline}>
                 {(seconds) => (
@@ -505,6 +551,26 @@ export default function FullTest() {
         {stage === "done" && !review && (
           <section className="py-16">
             <h1 className="text-3xl font-semibold">Practice complete</h1>
+            <AssessmentCompletion
+              localId={session.id || ""}
+              assignmentToken={assignmentToken}
+              result={{
+                mode: "full",
+                questions: workspaceQuestions.map(
+                  ({ id, externalId, domain, answer }) => ({
+                    id,
+                    externalId,
+                    domain,
+                    answer,
+                  }),
+                ),
+              }}
+            />
+            {estimated.score !== null && (
+              <p className="mt-3 text-xl">
+                Estimated practice score: {estimated.score}/1600
+              </p>
+            )}
             <p className="mt-4 text-xl">
               {points} correct out of {all.length}
             </p>
@@ -538,17 +604,16 @@ export default function FullTest() {
                 disabled={busy}
                 onClick={() => void shareResult()}
               >
-                {busy ? "Creating link…" : "Create result link"}
+                {busy ? "Creating link…" : "Send result to teacher’s Telegram"}
               </button>
-              <button
+              <Link
                 className={button}
-                onClick={() => {
-                  setReview(true);
-                  setSession((old) => ({ ...old, index: 0 }));
-                }}
+                href={`/review-session?local=${encodeURIComponent(session.id || "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                Review answers
-              </button>
+                Review answers ↗
+              </Link>
               <Link className={button} href={`/results?local=${session.id}`}>
                 Practice mistakes by category
               </Link>
@@ -595,6 +660,24 @@ export default function FullTest() {
                   {names[item.primary_class_cd]}
                 </span>
               </div>
+              <div className="mb-5">
+                <AssessmentWorkspaceActions
+                  sessionId={session.id || "full-test"}
+                  question={workspaceQuestions.find(
+                    (q) => q.id === item.questionId,
+                  )}
+                  questions={workspaceQuestions}
+                  title="Full-length test"
+                  showSolutions={stage === "done"}
+                  notes={session.notes[item.questionId] || ""}
+                  onNotesChange={(value) =>
+                    setSession((old) => ({
+                      ...old,
+                      notes: { ...old.notes, [item.questionId]: value },
+                    }))
+                  }
+                />
+              </div>
               <div
                 className={`assessment-question-grid ${hasStimulus || showMathPanel ? "" : "assessment-question-centered"}`}
               >
@@ -603,26 +686,10 @@ export default function FullTest() {
                   <div className="sat-test-passage rounded-xl border border-neutral-200 p-5 dark:border-neutral-700">
                     <AnnotatedPassage
                       questionId={item.questionId}
-                      html={detail?.stimulus || ""}
+                      html={!isMath ? fillQuestionBlank(detail?.stimulus || "", detail?.answerOptions, session.answers[item.questionId]) : detail?.stimulus || ""}
+                      blankOptions={!isMath ? detail?.answerOptions : undefined}
+                      selectedBlankAnswer={session.answers[item.questionId]}
                     />
-                    {!isMath && (
-                      <label className="mt-6 block text-sm font-medium">
-                        Notes
-                        <textarea
-                          value={session.notes[item.questionId] || ""}
-                          onChange={(e) =>
-                            setSession((old) => ({
-                              ...old,
-                              notes: {
-                                ...old.notes,
-                                [item.questionId]: e.target.value,
-                              },
-                            }))
-                          }
-                          className="mt-2 block min-h-24 w-full rounded-lg border bg-transparent p-3"
-                        />
-                      </label>
-                    )}
                   </div>
                 )}
                 <div className="assessment-question">
@@ -630,7 +697,7 @@ export default function FullTest() {
                     <>
                       <AnnotatedPassage
                         questionId={`${item.questionId}:stem`}
-                        html={detail.stem}
+                        html={!isMath ? fillQuestionBlank(detail.stem, detail.answerOptions, session.answers[item.questionId]) : detail.stem}
                         className="mb-6"
                       />
                       {detail.answerOptions ? (
@@ -679,34 +746,19 @@ export default function FullTest() {
                           )}
                         />
                       )}
-                      {stage === "done" && (
-                        <div className="mt-6 rounded-xl border p-4">
-                          <p>
-                            Your answer:{" "}
-                            {session.answers[item.questionId] || "No answer"}
-                          </p>
-                          <p>
-                            Correct answer: {detail.correct_answer?.join(", ")}
-                          </p>
-                          <h2 className="mt-4 font-semibold">Explanation</h2>
-                          <MathJax dynamic>
-                            <div
-                              dangerouslySetInnerHTML={{
-                                __html:
-                                  detail.rationale ||
-                                  "No explanation is available.",
-                              }}
-                            />
-                          </MathJax>
-                        </div>
-                      )}
                     </>
                   ) : (
                     <p>Loading question…</p>
                   )}
                 </div>
+                {stage === "done" && detail && (
+                  <AssessmentExplanation
+                    html={detail.rationale}
+                    questionId={item.questionId}
+                  />
+                )}
               </div>
-              <div className="mt-8 flex flex-wrap gap-2">
+              <div className="assessment-sticky-navigation mt-8">
                 <button
                   className={button}
                   disabled={session.index === 0}
@@ -735,20 +787,6 @@ export default function FullTest() {
                 )}
                 {stage === "done" && (
                   <>
-                    <select
-                      aria-label="Review module"
-                      className={button}
-                      value={reviewModule}
-                      onChange={(e) => {
-                        setReviewModule(Number(e.target.value));
-                        setSession((old) => ({ ...old, index: 0 }));
-                      }}
-                    >
-                      <option value="0">Reading and Writing 1</option>
-                      <option value="1">Reading and Writing 2</option>
-                      <option value="2">Math 1</option>
-                      <option value="3">Math 2</option>
-                    </select>
                     <button className={button} onClick={() => setReview(false)}>
                       Back to results
                     </button>

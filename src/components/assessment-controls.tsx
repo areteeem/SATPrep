@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const assessmentButton =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-100 disabled:opacity-40 dark:border-neutral-700 dark:hover:bg-neutral-800";
+  "assessment-control inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-100 disabled:opacity-40 dark:border-neutral-700 dark:hover:bg-neutral-800";
 export function hasAssessmentContent(html?: string | null) {
   return Boolean(
     html &&
@@ -63,7 +63,7 @@ export function AssessmentConfirm({
             Cancel
           </button>
           <button
-            className={`${assessmentButton} bg-neutral-950 text-white dark:bg-neutral-100 dark:text-neutral-950`}
+            className={`${assessmentButton} assessment-primary`}
             onClick={onConfirm}
           >
             {confirmLabel}

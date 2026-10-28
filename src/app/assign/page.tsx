@@ -16,6 +16,7 @@ import type { PracticeSelections } from "@/types/session";
 const allDomains = ["INI", "CAS", "EOI", "SEC", "H", "P", "Q", "S"];
 export default function Assign() {
   const [signed, setSigned] = useState(false),
+    [profileName, setProfileName] = useState(""),
     [mode, setMode] = useState<"full" | "custom">("full"),
     [selection, setSelection] = useState<PracticeSelections | null>(null),
     [count, setCount] = useState(20),
@@ -24,9 +25,14 @@ export default function Assign() {
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   useEffect(() => {
-    void tutproClient?.auth
-      .getUser()
-      .then(({ data }) => setSigned(Boolean(data.user)));
+    void tutproClient?.auth.getUser().then(({ data }) => {
+      setSigned(Boolean(data.user));
+      setProfileName(
+        data.user?.user_metadata?.display_name ||
+          data.user?.email ||
+          "TutPro teacher",
+      );
+    });
   }, []);
   async function create() {
     setBusy(true);
@@ -71,6 +77,18 @@ export default function Assign() {
         Choose the same assessment, subject, skills, and settings as a Practice
         Rush, then create a private student link.
       </p>
+      <div className="mt-5 rounded-xl border p-4 text-sm">
+        <strong>
+          {signed
+            ? `Connected as ${profileName}`
+            : "Connect your TutPro teacher profile"}
+        </strong>
+        <p className="mt-2 text-neutral-500">
+          This assignment is tied to your teacher profile. Students can send
+          their practice result, estimated score, and review link to your
+          connected Telegram account.
+        </p>
+      </div>
       <div className="my-7 grid gap-3 sm:grid-cols-2">
         {[
           {

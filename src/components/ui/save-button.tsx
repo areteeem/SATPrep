@@ -37,6 +37,7 @@ interface SaveButtonProps {
   isQuestionSaved: boolean;
   savedQuestions: SavedQuestions;
   setSavedQuestions: (value: SavedQuestions) => void;
+  compact?: boolean;
 }
 import {
   HoverCard,
@@ -63,6 +64,7 @@ export function SaveButton({
   isQuestionSaved,
   savedQuestions,
   setSavedQuestions,
+  compact = false,
 }: SaveButtonProps) {
   const id = useId();
   const reduxDispatch = useAppDispatch();
@@ -451,8 +453,10 @@ export function SaveButton({
   return (
     <div className="inline-flex items-center gap-2 rounded-xl overflow-visible">
       <Button
+        aria-label={actualIsQuestionSaved ? "Remove from saved questions" : "Save question"}
+        title={actualIsQuestionSaved ? "Saved question" : "Save question"}
         variant="default"
-        className={`flex cursor-pointer items-center gap-1 md:gap-2 font-bold py-2 md:py-3 px-3 md:px-6 border-b-4 transform transition-all duration-200 active:translate-y-0.5 active:border-b-2 text-xs md:text-sm rounded-none ${
+        className={`${compact ? "assessment-icon-button" : ""} flex cursor-pointer items-center gap-1 md:gap-2 font-bold py-2 md:py-3 px-3 md:px-6 border-b-4 transform transition-all duration-200 active:translate-y-0.5 active:border-b-2 text-xs md:text-sm rounded-none ${
           actualIsQuestionSaved
             ? "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-700 hover:border-yellow-800"
             : "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-700 hover:border-yellow-800"
@@ -465,7 +469,7 @@ export function SaveButton({
           }`}
         />
         <span className="font-medium hidden sm:inline">
-          {actualIsQuestionSaved ? "Saved" : "Save"}
+          {!compact && (actualIsQuestionSaved ? "Saved" : "Save")}
         </span>
       </Button>
 
@@ -476,7 +480,7 @@ export function SaveButton({
       >
         <HoverCardTrigger asChild>
           <Button
-            className={`border-b-4 transform transition-all duration-200 active:translate-y-0.5 active:border-b-2 rounded-none border-l-0 ${
+            className={`${compact ? "assessment-icon-button" : ""} border-b-4 transform transition-all duration-200 active:translate-y-0.5 active:border-b-2 rounded-none border-l-0 ${
               actualIsQuestionSaved
                 ? "bg-yellow-500 hover:bg-yellow-700 text-white border-yellow-800 hover:border-yellow-900"
                 : "bg-yellow-500 hover:bg-yellow-700 text-white border-yellow-800 hover:border-yellow-900"

@@ -1,22 +1,45 @@
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, ClipboardList, FileCheck2, Timer } from "lucide-react";
+import { ArrowUpRight, BookOpen, ClipboardList, FileCheck2, LayoutDashboard, Search, Timer, Presentation, History } from "lucide-react";
 
 const choices = [
-  { href: "/practice", title: "Practice Rush", description: "Practice questions at your own pace.", icon: Timer },
-  { href: "/full-test", title: "Full-Length Test", description: "Practice with SAT-style timed modules.", icon: BookOpen },
-  { href: "/assign", title: "Assign", description: "Create practice for a student.", icon: ClipboardList },
-  { href: "/results", title: "Check Results", description: "Review a completed practice session.", icon: FileCheck2 },
+  { href: "/practice", title: "Practice Rush", icon: Timer },
+  { href: "/full-test", title: "Full-Length Test", icon: BookOpen },
+  { href: "/dashboard", title: "Dashboard", icon: LayoutDashboard },
+  { href: "/questionbank", title: "Question Bank", icon: BookOpen },
+  { href: "/question", title: "Search Questions", icon: Search },
+  { href: "/assign", title: "Assign", icon: ClipboardList },
+  { href: "/whiteboards", title: "Saved Whiteboards", icon: Presentation },
+  { href: "/previous-questions", title: "Previous Questions", icon: History },
+  { href: "/results", title: "Check Results", icon: FileCheck2 },
+  { href: "/whiteboard?blank=1", title: "Open Whiteboard", icon: Presentation, newTab: true },
 ];
 
 export default function Home() {
-  return <main className="mx-auto min-h-[80vh] max-w-5xl px-6 py-20 sm:py-28">
-    <p className="text-sm font-semibold uppercase tracking-[.2em] text-neutral-500">SAT Finder</p>
-    <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Choose how to practice.</h1>
-    <div className="mt-12 grid gap-3 sm:grid-cols-2">
-      {choices.map(({href, title, description, icon: Icon}) => <Link key={href} href={href} className="group flex min-h-40 flex-col justify-between rounded-2xl border border-neutral-200 bg-white p-6 text-neutral-950 transition-colors hover:border-neutral-500 focus-visible:outline-2 focus-visible:outline-offset-4 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
-        <div className="flex justify-between"><Icon size={23} strokeWidth={1.7}/><ArrowUpRight size={20}/></div>
-        <div><h2 className="text-xl font-semibold">{title}</h2><p className="mt-1 text-sm text-neutral-500">{description}</p></div>
-      </Link>)}
-    </div>
-  </main>;
+  return (
+    <main className="mx-auto flex min-h-[100dvh] w-full max-w-5xl flex-col justify-center px-4 py-3">
+      <header className="text-center">
+        <p className="text-xs font-semibold uppercase tracking-[.2em] text-neutral-500">
+          SAT Finder
+        </p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+          Choose how to practice.
+        </h1>
+      </header>
+      <div className="mx-auto mt-4 flex w-full max-w-md flex-col gap-1.5">
+        {choices.map(({ href, title, icon: Icon, newTab }) => (
+          <Link
+            key={href}
+            href={href}
+            target={newTab ? "_blank" : undefined}
+            rel={newTab ? "noopener noreferrer" : undefined}
+            className="group flex h-9 w-full items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 text-left text-neutral-950 transition-colors hover:border-neutral-500 hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800"
+          >
+            <Icon size={17} strokeWidth={1.8} />
+            <span className="min-w-0 flex-1 truncate text-sm font-medium">{title}</span>
+            <ArrowUpRight size={16} className="shrink-0 opacity-60" />
+          </Link>
+        ))}
+      </div>
+    </main>
+  );
 }

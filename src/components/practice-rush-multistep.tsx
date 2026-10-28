@@ -1,7 +1,9 @@
 "use client";
 
+import { AssessmentWorkspaceActions,AssessmentExplanation } from "@/components/assessment-workspace-actions";
 import { AnnotatedPassage } from "./annotated-passage";
-import { AssessmentCalculatorTools, AssessmentMathPanel } from "@/components/assessment-calculator-tools";
+import { AssessmentMathPanel } from "@/components/assessment-calculator-tools";
+import { fillQuestionBlank } from "@/lib/assessment-blanks";
 import { AssessmentActivePage, AssessmentAnswerInput, AssessmentAnswerOptions, hasAssessmentContent } from "@/components/assessment-controls";
 import { saveLocalAssessment } from "@/lib/local-assessments";
 
@@ -145,11 +147,7 @@ function DuolingoLoadingSpinner({
 
   return (
     <div className="flex items-center justify-center gap-3">
-      <div className="flex space-x-1">
-        <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s] [animation-duration:0.6s]"></div>
-        <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.15s] [animation-duration:0.6s]"></div>
-        <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-duration:0.6s]"></div>
-      </div>
+      <div className="sat-loading-spinner h-5 w-5 rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />
       <span className="text-white font-bold text-lg">
         {showProgress
           ? `Loading batch... (${progress}/${total})`
@@ -182,8 +180,8 @@ const CONGRATULATORY_MESSAGES = [
 interface DuolingoTimerProps {
   startTime: number;
   isActive: boolean;
-  isVisible: boolean;
-  onToggleVisibility: () => void;
+  isPinned: boolean;
+  onTogglePinned: () => void;
   fixedTime?: number; // For showing completed question times in review mode
   savedElapsedTime?: number; // For continuing in-progress questions
 }
@@ -191,12 +189,14 @@ interface DuolingoTimerProps {
 function DuolingoTimer({
   startTime,
   isActive,
-  isVisible,
-  onToggleVisibility,
+  isPinned,
+  onTogglePinned,
   fixedTime,
   savedElapsedTime = 0,
 }: DuolingoTimerProps) {
   const [elapsedTime, setElapsedTime] = React.useState(0);
+  const [isHovered, setIsHovered] = React.useState(false);
+  const isVisible = isPinned || isHovered;
 
   React.useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -223,27 +223,26 @@ function DuolingoTimer({
   };
 
   return (
-    <div className="flex flex-row items-center py-3 gap-2">
-      <div
-        className={`${
-          isVisible ? "block" : "hidden"
-        } flex items-center gap-2 bg-transparent border border-neutral-300 dark:border-neutral-700 rounded-xl px-3 py-2`}
+    <div
+      className={`assessment-timer ${isPinned ? "assessment-timer-pinned" : "assessment-timer-hidden"}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onFocusCapture={() => setIsHovered(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+          setIsHovered(false);
+      }}
+    >
+      <button
+        type="button"
+        onClick={onTogglePinned}
+        aria-pressed={isPinned}
+        aria-label={isPinned ? "Unpin stopwatch" : "Pin stopwatch"}
+        title={isPinned ? "Unpin stopwatch" : "Pin stopwatch"}
+        className="assessment-timer-button"
       >
         <Clock className="h-4 w-4" />
-        <span className="font-mono text-base">
-          {formatTime(displayTime)}
-        </span>
-        {fixedTime !== undefined && (
-          <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
-            (completed)
-          </span>
-        )}
-      </div>
-      <button
-        onClick={onToggleVisibility}
-        className=" h-12 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline cursor-pointer transition-colors duration-200"
-      >
-        {isVisible ? "Hide Timer" : "Show Timer"}
+        {isVisible ? <><span className="font-mono">{formatTime(displayTime)}</span>{fixedTime !== undefined && <span className="text-xs text-neutral-500">(completed)</span>}</> : <span className="sr-only">Timer hidden</span>}
       </button>
     </div>
   );
@@ -603,7 +602,7 @@ interface AppState {
   questionStartTime: number;
   currentQuestionElapsedTime: number; // Track elapsed time for current question
   isTimerActive: boolean;
-  isTimerVisible: boolean;
+  isTimerPinned: boolean;
   isLoadingNextBatch: boolean;
   currentBatch: number; // Keep for backward compatibility but will be deprecated
   questionsLoadedCount: number; // Track total questions loaded so far
@@ -653,7 +652,7 @@ type AppAction =
   | { type: "TOGGLE_NOTES_POPUP" }
   | { type: "START_TIMER" }
   | { type: "STOP_TIMER" }
-  | { type: "TOGGLE_TIMER_VISIBILITY" }
+  | { type: "TOGGLE_TIMER_PIN" }
   | { type: "START_LOADING_NEXT_BATCH" }
   | { type: "FINISH_LOADING_NEXT_BATCH"; payload: QuestionState[] }
   | { type: "SET_QUESTIONS_PROCESSED_COUNT"; payload: number }
@@ -699,7 +698,7 @@ const initialState: AppState = {
   questionStartTime: Date.now(),
   currentQuestionElapsedTime: 0,
   isTimerActive: false,
-  isTimerVisible: true,
+  isTimerPinned: false,
   isLoadingNextBatch: false,
   currentBatch: 1,
   questionsLoadedCount: 22, // Initially load 22 questions
@@ -900,10 +899,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         isTimerActive: false,
       };
-    case "TOGGLE_TIMER_VISIBILITY":
+    case "TOGGLE_TIMER_PIN":
       return {
         ...state,
-        isTimerVisible: !state.isTimerVisible,
+        isTimerPinned: !state.isTimerPinned,
       };
     case "START_LOADING_NEXT_BATCH":
       return {
@@ -1207,8 +1206,27 @@ export default function PracticeRushMultistep({
     [state.questions, state.currentQuestionStep],
   );
 
+  const workspaceQuestions=(state.questions||[]).map(q=>({id:q.plainQuestion.questionId,externalId:q.plainQuestion.external_id||q.plainQuestion.ibn||"",domain:q.plainQuestion.primary_class_cd,answer:state.questionAnswers[q.plainQuestion.questionId]||(q.plainQuestion.questionId===currentQuestion?.plainQuestion.questionId?state.selectedAnswer:"")||"",detail:q as unknown as API_Response_Question}));
   const hasStimulus = hasAssessmentContent(currentQuestion?.stimulus);
   const mathQuestion = practiceSelections.subject === "math";
+  const [split, setSplit] = React.useState(50);
+  const resizeSplit = (event: React.PointerEvent<HTMLDivElement>) => {
+    const grid = event.currentTarget.parentElement;
+    if (!grid) return;
+    event.preventDefault();
+    const move = (pointer: PointerEvent) => {
+      const rect = grid.getBoundingClientRect();
+      setSplit(Math.min(75, Math.max(25, ((pointer.clientX - rect.left) / rect.width) * 100)));
+    };
+    const stop = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop, { once: true });
+    window.addEventListener("pointercancel", stop, { once: true });
+  };
   const persistDeviceSession = useCallback((status: string) => {
     if (!state.questions?.length || !state.sessionId) return;
     try { saveLocalAssessment({id:state.sessionId,kind:"rush",title:`${practiceSelections.assessment} ${mathQuestion?"Math":"Reading & Writing"} Rush`,startedAt:new Date(state.sessionStartTime).toISOString(),updatedAt:new Date().toISOString(),status,selections:practiceSelections,questions:state.questions.map((question)=>({id:question.plainQuestion.questionId,externalId:question.plainQuestion.external_id||question.plainQuestion.ibn||"",domain:question.plainQuestion.primary_class_cd,skill:question.plainQuestion.skill_cd,answer:state.questionAnswers[question.plainQuestion.questionId]||"",correctAnswers:question.correct_answer,detail:question as unknown as API_Response_Question}))}); } catch { toast.error("This device could not save the practice session."); }
@@ -3467,9 +3485,9 @@ export default function PracticeRushMultistep({
                 <DuolingoTimer
                   startTime={state.questionStartTime}
                   isActive={state.isTimerActive}
-                  isVisible={state.isTimerVisible}
-                  onToggleVisibility={() => {
-                    dispatch({ type: "TOGGLE_TIMER_VISIBILITY" });
+                  isPinned={state.isTimerPinned}
+                  onTogglePinned={() => {
+                    dispatch({ type: "TOGGLE_TIMER_PIN" });
                     playSound("button-pressed.wav");
                   }}
                   fixedTime={
@@ -3526,15 +3544,15 @@ export default function PracticeRushMultistep({
                     </div>
                   </div>
                 </div>
-                <div className="col-span-12 xl:col-span-7 flex flex-wrap gap-2 items-end justify-center md:justify-start mt-6 xl:mt-0 lg:justify-end xl:justify-end">
-                  {mathQuestion && <AssessmentCalculatorTools />}
+                <div className="assessment-rush-toolbar col-span-12 xl:col-span-7 flex flex-wrap gap-2 items-end justify-center md:justify-start mt-6 xl:mt-0 lg:justify-end xl:justify-end">
+                  <AssessmentWorkspaceActions sessionId={state.sessionId} question={workspaceQuestions.find(q=>q.id===currentQuestion.plainQuestion.questionId)} questions={workspaceQuestions} title="Practice Rush" showSolutions={effectiveReviewMode||state.isAnswerChecked}/>
                   <TooltipProvider delayDuration={100}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
                           variant={"outline"}
                           disabled={state.currentQuestionStep === 0}
-                          className={`group font-bold py-3 px-3 rounded-xl border-2 border-b-4 shadow-lg transform transition-all duration-200 ${
+                          className={`assessment-rush-previous group font-bold py-3 px-3 rounded-xl border-2 border-b-4 shadow-lg transform transition-all duration-200 ${
                             state.currentQuestionStep === 0
                               ? "bg-gray-300 dark:bg-neutral-700 text-gray-500 dark:text-neutral-400 border-gray-400 dark:border-neutral-600 cursor-not-allowed"
                               : "cursor-pointer bg-blue-500 hover:bg-blue-600 text-white border-blue-700 hover:border-blue-800 hover:shadow-xl active:translate-y-0.5 active:border-b-2"
@@ -3575,7 +3593,7 @@ export default function PracticeRushMultistep({
                               currentQuestion?.plainQuestion.questionId || ""
                             ]
                           }
-                          className={`group font-bold py-3 px-3 rounded-xl border-2 border-b-4 shadow-lg transform transition-all duration-200 ${
+                          className={`assessment-rush-next group font-bold py-3 px-3 rounded-xl border-2 border-b-4 shadow-lg transform transition-all duration-200 ${
                             !state.questions ||
                             state.currentQuestionStep >=
                               state.questions.length - 1 ||
@@ -3632,7 +3650,7 @@ export default function PracticeRushMultistep({
                       <TooltipTrigger asChild>
                         <Button
                           variant={"outline"}
-                          className="cursor-pointer group bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-200 font-bold py-3 px-6 rounded-2xl border-2 border-b-4 border-gray-300 dark:border-neutral-600 hover:border-gray-400 dark:hover:border-neutral-500 shadow-md hover:shadow-lg transform transition-all duration-200 active:translate-y-0.5 active:border-b-2"
+                          className="assessment-rush-text-button cursor-pointer group bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-200 font-bold rounded-xl border border-neutral-300 dark:border-neutral-600"
                           onClick={() => {
                             dispatch({ type: "TOGGLE_REFERENCE_POPUP" });
                             playSound("button-pressed.wav");
@@ -3653,7 +3671,7 @@ export default function PracticeRushMultistep({
                           <TooltipTrigger asChild>
                             <Button
                               variant="default"
-                              className="cursor-pointer bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-2xl border-b-4 border-green-700 hover:border-green-800 shadow-md hover:shadow-lg transform transition-all duration-200 active:translate-y-0.5 active:border-b-2"
+                              className="assessment-rush-text-button cursor-pointer bg-neutral-950 hover:bg-neutral-800 text-white font-semibold rounded-xl border border-neutral-950"
                               onClick={handleFinish}
                             >
                               Finish Practice
@@ -3671,7 +3689,7 @@ export default function PracticeRushMultistep({
                       <TooltipTrigger asChild>
                         <Button
                           variant="default"
-                          className="justify-center items-center cursor-pointer bg-neutral-500 hover:bg-neutral-600 text-white font-bold py-3 px-6 rounded-2xl border-b-4 border-neutral-700 hover:border-neutral-800 shadow-md hover:shadow-lg transform transition-all duration-200 active:translate-y-0.5 active:border-b-2"
+                          className="assessment-icon-button justify-center items-center cursor-pointer bg-neutral-700 hover:bg-neutral-800 text-white font-bold rounded-xl border border-neutral-700"
                           onClick={() => {
                             dispatch({ type: "TOGGLE_SHARE_MODAL" });
                             playSound("button-pressed.wav");
@@ -3689,7 +3707,7 @@ export default function PracticeRushMultistep({
                       <TooltipTrigger asChild>
                         <Button
                           variant="default"
-                          className="justify-center items-center cursor-pointer bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-2xl border-b-4 border-indigo-700 hover:border-indigo-800 shadow-md hover:shadow-lg transform transition-all duration-200 active:translate-y-0.5 active:border-b-2"
+                          className="assessment-icon-button justify-center items-center cursor-pointer bg-neutral-700 hover:bg-neutral-800 text-white font-bold rounded-xl border border-neutral-700"
                           onClick={() => {
                             const questionId =
                               currentQuestion?.plainQuestion.questionId;
@@ -3731,6 +3749,7 @@ export default function PracticeRushMultistep({
                         isQuestionSaved={isCurrentQuestionSaved}
                         savedQuestions={savedQuestions}
                         setSavedQuestions={setSavedQuestions}
+                        compact
                       />
                     )}
 
@@ -3738,7 +3757,7 @@ export default function PracticeRushMultistep({
                       <TooltipTrigger asChild>
                         <Button
                           variant="default"
-                          className="justify-center items-center cursor-pointer bg-gray-600 hover:bg-gray-700 dark:bg-neutral-600 dark:hover:bg-neutral-500 text-white font-bold py-3 px-6 rounded-2xl border-b-4 border-gray-800 dark:border-neutral-700 hover:border-gray-900 dark:hover:border-neutral-600 shadow-md hover:shadow-lg transform transition-all duration-200 active:translate-y-0.5 active:border-b-2"
+                          className="assessment-icon-button justify-center items-center cursor-pointer bg-neutral-700 hover:bg-neutral-800 text-white font-bold rounded-xl border border-neutral-700"
                           onClick={() => {
                             dispatch({ type: "TOGGLE_NOTES_POPUP" });
                             playSound("button-pressed.wav");
@@ -3803,21 +3822,25 @@ export default function PracticeRushMultistep({
                 </div>
               </div>
 
-              <div className={`assessment-question-grid ${!hasStimulus&&!mathQuestion ? "assessment-question-centered" : ""}`}>
+              <div className={`assessment-question-grid ${!hasStimulus&&!mathQuestion ? "assessment-question-centered" : ""}`} style={hasStimulus||mathQuestion ? {gridTemplateColumns:`minmax(0, ${split}fr) 10px minmax(0, ${100-split}fr)`} : undefined}>
                 <AssessmentMathPanel hidden={!mathQuestion||hasStimulus}/>
                 <div className="sat-passage-column flex flex-col gap-6 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700" style={{display:hasStimulus?undefined:"none"}}>
                   {currentQuestion.stimulus && (
                       <AnnotatedPassage
                         questionId={currentQuestion.plainQuestion.questionId}
-                        html={currentQuestion.stimulus}
+                        html={practiceSelections.subject === "reading-writing" ? fillQuestionBlank(currentQuestion.stimulus, currentQuestion.answerOptions, state.selectedAnswer || state.questionAnswers[currentQuestion.plainQuestion.questionId]) : currentQuestion.stimulus}
+                        blankOptions={practiceSelections.subject === "reading-writing" ? currentQuestion.answerOptions : undefined}
+                        selectedBlankAnswer={state.selectedAnswer || state.questionAnswers[currentQuestion.plainQuestion.questionId]}
                         className="text-xl sat-passage"
                       />
                   )}
                 </div>
 
+                {(hasStimulus || mathQuestion) && <div className="assessment-split-divider" role="separator" aria-orientation="vertical" aria-label="Resize question and reference panels" onPointerDown={resizeSplit} />}
+
                 <div className="assessment-question">
                     <React.Fragment>
-                      <AnnotatedPassage questionId={`${currentQuestion.plainQuestion.questionId}:stem`} html={currentQuestion.stem} className="mb-6" />
+                      <AnnotatedPassage questionId={`${currentQuestion.plainQuestion.questionId}:stem`} html={practiceSelections.subject === "reading-writing" ? fillQuestionBlank(currentQuestion.stem, currentQuestion.answerOptions, state.selectedAnswer || state.questionAnswers[currentQuestion.plainQuestion.questionId]) : currentQuestion.stem} blankOptions={practiceSelections.subject === "reading-writing" ? currentQuestion.answerOptions : undefined} selectedBlankAnswer={state.selectedAnswer || state.questionAnswers[currentQuestion.plainQuestion.questionId]} className="mb-6" />
 
                       {currentQuestion.answerOptions ? (
                         <AnswerOptions
@@ -3897,7 +3920,7 @@ export default function PracticeRushMultistep({
                                 >
                                   {state.isLoadingNextBatch ? (
                                     <span className="flex items-center justify-center gap-2">
-                                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                      <div className="sat-loading-spinner w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
                                       LOADING... (
                                       {state.questionsProcessedCount}
                                       /22)
@@ -3969,7 +3992,7 @@ export default function PracticeRushMultistep({
                       >
                         Explain
                       </Button> */}
-                      {state.isAnswerChecked && state.selectedAnswer && (
+                      {state.isAnswerChecked && state.selectedAnswer && !currentQuestion.answerOptions && (
                         <div className="mt-4 space-y-2">
                           {state.questionAnswers[
                             currentQuestion.plainQuestion.questionId
@@ -3992,25 +4015,8 @@ export default function PracticeRushMultistep({
                     </React.Fragment>
                 </div>
 
-                {state.isAnswerChecked && state.selectedAnswer && (
-                  <div className="mt-4 col-span-full">
-                    <Label className="text-lg font-semibold mb-2 block">
-                      Explanation:
-                    </Label>
-                    <MathJax
-                      inline
-                      dynamic
-                      id="question_explanation"
-                      className="text-xl text-justify"
-                    >
-                      <span
-                        dangerouslySetInnerHTML={{
-                          __html: currentQuestion.rationale,
-                        }}
-                      ></span>
-                    </MathJax>
-                  </div>
-                )}
+                {state.isAnswerChecked && state.selectedAnswer && <AssessmentExplanation html={currentQuestion.rationale} questionId={currentQuestion.plainQuestion.questionId}/>}
+
               </div>
             </div>
           </React.Fragment>

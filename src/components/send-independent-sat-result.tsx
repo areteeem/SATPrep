@@ -1,11 +1,101 @@
 "use client";
-import { useState } from 'react';
-import { satRequest } from '@/lib/satSharing';
-import { signInWithTutPro, tutproClient } from '@/lib/tutproAccount';
-type Teacher = {id:string;name:string};
-export function SendIndependentSatResult({token}:{token:string}) {
- const [teachers,setTeachers]=useState<Teacher[]|null>(null),[teacher,setTeacher]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
- async function selectTeacher(){setBusy(true);setMessage('');try{const user=(await tutproClient?.auth.getUser())?.data.user;if(!user){signInWithTutPro(`/results#${token}`);return;}await satRequest('claim_result',{resultToken:token},true);const data=await satRequest<{teachers:Teacher[]}>('list_teachers',{},true);setTeachers(data.teachers);if(!data.teachers.length)setMessage('No linked teacher with Telegram is available for your active student account.');}catch(e){setMessage(e instanceof Error?e.message:'Could not find a teacher.');}finally{setBusy(false);}}
- async function send(){setBusy(true);setMessage('');try{const data=await satRequest<{status:string;reason?:string}>('notify_teacher',{resultToken:token,teacherId:teacher},true);setMessage(data.status==='sent'?'Delivered to the teacher’s Telegram.':data.status==='pending'||data.status==='leased'?'Queued for Telegram delivery.':`Delivery status: ${data.status}${data.reason?` (${data.reason})`:''}.`);}catch(e){setMessage(e instanceof Error?e.message:'Could not queue delivery.');}finally{setBusy(false);}}
- return <div className="mt-6 rounded-xl border p-4"><p>Send this result to a teacher connected to your TutPro student account.</p>{teachers===null?<button disabled={busy} onClick={()=>void selectTeacher()} className="mt-3 rounded-lg border px-4 py-2">{busy?'Checking…':'Choose a teacher'}</button>:<div className="mt-3 flex flex-wrap gap-2"><select aria-label="Teacher" value={teacher} onChange={e=>setTeacher(e.target.value)} className="rounded-lg border bg-transparent px-3 py-2"><option value="">Select teacher</option>{teachers.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select><button disabled={!teacher||busy} onClick={()=>void send()} className="rounded-lg border px-4 py-2 disabled:opacity-50">Send to Telegram</button></div>}<p className="mt-2 text-sm" role="status">{message}</p></div>;
+import { useState } from "react";
+import { satRequest } from "@/lib/satSharing";
+import { signInWithTutPro, tutproClient } from "@/lib/tutproAccount";
+type Teacher = { id: string; name: string };
+export function SendIndependentSatResult({ token }: { token: string }) {
+  const [teachers, setTeachers] = useState<Teacher[] | null>(null),
+    [teacher, setTeacher] = useState(""),
+    [message, setMessage] = useState(""),
+    [busy, setBusy] = useState(false);
+  async function selectTeacher() {
+    setBusy(true);
+    setMessage("");
+    try {
+      const user = (await tutproClient?.auth.getUser())?.data.user;
+      if (!user) {
+        signInWithTutPro(`/results#${token}`);
+        return;
+      }
+      await satRequest("claim_result", { resultToken: token }, true);
+      const data = await satRequest<{ teachers: Teacher[] }>(
+        "list_teachers",
+        {},
+        true,
+      );
+      setTeachers(data.teachers);
+      if (!data.teachers.length)
+        setMessage(
+          "No linked teacher with Telegram is available for your active student account.",
+        );
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Could not find a teacher.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function send() {
+    setBusy(true);
+    setMessage("");
+    try {
+      const data = await satRequest<{ status: string; reason?: string }>(
+        "notify_teacher",
+        { resultToken: token, teacherId: teacher },
+        true,
+      );
+      setMessage(
+        data.status === "sent"
+          ? "Delivered to the teacher’s Telegram."
+          : data.status === "pending" || data.status === "leased"
+            ? "Queued for Telegram delivery."
+            : `Delivery status: ${data.status}${data.reason ? ` (${data.reason})` : ""}.`,
+      );
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Could not queue delivery.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="mt-6 rounded-xl border p-4">
+      <p>
+        Send this result to a teacher connected to your TutPro student account.
+      </p>
+      {teachers === null ? (
+        <button
+          disabled={busy}
+          onClick={() => void selectTeacher()}
+          className="mt-3 rounded-lg border px-4 py-2"
+        >
+          {busy ? "Checking…" : "Send result to teacher’s Telegram"}
+        </button>
+      ) : (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <select
+            aria-label="Teacher"
+            value={teacher}
+            onChange={(e) => setTeacher(e.target.value)}
+            className="rounded-lg border bg-transparent px-3 py-2"
+          >
+            <option value="">Select teacher</option>
+            {teachers.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+          <button
+            disabled={!teacher || busy}
+            onClick={() => void send()}
+            className="rounded-lg border px-4 py-2 disabled:opacity-50"
+          >
+            Send to Telegram
+          </button>
+        </div>
+      )}
+      <p className="mt-2 text-sm" role="status">
+        {message}
+      </p>
+    </div>
+  );
 }

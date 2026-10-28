@@ -8,6 +8,9 @@ import type {
 } from "@/types/question";
 import { satRequest, type PracticeSettings } from "@/lib/satSharing";
 import { saveLocalAssessment } from "@/lib/local-assessments";
+import { AssessmentWorkspaceActions } from "@/components/assessment-workspace-actions";
+import { fillQuestionBlank } from "@/lib/assessment-blanks";
+import { AssessmentCompletion } from "@/components/assessment-completion";
 import { AnnotatedPassage } from "@/components/annotated-passage";
 import { SendSatResult } from "@/components/send-sat-result";
 import {
@@ -62,6 +65,10 @@ function readOptions(encoded: string): Partial<PracticeSettings> {
   }
 }
 export default function Assignment() {
+  const [teacher, setTeacher] = useState<{
+    name: string;
+    telegramConnected: boolean;
+  } | null>(null);
   const [token, setToken] = useState(""),
     [settings, setSettings] = useState<PracticeSettings | null>(null),
     [state, setState] = useState<State | null>(null),
@@ -83,11 +90,15 @@ export default function Assignment() {
       return;
     }
     setToken(value);
-    void satRequest<{ settings: PracticeSettings }>("resolve_assignment", {
+    void satRequest<{
+      settings: PracticeSettings;
+      teacher?: { name: string; telegramConnected: boolean };
+    }>("resolve_assignment", {
       token: value,
     })
       .then((data) => {
         setSettings({ ...data.settings, ...readOptions(encoded) });
+        setTeacher(data.teacher || null);
         try {
           const saved = localStorage.getItem(`sat-custom:${value}`);
           if (saved) setState(JSON.parse(saved));
@@ -102,6 +113,7 @@ export default function Assignment() {
       if (state.id)
         saveLocalAssessment({
           id: state.id,
+          assignmentToken: token,
           kind: "custom",
           title: "Assigned practice",
           startedAt: state.startedAt || "",
@@ -251,7 +263,7 @@ export default function Assignment() {
     );
   return (
     <main
-      className="mx-auto min-h-dvh max-w-7xl px-5 py-6"
+      className="assessment-full-page mx-auto min-h-dvh max-w-7xl px-5 py-6"
       data-assessment-content
     >
       <AssessmentActivePage active={Boolean(state && !state.done)} />
@@ -275,6 +287,15 @@ export default function Assignment() {
           <h1 className="text-3xl font-semibold">
             Your {settings.assessment || "SAT"} practice
           </h1>
+          <p className="mt-4 rounded-xl border p-4 text-sm">
+            {teacher
+              ? `This practice is linked to ${teacher.name}.`
+              : "This practice is linked to your assigning teacher."}{" "}
+            Your result will be connected to this assignment.{" "}
+            {teacher?.telegramConnected === false
+              ? "Your teacher needs to connect Telegram to receive it there."
+              : "You can send your result directly to the teacher’s Telegram after finishing."}
+          </p>
           <p className="mt-4">
             {settings.mode === "full"
               ? "Full-length test"
@@ -295,24 +316,55 @@ export default function Assignment() {
         </section>
       )}
       {state && (
-        <section className="py-8">
-          <h1 className="mb-6 font-semibold">
-            {state.done
-              ? "Practice complete"
-              : `Question ${state.index + 1} of ${state.questions.length}`}
-          </h1>
+        <section className="py-4">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h1 className="font-semibold">
+              {state.done
+                ? "Practice complete"
+                : `Question ${state.index + 1} of ${state.questions.length}`}
+            </h1>
+            {!state.done && item && (
+              <AssessmentWorkspaceActions
+                sessionId={state.id || token}
+                question={{
+                  id: item.questionId,
+                  externalId: item.external_id || item.ibn || "",
+                  domain: item.primary_class_cd,
+                  answer: state.answers[item.questionId] || "",
+                  detail: state.details?.[item.questionId] || undefined,
+                }}
+                questions={state.questions.map((q) => ({
+                  id: q.questionId,
+                  externalId: q.external_id || q.ibn || "",
+                  domain: q.primary_class_cd,
+                  answer: state.answers[q.questionId] || "",
+                  detail: state.details?.[q.questionId],
+                }))}
+                title="Assigned practice"
+              />
+            )}
+          </div>
           {state.done ? (
             <div>
-              <p>
-                Create a private result link to review answers and share them
-                with your teacher.
-              </p>
+              <AssessmentCompletion
+                localId={state.id || ""}
+                assignmentToken={token}
+                result={{
+                  mode: "custom",
+                  questions: state.questions.map((q) => ({
+                    id: q.questionId,
+                    externalId: q.external_id || q.ibn || "",
+                    domain: q.primary_class_cd,
+                    answer: state.answers[q.questionId] || "",
+                  })),
+                }}
+              />
               <button
                 className={`${button} mt-5`}
                 disabled={busy}
                 onClick={() => void share()}
               >
-                {busy ? "Creating…" : "Create result link"}
+                {busy ? "Creating…" : "Send result to teacher’s Telegram"}
               </button>
               <Link
                 className={`${button} ml-3 mt-5`}
@@ -348,7 +400,9 @@ export default function Assignment() {
                     <div className="rounded-xl border p-5">
                       <AnnotatedPassage
                         questionId={item.questionId}
-                        html={detail?.stimulus || ""}
+                        html={!isMath ? fillQuestionBlank(detail?.stimulus || "", detail?.answerOptions, state.answers[item.questionId]) : detail?.stimulus || ""}
+                        blankOptions={!isMath ? detail?.answerOptions : undefined}
+                        selectedBlankAnswer={state.answers[item.questionId]}
                       />
                     </div>
                   )}
@@ -357,7 +411,7 @@ export default function Assignment() {
                       <>
                         <AnnotatedPassage
                           questionId={`${item.questionId}:stem`}
-                          html={detail.stem}
+                          html={!isMath ? fillQuestionBlank(detail.stem, detail.answerOptions, state.answers[item.questionId]) : detail.stem}
                           className="mb-6"
                         />
                         {detail.answerOptions ? (
@@ -399,7 +453,7 @@ export default function Assignment() {
                     )}
                   </div>
                 </div>
-                <div className="mt-8 flex flex-wrap gap-2">
+                <div className="assessment-sticky-navigation mt-8 flex flex-wrap gap-2">
                   <button
                     className={button}
                     disabled={!state.index}

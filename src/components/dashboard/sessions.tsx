@@ -32,6 +32,7 @@ import {
   selectUserSessions,
 } from "@/lib/redux/selectors";
 import { useResolvedPracticeStatistics } from "@/hooks/use-resolved-user-data";
+import { readLocalAssessments, saveLocalAssessment, fromLegacyRush } from "@/lib/local-assessments";
 import { updatePracticeSession } from "@/lib/utils/dataSync";
 
 interface QuestionResult {
@@ -174,11 +175,16 @@ export function SessionsTab() {
   };
 
   const handleReviewSession = (sessionId: string) => {
-    router.push(`/practice?session=${sessionId}`);
+    const session=practiceHistory.find(item=>item.sessionId===sessionId);
+    if(session && !readLocalAssessments().some((item)=>item.id===sessionId))
+      saveLocalAssessment(fromLegacyRush(session));
+    window.open(`/review-session?local=${encodeURIComponent(sessionId)}`,"_blank","noopener,noreferrer");
   };
 
-  const handleQuestionClick = (questionId: string) => {
-    router.push(`/question/${questionId}`);
+  const handleQuestionClick = (session: PracticeSession, questionId: string) => {
+    if (!readLocalAssessments().some((item)=>item.id===session.sessionId))
+      saveLocalAssessment(fromLegacyRush(session));
+    window.open(`/review-session?local=${encodeURIComponent(session.sessionId)}&question=${encodeURIComponent(questionId)}`,"_blank","noopener,noreferrer");
   };
 
   const handleDeleteSession = (session: PracticeSession) => {
@@ -565,7 +571,7 @@ export function SessionsTab() {
                       {questionResults.map((result, idx) => (
                         <div
                           key={result.questionId}
-                          onClick={() => handleQuestionClick(result.questionId)}
+                          onClick={() => handleQuestionClick(session, result.questionId)}
                           className={`p-2 rounded-md border text-center text-xs cursor-pointer hover:opacity-80 transition-opacity ${
                             result.isCorrect
                               ? "bg-green-100 border-green-300 text-green-800 hover:bg-green-200"
