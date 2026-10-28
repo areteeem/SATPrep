@@ -272,7 +272,7 @@ export default function Assignment() {
         {state && !state.done && (
           <div className="flex flex-wrap items-center gap-3">
             <AssessmentCountdown deadline={state.deadline} />
-            {isMath && <AssessmentCalculatorTools />}
+            {isMath && hasStimulus && <AssessmentCalculatorTools />}
           </div>
         )}
       </header>

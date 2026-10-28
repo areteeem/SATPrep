@@ -443,7 +443,7 @@ export default function FullTest() {
                 )}
               </Countdown>
             )}
-            {active && isMath && !session.paused && (
+            {active && isMath && hasStimulus && !session.paused && (
               <AssessmentCalculatorTools />
             )}
             {(active || stage === "break") && !session.paused && (

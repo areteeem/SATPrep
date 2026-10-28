@@ -440,7 +440,7 @@ export function LocalAssessmentHistory() {
                   Question {index + 1} of {questions.length} ·{" "}
                   {domainNames[question.domain]}
                 </p>
-                {isMath && <AssessmentCalculatorTools />}
+                {isMath && hasStimulus && <AssessmentCalculatorTools />}
               </div>
               <div
                 className={`assessment-question-grid ${hasStimulus || isMath ? "" : "assessment-question-centered"}`}

@@ -9,8 +9,9 @@ export const tutproClient = url && key ? createClient(url, key, {
 
 export function signInWithTutPro(returnPath = "/assign") {
   const next = returnPath.startsWith("/") && !returnPath.startsWith("//") ? returnPath : "/assign";
-  const target = new URL(next, window.location.origin);
-  if (target.origin !== "https://artem-sat.vercel.app") throw new Error("TutPro sign-in is available on the production SAT Finder address.");
+  // TutPro only accepts the production SAT Finder origin for SSO handoffs.
+  // Keep local and preview sessions on that allowlisted callback as well.
+  const target = new URL(next, "https://artem-sat.vercel.app");
   window.location.assign(`https://www.tutpro.org/signin?returnTo=${encodeURIComponent(target.toString())}`);
 }
 

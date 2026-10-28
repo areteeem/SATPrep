@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { AssessmentReview } from "@/components/assessment-review";
 import { SendLocalResult } from "@/components/assessment-completion";
+import { SaveAssessmentToTutPro } from "@/components/save-assessment-to-tutpro";
 import { readLocalAssessments } from "@/lib/local-assessments";
 import { readReviewMarks } from "@/lib/assessment-workspace";
 import type { WorkspaceQuestion } from "@/lib/assessment-workspace";
@@ -91,18 +92,32 @@ export default function ReviewSession() {
       initialQuestionId={initialQuestion}
       loading={loading}
       actions={
-        <SendLocalResult
-          result={{
-            mode,
-            questions: questions.map((q) => ({
-              id: q.id,
-              externalId: q.externalId,
-              domain: q.domain,
-              answer: q.answer,
-            })),
-          }}
-          assignmentToken={assignment}
-        />
+        assignment ? (
+          <SendLocalResult
+            result={{
+              mode,
+              questions: questions.map((q) => ({
+                id: q.id,
+                externalId: q.externalId,
+                domain: q.domain,
+                answer: q.answer,
+              })),
+            }}
+            assignmentToken={assignment}
+          />
+        ) : (
+          <SaveAssessmentToTutPro
+            result={{
+              mode,
+              questions: questions.map((q) => ({
+                id: q.id,
+                externalId: q.externalId,
+                domain: q.domain,
+                answer: q.answer,
+              })),
+            }}
+          />
+        )
       }
     />
   );

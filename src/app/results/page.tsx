@@ -15,7 +15,8 @@ export default function Results() {
     [assignmentToken, setAssignmentToken] = useState(""),
     [loading, setLoading] = useState(false),
     [error, setError] = useState(""),
-    [assigned, setAssigned] = useState(false);
+    [assigned, setAssigned] = useState(false),
+    [savedToTutPro, setSavedToTutPro] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     let stopped = false;
@@ -24,6 +25,7 @@ export default function Results() {
       location.replace(`/review-session?local=${encodeURIComponent(local)}`);
       return;
     }
+    const shouldClaim = new URLSearchParams(location.search).get("claim") === "1";
     const raw = location.hash.slice(1);
     if (!raw) return;
     if (!/^[a-f0-9]{64}$/.test(raw)) {
@@ -44,6 +46,13 @@ export default function Results() {
           isAssigned: boolean;
         }>("resolve_result", { token: raw });
         if (stopped) return;
+        if (shouldClaim) {
+          if (data.isAssigned)
+            throw new Error("Assigned results are already connected to their teacher.");
+          await satRequest("claim_result", { resultToken: raw }, true);
+          if (stopped) return;
+          setSavedToTutPro(true);
+        }
         setResult(data.result);
         setAssigned(data.isAssigned);
         setQuestions(data.result.questions);
@@ -103,7 +112,14 @@ export default function Results() {
               </p>
             )
           ) : (
-            <SendIndependentSatResult token={token} />
+            <div>
+              {savedToTutPro && (
+                <p className="mb-3 text-sm font-medium text-neutral-700" role="status">
+                  Saved to your TutPro account.
+                </p>
+              )}
+              <SendIndependentSatResult token={token} />
+            </div>
           )
         }
       />

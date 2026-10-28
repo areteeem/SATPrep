@@ -4,14 +4,14 @@ import { ArrowUpRight, BookOpen, ClipboardList, FileCheck2, LayoutDashboard, Sea
 const choices = [
   { href: "/practice", title: "Practice Rush", icon: Timer },
   { href: "/full-test", title: "Full-Length Test", icon: BookOpen },
-  { href: "/dashboard", title: "Dashboard", icon: LayoutDashboard },
   { href: "/questionbank", title: "Question Bank", icon: BookOpen },
   { href: "/question", title: "Search Questions", icon: Search },
-  { href: "/assign", title: "Assign", icon: ClipboardList },
-  { href: "/whiteboards", title: "Saved Whiteboards", icon: Presentation },
-  { href: "/previous-questions", title: "Previous Questions", icon: History },
   { href: "/results", title: "Check Results", icon: FileCheck2 },
+  { href: "/previous-questions", title: "Previous Questions", icon: History },
+  { href: "/dashboard", title: "Dashboard", icon: LayoutDashboard },
+  { href: "/whiteboards", title: "Saved Whiteboards", icon: Presentation },
   { href: "/whiteboard?blank=1", title: "Open Whiteboard", icon: Presentation, newTab: true },
+  { href: "/assign", title: "Assign", icon: ClipboardList },
 ];
 
 export default function Home() {
