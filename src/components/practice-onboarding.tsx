@@ -1,862 +1,366 @@
 "use client";
-
-import React, { useId, useState, useEffect } from "react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BarChart3,
+  BookOpen,
+  Check,
+  CheckCircle2,
+  FileText,
+  Gauge,
+  GraduationCap,
+  Lightbulb,
+  PenLine,
+  Shapes,
+  Sigma,
+  TrendingUp,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { domains } from "@/static-data/domains";
-import { PracticeSelections } from "@/types/session";
-import { QuestionDifficulty } from "@/types/question";
-import { playSound } from "@/lib/playSound";
-import { DuolingoToggle } from "@/components/ui/duolingo-toggle";
+import type { PracticeSelections } from "@/types/session";
+import type { QuestionDifficulty } from "@/types/question";
 
-import SAT_ICON from "@/src/svgs/sat-icon.svg";
-import NMSQT_ICON from "@/src/svgs/nmsqt-icon.svg";
-import PSAT_ICON from "@/src/svgs/psat-icon.svg";
-
-import PRACTICE_RUSH_ICON from "@/src/svgs/practice-rush.svg";
-import FULL_LENGTH_ICON from "@/src/svgs/full-length.svg";
-
-import RW_ICON from "@/src/svgs/rw-icon.svg";
-import MATH_ICON from "@/src/svgs/math-icon.svg";
-
-interface PracticeOnboardingProps {
-  onComplete: (selections: PracticeSelections) => void;
-}
+const domainIcons: Record<string, LucideIcon> = {
+  H: BarChart3,
+  P: Sigma,
+  Q: TrendingUp,
+  S: Shapes,
+  INI: Lightbulb,
+  CAS: BookOpen,
+  EOI: PenLine,
+  SEC: FileText,
+};
+const difficulties: {
+  value: QuestionDifficulty;
+  label: string;
+  Icon: LucideIcon;
+}[] = [
+  { value: "E", label: "Easy", Icon: Gauge },
+  { value: "M", label: "Medium", Icon: BarChart3 },
+  { value: "H", label: "Hard", Icon: TrendingUp },
+];
+export const setupButton =
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-100 disabled:opacity-40 dark:border-neutral-700 dark:hover:bg-neutral-800";
 
 export default function PracticeOnboarding({
   onComplete,
-}: PracticeOnboardingProps) {
-  const id = useId();
-  const [selectedValue, setSelectedValue] = useState<string>("rush");
-  const [step, setStep] = useState<number>(2);
-  const [selectedAssessment, setSelectedAssessment] = useState<string>("");
-  const [selectedSubject, setSelectedSubject] = useState<string>("");
-  const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [selectedDifficulties, setSelectedDifficulties] = useState<
-    QuestionDifficulty[]
-  >([]);
-  const [randomize, setRandomize] = useState<boolean>(true);
-  const [excludeBluebook, setExcludeBluebook] = useState<boolean>(true);
-
-  // Scroll to top when step changes
+  submitLabel = "Start Practice",
+  embedded = false,
+}: {
+  onComplete: (selections: PracticeSelections) => void;
+  submitLabel?: string;
+  embedded?: boolean;
+}) {
+  const [step, setStep] = useState(0);
+  const [assessment, setAssessment] = useState("SAT");
+  const [subject, setSubject] = useState("math");
+  const [skills, setSkills] = useState<string[]>([]);
+  const [levels, setLevels] = useState<QuestionDifficulty[]>([]);
+  const [randomize, setRandomize] = useState(true);
+  const [excludeBluebook, setExcludeBluebook] = useState(true);
+  const [expanded, setExpanded] = useState<string[]>([]);
+  const subjectDomains = subject === "math" ? domains.Math : domains["R&W"];
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [step]);
-
-  const items = [
-    {
-      value: "rush",
-      label: "Practice Rush",
-      icon: PRACTICE_RUSH_ICON,
-
-      description:
-        "Practice with endless problems from Collegeboard's question bank!",
-    },
-    {
-      value: "full-length",
-      label: "Full Length Practice",
-      icon: FULL_LENGTH_ICON,
-
-      description:
-        "Take a full length practice with problems from Collegeboard's question bank.",
-      disabled: true,
-    },
-  ];
-
-  const assessmentItems = [
-    {
-      value: "SAT",
-      label: "SAT",
-      icon: SAT_ICON,
-      description: "Digital SAT Assessment",
-    },
-    {
-      value: "PSAT/NMSQT",
-      label: "PSAT/NMSQT",
-      icon: NMSQT_ICON,
-
-      description: "PSAT/NMSQT & PSAT 10",
-    },
-    {
-      value: "PSAT",
-      label: "PSAT 8/9",
-      icon: PSAT_ICON,
-
-      description: "PSAT 8/9 Assessment",
-    },
-  ];
-
-  const subjectItems = [
-    {
-      value: "math",
-      label: "Math",
-      description: "Practice SAT Math problems",
-      icon: MATH_ICON,
-    },
-    {
-      value: "reading-writing",
-      label: "Reading & Writing",
-      description: "Practice SAT Reading and Writing problems",
-      icon: RW_ICON,
-    },
-  ];
-
-  const handleContinue = () => {
-    playSound("navigation_forward-selection-minimal.wav");
-
-    if (step === 1) {
-      setStep(2);
-    } else if (step === 2) {
-      setStep(3);
-    } else if (step === 3) {
-      setStep(4);
-    } else {
-      // Handle final submission - map selected skill IDs to full skill objects
-      const selectedSkillObjects = getSubjectDomains()
-        .flatMap((domain) => domain.skill || [])
-        .filter((skill) => selectedSkills.includes(skill.id))
-        .map((skill) => ({
-          id: skill.id,
-          text: skill.text,
-          skill_cd: skill.skill_cd,
-        }));
-
-      // Map selected domain IDs to full domain objects
-      const selectedDomainObjects = getSubjectDomains()
-        .filter((domain) => selectedDomains.includes(domain.id))
-        .map((domain) => ({
-          id: domain.id,
-          text: domain.text,
-          primaryClassCd: domain.primaryClassCd,
-        }));
-
-      onComplete({
-        practiceType: selectedValue,
-        assessment: selectedAssessment,
-        subject: selectedSubject,
-        domains: selectedDomainObjects,
-        skills: selectedSkillObjects,
-        difficulties: selectedDifficulties,
-        randomize: randomize,
-        excludeBluebook: excludeBluebook,
-      });
-    }
-  };
-
-  const handleBack = () => {
-    playSound("navigation_backward-selection-minimal.wav");
-
-    if (step === 4) {
-      setStep(3);
-      setSelectedDomains([]);
-      setSelectedSkills([]);
-      setSelectedDifficulties([]);
-    } else if (step === 3) {
-      setStep(2);
-      setSelectedSubject("");
-    } else if (step === 2) {
-      setStep(1);
-      setSelectedAssessment("");
-    }
-  };
-
-  const toggleDomain = (domainId: string) => {
-    setSelectedDomains((prev) => {
-      const isCurrentlySelected = prev.includes(domainId);
-
-      if (isCurrentlySelected) {
-        playSound("tap-checkbox-unchecked.wav");
-        // If deselecting domain, remove all its skills from selected skills
-        const domain = getSubjectDomains().find((d) => d.id === domainId);
-        const domainSkillIds = domain?.skill?.map((skill) => skill.id) || [];
-        setSelectedSkills((prevSkills) =>
-          prevSkills.filter((skillId) => !domainSkillIds.includes(skillId)),
-        );
-        return prev.filter((id) => id !== domainId);
-      } else {
-        playSound("tap-checkbox-checked.wav");
-        // If selecting domain, add all its skills to selected skills
-        const domain = getSubjectDomains().find((d) => d.id === domainId);
-        const domainSkillIds = domain?.skill?.map((skill) => skill.id) || [];
-        setSelectedSkills((prevSkills) => [...prevSkills, ...domainSkillIds]);
-        return [...prev, domainId];
-      }
+    if (!embedded) window.scrollTo({ top: 0 });
+  }, [step, embedded]);
+  const finish = () =>
+    onComplete({
+      practiceType: "rush",
+      assessment,
+      subject,
+      domains: subjectDomains
+        .filter((d) => d.skill.some((s) => skills.includes(s.skill_cd)))
+        .map(({ id, text, primaryClassCd }) => ({ id, text, primaryClassCd })),
+      skills: subjectDomains
+        .flatMap((d) => d.skill)
+        .filter((s) => skills.includes(s.skill_cd)),
+      difficulties: levels,
+      randomize,
+      excludeBluebook,
     });
-  };
-
-  const toggleSkill = (skillId: string) => {
-    setSelectedSkills((prev) => {
-      const isCurrentlySelected = prev.includes(skillId);
-      if (isCurrentlySelected) {
-        playSound("tap-checkbox-unchecked.wav");
-        return prev.filter((id) => id !== skillId);
-      } else {
-        playSound("tap-checkbox-checked.wav");
-        return [...prev, skillId];
-      }
-    });
-  };
-
-  const selectAllSkills = () => {
-    // Get all skill IDs from all domains (not just selected ones)
-    const allSkillIds = getSubjectDomains()
-      .flatMap((domain) => domain.skill || [])
-      .map((skill) => skill.id);
-
-    // Also select all domains that have skills
-    const domainsWithSkills = getSubjectDomains()
-      .filter((domain) => domain.skill && domain.skill.length > 0)
-      .map((domain) => domain.id);
-
-    setSelectedDomains(domainsWithSkills);
-    setSelectedSkills(allSkillIds);
-  };
-
-  const clearAllSkills = () => {
-    setSelectedSkills([]);
-  };
-
-  const getSubjectDomains = () => {
-    if (selectedSubject === "math") {
-      return domains.Math;
-    } else if (selectedSubject === "reading-writing") {
-      return domains["R&W"];
-    }
-    return [];
-  };
-
-  const hasSkillsFromSelectedDomains = () => {
-    return selectedDomains.some((domainId) => {
-      const domain = getSubjectDomains().find((d) => d.id === domainId);
-      const domainSkillIds = domain?.skill?.map((skill) => skill.id) || [];
-      return domainSkillIds.some((skillId) => selectedSkills.includes(skillId));
-    });
-  };
-
-  const staggerContainer = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const cardVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.3 },
-  };
-
+  const toggleSkill = (code: string) =>
+    setSkills((old) =>
+      old.includes(code) ? old.filter((v) => v !== code) : [...old, code],
+    );
   return (
-    <div className="w-full flex flex-col min-h-[85vh] py-60 items-center justify-center">
-      <motion.h1
-        className="text-4xl font-bold"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
-        key={step} // This ensures re-animation when step changes
-      >
-        {step === 1
-          ? "Choose Your Practice Method"
-          : step === 2
+    <section
+      className={`${embedded ? "" : "mx-auto min-h-dvh max-w-4xl px-5 pb-16 pt-28"} space-y-7`}
+      data-no-image-viewer
+    >
+      <div>
+        <p className="mb-2 text-xs font-medium uppercase tracking-widest text-neutral-500">
+          Practice Rush · Step {step + 1} of 3
+        </p>
+        <h1 className="text-3xl font-semibold">
+          {step === 0
             ? "Choose Assessment"
-            : step === 3
+            : step === 1
               ? "Choose Subject"
               : "Choose Domains, Skills & Difficulty"}
-      </motion.h1>
-
-      <AnimatePresence mode="wait">
-        <motion.fieldset
-          key={step}
-          className="space-y-4 max-w-3xl mx-auto mt-8 "
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-        >
-          {step === 1 ? (
-            <motion.div
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
+        </h1>
+      </div>
+      {step === 0 && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {[
+            {
+              value: "SAT",
+              label: "SAT",
+              description: "Digital SAT Assessment",
+              Icon: FileText,
+            },
+            {
+              value: "PSAT/NMSQT",
+              label: "PSAT/NMSQT",
+              description: "PSAT/NMSQT & PSAT 10",
+              Icon: GraduationCap,
+            },
+            {
+              value: "PSAT",
+              label: "PSAT 8/9",
+              description: "PSAT 8/9 Assessment",
+              Icon: BookOpen,
+            },
+          ].map(({ value, label, description, Icon }) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={assessment === value}
+              data-selected={assessment === value}
+              onClick={() => setAssessment(value)}
+              className="setup-choice"
             >
-              <motion.div variants={cardVariants}>
-                <RadioGroup
-                  className="w-full grid grid-cols-2 gap-8 "
-                  value={selectedValue}
-                  onValueChange={(value) => {
-                    playSound("tap-radio.wav");
-                    setSelectedValue(value);
-                  }}
-                >
-                  {items.map((item) => (
-                    <label
-                      key={`${id}-${item.value}`}
-                      className="w-full px-4 py-6 relative flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-2 border-input text-center shadow-[0_4px_0_0_theme(colors.gray.300),0_8px_20px_theme(colors.gray.300/0.15)] dark:shadow-[0_4px_0_0_theme(colors.neutral.600),0_8px_20px_theme(colors.neutral.900/0.3)] hover:shadow-[0_6px_0_0_theme(colors.gray.400),0_10px_25px_theme(colors.gray.300/0.2)] outline-offset-2 transition-all duration-150 has-[[data-disabled]]:cursor-not-allowed has-[[data-state=checked]]:border-blue-500 has-[[data-state=checked]]:bg-blue-50 dark:has-[[data-state=checked]]:bg-blue-950/40 has-[[data-state=checked]]:shadow-[0_4px_0_0_theme(colors.blue.500),0_8px_20px_theme(colors.blue.500/0.25)] has-[[data-disabled]]:opacity-50 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring/70 active:shadow-[0_2px_0_0_theme(colors.gray.300),0_4px_10px_theme(colors.gray.300/0.15)] active:translate-y-0.5 has-[[data-state=checked]]:active:shadow-[0_2px_0_0_theme(colors.blue.500),0_4px_10px_theme(colors.blue.500/0.2)]"
-                    >
-                      <RadioGroupItem
-                        id={`${id}-${item.value}`}
-                        value={item.value}
-                        className="sr-only after:absolute after:inset-0"
-                        disabled={item.disabled}
-                      />
-                      <Image
-                        src={item.icon}
-                        alt={"label"}
-                        width={88}
-                        height={70}
-                        className="mt-6 mb-8 relative cursor-pointer overflow-hidden rounded-lg  shadow-black/5 outline-offset-2 transition-colors peer-[:focus-visible]:outline peer-[:focus-visible]:outline-2 peer-[:focus-visible]:outline-ring/70 peer-data-[disabled]:cursor-not-allowed peer-data-[state=checked]:border-ring peer-data-[state=checked]:bg-accent peer-data-[disabled]:opacity-50"
-                      />
-                      <p className="text-2xl font-bold leading-none text-foreground">
-                        {item.label}
-                      </p>
-                      <p className="text-lg">{item.description}</p>
-                    </label>
-                  ))}
-                </RadioGroup>
-              </motion.div>
-              {selectedValue && (
-                <motion.div variants={cardVariants}>
-                  <Button
-                    variant="default"
-                    className="group hover:cursor-pointer w-full text-lg py-6 mt-10 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-bold shadow-[0_4px_0_0_theme(colors.blue.600),0_8px_20px_theme(colors.blue.500/0.25)] hover:shadow-[0_6px_0_0_theme(colors.blue.700),0_10px_25px_theme(colors.blue.500/0.3)] active:shadow-[0_2px_0_0_theme(colors.blue.600),0_4px_10px_theme(colors.blue.500/0.2)] active:translate-y-0.5 transform transition-all duration-150"
-                    onClick={handleContinue}
-                  >
-                    Continue
-                    <div className=" text-white   size-6 overflow-hidden rounded-full duration-500">
-                      <div className="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0">
-                        <span className="flex size-6">
-                          <ArrowRight className="m-auto size-5" />
-                        </span>
-                        <span className="flex size-6">
-                          <ArrowRight className="m-auto size-5" />
-                        </span>
-                      </div>
-                    </div>
-                  </Button>
-                </motion.div>
+              <Icon size={40} strokeWidth={1.5} />
+              <strong className="text-xl">{label}</strong>
+              <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                {description}
+              </span>
+              {assessment === value && (
+                <CheckCircle2 className="setup-check" size={20} />
               )}
-            </motion.div>
-          ) : step === 2 ? (
-            <motion.div
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
+            </button>
+          ))}
+        </div>
+      )}
+      {step === 1 && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[
+            {
+              value: "math",
+              label: "Math",
+              description: "Practice SAT Math problems",
+              Icon: Sigma,
+            },
+            {
+              value: "reading-writing",
+              label: "Reading & Writing",
+              description: "Practice SAT Reading and Writing problems",
+              Icon: BookOpen,
+            },
+          ].map(({ value, label, description, Icon }) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={subject === value}
+              data-selected={subject === value}
+              onClick={() => {
+                if (value !== subject) {
+                  setSubject(value);
+                  setSkills([]);
+                  setExpanded([]);
+                }
+              }}
+              className="setup-choice"
             >
-              <motion.div variants={cardVariants}>
-                <RadioGroup
-                  className="w-full grid grid-cols-3 gap-6"
-                  value={selectedAssessment}
-                  onValueChange={(value) => {
-                    playSound("tap-radio.wav");
-                    setSelectedAssessment(value);
-                  }}
-                >
-                  {assessmentItems.map((item) => (
-                    <label
-                      key={`${id}-assessment-${item.value}`}
-                      className="w-full px-4 py-6 relative flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-2 border-input text-center shadow-[0_4px_0_0_theme(colors.gray.300),0_8px_20px_theme(colors.gray.300/0.15)] dark:shadow-[0_4px_0_0_theme(colors.neutral.600),0_8px_20px_theme(colors.neutral.900/0.3)] hover:shadow-[0_6px_0_0_theme(colors.gray.400),0_10px_25px_theme(colors.gray.300/0.2)] outline-offset-2 transition-all duration-150 has-[[data-disabled]]:cursor-not-allowed has-[[data-state=checked]]:border-blue-500 has-[[data-state=checked]]:bg-blue-50 dark:has-[[data-state=checked]]:bg-blue-950/40 has-[[data-state=checked]]:shadow-[0_4px_0_0_theme(colors.blue.500),0_8px_20px_theme(colors.blue.500/0.25)] has-[[data-disabled]]:opacity-50 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring/70 active:shadow-[0_2px_0_0_theme(colors.gray.300),0_4px_10px_theme(colors.gray.300/0.15)] active:translate-y-0.5 has-[[data-state=checked]]:active:shadow-[0_2px_0_0_theme(colors.blue.500),0_4px_10px_theme(colors.blue.500/0.2)]"
-                    >
-                      <RadioGroupItem
-                        id={`${id}-assessment-${item.value}`}
-                        value={item.value}
-                        className="sr-only after:absolute after:inset-0"
-                      />
-                      <Image
-                        src={item.icon}
-                        alt={"label"}
-                        width={105}
-                        height={88}
-                        className="mt-6 mb-8 relative cursor-pointer overflow-hidden rounded-lg shadow-sm shadow-black/5 outline-offset-2 transition-colors peer-[:focus-visible]:outline peer-[:focus-visible]:outline-2 peer-[:focus-visible]:outline-ring/70 peer-data-[disabled]:cursor-not-allowed peer-data-[state=checked]:border-ring peer-data-[state=checked]:bg-accent peer-data-[disabled]:opacity-50"
-                      />
-                      <p className="text-2xl font-bold leading-none text-foreground">
-                        {item.label}
-                      </p>
-                      <p className="text-lg">{item.description}</p>
-                    </label>
-                  ))}
-                </RadioGroup>
-              </motion.div>
-              <motion.div
-                variants={cardVariants}
-                className="grid grid-cols-1 w-full gap-4 mt-10"
-              >
-                <Button
-                  variant="default"
-                  className="group w-full hover:cursor-pointer text-lg py-6 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-bold shadow-[0_4px_0_0_theme(colors.blue.600),0_8px_20px_theme(colors.blue.500/0.25)] hover:shadow-[0_6px_0_0_theme(colors.blue.700),0_10px_25px_theme(colors.blue.500/0.3)] active:shadow-[0_2px_0_0_theme(colors.blue.600),0_4px_10px_theme(colors.blue.500/0.2)] active:translate-y-0.5 transform transition-all duration-150 cursor-pointer"
-                  onClick={handleContinue}
-                  disabled={!selectedAssessment}
-                >
-                  Choose Subject
-                  <div className=" text-white   size-6 overflow-hidden rounded-full duration-500">
-                    <div className="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0">
-                      <span className="flex size-6">
-                        <ArrowRight className="m-auto size-5" />
-                      </span>
-                      <span className="flex size-6">
-                        <ArrowRight className="m-auto size-5" />
-                      </span>
-                    </div>
-                  </div>
-                </Button>
-                {/* <Button
-                  variant="outline"
-                  className="text-lg w-full py-6 rounded-2xl font-bold shadow-[0_4px_0_0_theme(colors.gray.300),0_8px_20px_theme(colors.gray.300/0.25)] hover:shadow-[0_6px_0_0_theme(colors.gray.400),0_10px_25px_theme(colors.gray.300/0.3)] hover:bg-gray-50 active:shadow-[0_2px_0_0_theme(colors.gray.300),0_4px_10px_theme(colors.gray.300/0.2)] active:translate-y-0.5 transform transition-all duration-150 dark:shadow-[0_4px_0_0_theme(colors.gray.600),0_8px_20px_theme(colors.gray.700/0.25)] dark:hover:shadow-[0_6px_0_0_theme(colors.gray.500),0_10px_25px_theme(colors.gray.700/0.3)] dark:hover:bg-gray-800 cursor-pointer"
-                  onClick={handleBack}
-                >
-                  Back
-                </Button> */}
-              </motion.div>
-            </motion.div>
-          ) : step === 3 ? (
-            <motion.div
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
+              <Icon size={40} strokeWidth={1.5} />
+              <strong className="text-xl">{label}</strong>
+              <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                {description}
+              </span>
+              {subject === value && (
+                <CheckCircle2 className="setup-check" size={20} />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+      {step === 2 && (
+        <div className="space-y-7">
+          <p className="text-sm text-neutral-500">
+            Select domains and then choose specific skills within each domain.
+            You must select at least one skill to continue.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className={setupButton}
+              onClick={() => {
+                setSkills(
+                  subjectDomains.flatMap((d) => d.skill.map((s) => s.skill_cd)),
+                );
+                setExpanded(subjectDomains.map((d) => d.id));
+              }}
             >
-              <motion.div variants={cardVariants}>
-                <RadioGroup
-                  className="w-full grid grid-cols-2 gap-8 "
-                  value={selectedSubject}
-                  onValueChange={(value) => {
-                    playSound("tap-radio.wav");
-                    setSelectedSubject(value);
-                  }}
+              Select All Skills
+            </button>
+            <button className={setupButton} onClick={() => setSkills([])}>
+              Clear All Skills
+            </button>
+            <span className="self-center text-sm text-neutral-500">
+              {skills.length} skills selected
+            </span>
+          </div>
+          <div className="grid items-start gap-4 md:grid-cols-2">
+            {subjectDomains.map((domain) => {
+              const Icon = domainIcons[domain.primaryClassCd] || BookOpen;
+              const selected = domain.skill.some((s) =>
+                skills.includes(s.skill_cd),
+              );
+              const open = expanded.includes(domain.id);
+              return (
+                <section
+                  key={domain.id}
+                  className="setup-domain"
+                  data-selected={selected}
                 >
-                  {subjectItems.map((item) => (
-                    <label
-                      key={`${id}-subject-${item.value}`}
-                      className="w-full px-4 py-6 relative flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-2 border-input text-center shadow-[0_4px_0_0_theme(colors.gray.300),0_8px_20px_theme(colors.gray.300/0.15)] dark:shadow-[0_4px_0_0_theme(colors.neutral.600),0_8px_20px_theme(colors.neutral.900/0.3)] hover:shadow-[0_6px_0_0_theme(colors.gray.400),0_10px_25px_theme(colors.gray.300/0.2)] outline-offset-2 transition-all duration-150 has-[[data-disabled]]:cursor-not-allowed has-[[data-state=checked]]:border-blue-500 has-[[data-state=checked]]:bg-blue-50 dark:has-[[data-state=checked]]:bg-blue-950/40 has-[[data-state=checked]]:shadow-[0_4px_0_0_theme(colors.blue.500),0_8px_20px_theme(colors.blue.500/0.25)] has-[[data-disabled]]:opacity-50 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring/70 active:shadow-[0_2px_0_0_theme(colors.gray.300),0_4px_10px_theme(colors.gray.300/0.15)] active:translate-y-0.5 has-[[data-state=checked]]:active:shadow-[0_2px_0_0_theme(colors.blue.500),0_4px_10px_theme(colors.blue.500/0.2)]"
-                    >
-                      <RadioGroupItem
-                        id={`${id}-subject-${item.value}`}
-                        value={item.value}
-                        className="sr-only after:absolute after:inset-0"
-                      />
-                      <Image
-                        src={item.icon}
-                        alt={"label"}
-                        width={110}
-                        height={90}
-                        className="mt-6 mb-8 relative cursor-pointer overflow-hidden rounded-lg  outline-offset-2 transition-colors peer-[:focus-visible]:outline peer-[:focus-visible]:outline-2 peer-[:focus-visible]:outline-ring/70 peer-data-[disabled]:cursor-not-allowed peer-data-[state=checked]:border-ring peer-data-[state=checked]:bg-accent peer-data-[disabled]:opacity-50"
-                      />
-                      <p className="text-2xl font-bold leading-none text-foreground">
-                        {item.label}
-                      </p>
-                      <p className="text-lg">{item.description}</p>
-                    </label>
-                  ))}
-                </RadioGroup>
-              </motion.div>
-              <motion.div
-                variants={cardVariants}
-                className="grid grid-cols-1 w-full gap-4 mt-10"
-              >
-                <Button
-                  variant="default"
-                  className="group w-full hover:cursor-pointer text-lg py-6 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-bold shadow-[0_4px_0_0_theme(colors.blue.600),0_8px_20px_theme(colors.blue.500/0.25)] hover:shadow-[0_6px_0_0_theme(colors.blue.700),0_10px_25px_theme(colors.blue.500/0.3)] active:shadow-[0_2px_0_0_theme(colors.blue.600),0_4px_10px_theme(colors.blue.500/0.2)] active:translate-y-0.5 transform transition-all duration-150 cursor-pointer"
-                  onClick={handleContinue}
-                  disabled={!selectedSubject}
-                >
-                  Choose Domains, Skills & Difficulty
-                  <div className=" text-white   size-6 overflow-hidden rounded-full duration-500">
-                    <div className="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0">
-                      <span className="flex size-6">
-                        <ArrowRight className="m-auto size-5" />
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    aria-label={`${domain.text} skills`}
+                    className="flex w-full items-start gap-3 p-5 text-left"
+                    onClick={() => {
+                      setExpanded((old) =>
+                        open
+                          ? old.filter((v) => v !== domain.id)
+                          : [...old, domain.id],
+                      );
+                      if (!selected && !open)
+                        setSkills((old) => [
+                          ...new Set([
+                            ...old,
+                            ...domain.skill.map((s) => s.skill_cd),
+                          ]),
+                        ]);
+                    }}
+                  >
+                    <Icon size={24} />
+                    <span className="flex-1">
+                      <strong className="block font-semibold">
+                        {domain.text}
+                      </strong>
+                      <span className="mt-2 block text-xs text-neutral-500">
+                        {
+                          domain.skill.filter((s) =>
+                            skills.includes(s.skill_cd),
+                          ).length
+                        }{" "}
+                        of {domain.skill.length} skills selected
                       </span>
-                      <span className="flex size-6">
-                        <ArrowRight className="m-auto size-5" />
-                      </span>
-                    </div>
-                  </div>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="text-lg w-full py-6 rounded-2xl font-bold shadow-[0_4px_0_0_theme(colors.gray.300),0_8px_20px_theme(colors.gray.300/0.25)] hover:shadow-[0_6px_0_0_theme(colors.gray.400),0_10px_25px_theme(colors.gray.300/0.3)] hover:bg-gray-50 active:shadow-[0_2px_0_0_theme(colors.gray.300),0_4px_10px_theme(colors.gray.300/0.2)] active:translate-y-0.5 transform transition-all duration-150 dark:shadow-[0_4px_0_0_theme(colors.gray.600),0_8px_20px_theme(colors.gray.700/0.25)] dark:hover:shadow-[0_6px_0_0_theme(colors.gray.500),0_10px_25px_theme(colors.gray.700/0.3)] dark:hover:bg-gray-800 cursor-pointer"
-                  onClick={handleBack}
-                >
-                  Back
-                </Button>
-              </motion.div>
-            </motion.div>
-          ) : step === 4 ? (
-            <motion.div
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
-            >
-              <motion.div variants={cardVariants}>
-                <div className="space-y-6">
-                  <div className="text-center mb-6">
-                    <p className="text-muted-foreground mb-4">
-                      Select domains and then choose specific skills within each
-                      domain. You must select at least one skill to continue.
-                    </p>
-                    <div className="flex gap-3 justify-center">
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={selectAllSkills}
-                        className="px-4 py-2 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-bold shadow-[0_3px_0_0_theme(colors.blue.600),0_6px_15px_theme(colors.blue.500/0.25)] hover:shadow-[0_4px_0_0_theme(colors.blue.700),0_8px_20px_theme(colors.blue.500/0.3)] active:shadow-[0_1px_0_0_theme(colors.blue.600),0_3px_8px_theme(colors.blue.500/0.2)] active:translate-y-0.5 transform transition-all duration-150 cursor-pointer"
-                      >
-                        Select All Skills
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={clearAllSkills}
-                        className="px-4 py-2 rounded-2xl font-bold shadow-[0_3px_0_0_theme(colors.gray.300),0_6px_15px_theme(colors.gray.300/0.25)] hover:shadow-[0_4px_0_0_theme(colors.gray.400),0_8px_20px_theme(colors.gray.300/0.3)] hover:bg-gray-50 dark:hover:bg-neutral-800 active:shadow-[0_1px_0_0_theme(colors.gray.300),0_3px_8px_theme(colors.gray.300/0.2)] active:translate-y-0.5 transform transition-all duration-150 dark:shadow-[0_3px_0_0_theme(colors.gray.600),0_6px_15px_theme(colors.gray.700/0.25)] dark:hover:shadow-[0_4px_0_0_theme(colors.gray.500),0_8px_20px_theme(colors.gray.700/0.3)] cursor-pointer"
-                      >
-                        Clear All Skills
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {getSubjectDomains().map((domain) => (
-                      <div
-                        key={`${id}-${domain.id}`}
-                        className={`cursor-pointer relative p-6 rounded-2xl border-2 transition-all duration-200 ${
-                          selectedDomains.includes(domain.id)
-                            ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
-                            : "border-border bg-background"
-                        }`}
-                        onClick={() => toggleDomain(domain.id)}
-                      >
-                        {/* Domain Header */}
-                        <div>
-                          {/* Checkmark indicator */}
-                          <div className="absolute top-4 right-4">
-                            <div
-                              className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                                selectedDomains.includes(domain.id)
-                                  ? "bg-blue-500"
-                                  : "border-2 border-border bg-background"
-                              }`}
-                            >
-                              {selectedDomains.includes(domain.id) && (
-                                <svg
-                                  className="w-4 h-4 text-white"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Icon */}
-                          <div className="mb-4">
-                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950 rounded-lg flex items-center justify-center">
-                              <span className="text-2xl">
-                                {domain.primaryClassCd === "H"
-                                  ? "📊"
-                                  : domain.primaryClassCd === "P"
-                                    ? "🧮"
-                                    : domain.primaryClassCd === "Q"
-                                      ? "📈"
-                                      : domain.primaryClassCd === "S"
-                                        ? "📐"
-                                        : domain.primaryClassCd === "INI"
-                                          ? "💡"
-                                          : domain.primaryClassCd === "CAS"
-                                            ? "🏗️"
-                                            : domain.primaryClassCd === "EOI"
-                                              ? "✍️"
-                                              : domain.primaryClassCd === "SEC"
-                                                ? "📝"
-                                                : "📚"}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Title */}
-                          <h3 className="text-lg font-semibold mb-3 text-foreground">
-                            {domain.text}
-                          </h3>
-                        </div>
-
-                        {/* Skills Section - Only show when domain is selected */}
-                        {selectedDomains.includes(domain.id) && (
-                          <div
-                            className="mt-4 pt-4 border-t border-border"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <h4 className="text-sm font-medium text-muted-foreground mb-3">
-                              Select Skills:
-                            </h4>
-                            <div className="space-y-2">
-                              {domain.skill?.map((skill) => (
-                                <div
-                                  key={skill.id}
-                                  className={`p-3 rounded-lg relative border cursor-pointer transition-all duration-200 ${
-                                    selectedSkills.includes(skill.id)
-                                      ? "border-blue-400 bg-blue-100 dark:bg-blue-950/40"
-                                      : "border-border hover:border-blue-300 bg-background"
-                                  }`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleSkill(skill.id);
-                                  }}
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex-1">
-                                      <p className="text-sm font-medium text-foreground">
-                                        {skill.text}
-                                      </p>
-                                    </div>
-                                    <div
-                                      className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                                        selectedSkills.includes(skill.id)
-                                          ? "bg-blue-500 border-blue-500"
-                                          : "border-border"
-                                      }`}
-                                    >
-                                      {selectedSkills.includes(skill.id) && (
-                                        <svg
-                                          className="w-3 h-3 text-white"
-                                          fill="currentColor"
-                                          viewBox="0 0 20 20"
-                                        >
-                                          <path
-                                            fillRule="evenodd"
-                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                            clipRule="evenodd"
-                                          />
-                                        </svg>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              )) || []}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Skills preview when domain not selected */}
-                        {!selectedDomains.includes(domain.id) && (
-                          <div className="space-y-1">
-                            {domain.skill?.slice(0, 3).map((skill, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center text-sm text-muted-foreground"
-                              >
-                                <span className="w-1 h-1 bg-muted-foreground rounded-full mr-2"></span>
-                                {skill.text}
-                              </div>
-                            ))}
-                            {(domain.skill?.length || 0) > 3 && (
-                              <div className="text-sm text-muted-foreground mt-2">
-                                +{(domain.skill?.length || 0) - 3} more skills
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Difficulty Selection Section */}
-                  <div className="space-y-4">
-                    {selectedDomains.length > 0 &&
-                      !hasSkillsFromSelectedDomains() && (
-                        <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-center">
-                          <p className="text-amber-800 dark:text-amber-300 text-sm font-medium">
-                            Please select at least one skill from your chosen
-                            domains before proceeding.
-                          </p>
-                        </div>
-                      )}
-                    <h2 className="text-xl font-semibold text-foreground text-center">
-                      Select Difficulty Levels
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {(
-                        [
-                          { value: "E" as QuestionDifficulty, label: "Easy" },
-                          { value: "M" as QuestionDifficulty, label: "Medium" },
-                          { value: "H" as QuestionDifficulty, label: "Hard" },
-                        ] as const
-                      ).map((difficulty) => (
-                        <div
-                          key={`${id}-difficulty-${difficulty.value}`}
-                          className={`relative flex flex-col items-start gap-4 rounded-2xl border-2 p-4 cursor-pointer transition-all duration-150 ${
-                            selectedDifficulties.includes(difficulty.value)
-                              ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30 shadow-[0_4px_0_0_theme(colors.blue.500),0_8px_20px_theme(colors.blue.500/0.25)]"
-                              : "border-border bg-background shadow-[0_4px_0_0_theme(colors.gray.300),0_8px_20px_theme(colors.gray.300/0.15)] hover:shadow-[0_6px_0_0_theme(colors.gray.400),0_10px_25px_theme(colors.gray.300/0.2)] dark:shadow-[0_4px_0_0_theme(colors.gray.600),0_8px_20px_theme(colors.gray.700/0.25)]"
-                          } active:shadow-[0_2px_0_0_theme(colors.gray.300),0_4px_10px_theme(colors.gray.300/0.15)] active:translate-y-0.5 has-[[data-state=checked]]:active:shadow-[0_2px_0_0_theme(colors.blue.500),0_4px_10px_theme(colors.blue.500/0.2)]`}
-                          onClick={() => {
-                            const isChecked = selectedDifficulties.includes(
-                              difficulty.value,
-                            );
-                            if (isChecked) {
-                              playSound("tap-checkbox-unchecked.wav");
-                              setSelectedDifficulties((prev) =>
-                                prev.filter((d) => d !== difficulty.value),
-                              );
-                            } else {
-                              playSound("tap-checkbox-checked.wav");
-                              setSelectedDifficulties((prev) => [
-                                ...prev,
-                                difficulty.value,
-                              ]);
-                            }
-                          }}
+                    </span>
+                    {selected && <Check size={18} />}
+                  </button>
+                  {open ? (
+                    <div className="space-y-2 border-t border-neutral-200 p-4 dark:border-neutral-700">
+                      {domain.skill.map((skill) => (
+                        <label
+                          key={skill.skill_cd}
+                          className="flex cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 p-3 text-sm dark:border-neutral-700"
                         >
-                          <div className="flex items-center gap-3 w-full">
-                            <div
-                              className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-150 ${
-                                selectedDifficulties.includes(difficulty.value)
-                                  ? "bg-blue-500 border-blue-500"
-                                  : "border-border bg-background"
-                              }`}
-                            >
-                              {selectedDifficulties.includes(
-                                difficulty.value,
-                              ) && (
-                                <svg
-                                  className="w-4 h-4 text-white"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              )}
-                            </div>
-                            <span className="text-lg font-semibold cursor-pointer flex-1">
-                              {difficulty.label}
-                            </span>
-                          </div>
-                          {/* Hidden checkbox for accessibility */}
-                          <Checkbox
-                            id={`${id}-difficulty-${difficulty.value}`}
-                            checked={selectedDifficulties.includes(
-                              difficulty.value,
-                            )}
-                            onChange={() => {}} // Prevent default behavior
-                            className="sr-only"
+                          <input
+                            type="checkbox"
+                            className="size-4 accent-neutral-950"
+                            checked={skills.includes(skill.skill_cd)}
+                            onChange={() => toggleSkill(skill.skill_cd)}
                           />
-                        </div>
+                          {skill.text}
+                        </label>
                       ))}
                     </div>
-                  </div>
-
-                  {/* Question Order and Source Selection - Responsive Layout */}
-                  <div className="flex flex-col md:flex-row md:space-x-6 mt-8">
-                    {/* Question Order Selection */}
-                    <div className="space-y-4 flex-1 mb-8 md:mb-0">
-                      <h2 className="text-xl font-semibold text-foreground text-center">
-                        Question Order
-                      </h2>
-                      <DuolingoToggle
-                        isEnabled={randomize}
-                        onToggle={setRandomize}
-                        title="Randomize Questions"
-                        description="Control the order of questions"
-                        enabledDescription="Questions will appear in random order"
-                        disabledDescription="Questions will appear in their original order"
-                        color="blue"
-                        enabledIcon={
-                          <svg
-                            className="w-5 h-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732L14.146 12.8l-1.179 4.456a1 1 0 01-1.934 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732L9.854 7.2l1.179-4.456A1 1 0 0112 2z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        }
-                        disabledIcon={
-                          <svg
-                            className="w-5 h-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        }
-                      />
-                    </div>
-
-                    {/* Bluebook Questions Selection */}
-                    <div className="space-y-4 flex-1">
-                      <h2 className="text-xl font-semibold text-foreground text-center">
-                        Question Source
-                      </h2>
-                      <DuolingoToggle
-                        isEnabled={excludeBluebook}
-                        onToggle={setExcludeBluebook}
-                        title="Exclude Bluebook Questions"
-                        description="Control which question sources to include"
-                        enabledDescription="Questions from College Board's Bluebook will be excluded"
-                        disabledDescription="College Board's Bluebook questions will be included"
-                        color="green"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-              <motion.div
-                variants={cardVariants}
-                className="grid grid-cols-1 w-full gap-4 mt-10"
-              >
-                <Button
-                  variant="default"
-                  className="group w-full hover:cursor-pointer text-lg py-6 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-bold shadow-[0_4px_0_0_theme(colors.blue.600),0_8px_20px_theme(colors.blue.500/0.25)] hover:shadow-[0_6px_0_0_theme(colors.blue.700),0_10px_25px_theme(colors.blue.500/0.3)] active:shadow-[0_2px_0_0_theme(colors.blue.600),0_4px_10px_theme(colors.blue.500/0.2)] active:translate-y-0.5 transform transition-all duration-150 cursor-pointer"
-                  onClick={handleContinue}
-                  disabled={
-                    selectedDomains.length === 0 ||
-                    selectedDifficulties.length === 0 ||
-                    !hasSkillsFromSelectedDomains()
+                  ) : (
+                    <ul className="space-y-1 px-5 pb-5 text-sm text-neutral-500">
+                      {domain.skill.slice(0, 3).map((skill) => (
+                        <li key={skill.skill_cd}>{skill.text}</li>
+                      ))}
+                      {domain.skill.length > 3 && (
+                        <li>+{domain.skill.length - 3} more skills</li>
+                      )}
+                    </ul>
+                  )}
+                </section>
+              );
+            })}
+          </div>
+          <fieldset className="space-y-3">
+            <legend className="mb-3 text-lg font-semibold">
+              Select Difficulty Levels
+            </legend>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {difficulties.map(({ value, label, Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  className="setup-difficulty"
+                  data-selected={levels.includes(value)}
+                  aria-pressed={levels.includes(value)}
+                  onClick={() =>
+                    setLevels((old) =>
+                      old.includes(value)
+                        ? old.filter((v) => v !== value)
+                        : [...old, value],
+                    )
                   }
                 >
-                  Start Practice
-                  <div className=" text-white   size-6 overflow-hidden rounded-full duration-500">
-                    <div className="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0">
-                      <span className="flex size-6">
-                        <ArrowRight className="m-auto size-5" />
-                      </span>
-                      <span className="flex size-6">
-                        <ArrowRight className="m-auto size-5" />
-                      </span>
-                    </div>
-                  </div>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="text-lg w-full py-6 rounded-2xl font-bold shadow-[0_4px_0_0_theme(colors.gray.300),0_8px_20px_theme(colors.gray.300/0.25)] hover:shadow-[0_6px_0_0_theme(colors.gray.400),0_10px_25px_theme(colors.gray.300/0.3)] hover:bg-gray-50 active:shadow-[0_2px_0_0_theme(colors.gray.300),0_4px_10px_theme(colors.gray.300/0.2)] active:translate-y-0.5 transform transition-all duration-150 dark:shadow-[0_4px_0_0_theme(colors.gray.600),0_8px_20px_theme(colors.gray.700/0.25)] dark:hover:shadow-[0_6px_0_0_theme(colors.gray.500),0_10px_25px_theme(colors.gray.700/0.3)] dark:hover:bg-gray-800 cursor-pointer"
-                  onClick={handleBack}
-                >
-                  Back
-                </Button>
-              </motion.div>
-            </motion.div>
-          ) : // Step 3 handled above
-          null}
-        </motion.fieldset>
-      </AnimatePresence>
-    </div>
+                  <Icon size={21} />
+                  <span>{label}</span>
+                  {levels.includes(value) && (
+                    <Check size={17} className="ml-auto" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className="space-y-3 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700">
+            <legend className="px-1 font-medium">Practice settings</legend>
+            <label className="flex items-center justify-between gap-4 text-sm">
+              Randomize question order
+              <input
+                type="checkbox"
+                checked={randomize}
+                onChange={(e) => setRandomize(e.target.checked)}
+                className="size-4 accent-neutral-950"
+              />
+            </label>
+            <label className="flex items-center justify-between gap-4 text-sm">
+              Exclude Bluebook questions
+              <input
+                type="checkbox"
+                checked={excludeBluebook}
+                onChange={(e) => setExcludeBluebook(e.target.checked)}
+                className="size-4 accent-neutral-950"
+              />
+            </label>
+          </fieldset>
+        </div>
+      )}
+      <div className="flex flex-wrap gap-3">
+        {step > 0 && (
+          <button className={setupButton} onClick={() => setStep(step - 1)}>
+            <ArrowLeft size={16} />
+            Back
+          </button>
+        )}
+        <button
+          className={`${setupButton} bg-neutral-950 text-white hover:bg-neutral-800 dark:bg-neutral-100 dark:text-neutral-950`}
+          disabled={step === 2 && (!skills.length || !levels.length)}
+          onClick={() => (step < 2 ? setStep(step + 1) : finish())}
+        >
+          {step === 0
+            ? "Choose Subject"
+            : step === 1
+              ? "Choose Domains, Skills & Difficulty"
+              : submitLabel}
+          <ArrowRight size={16} />
+        </button>
+      </div>
+    </section>
   );
 }

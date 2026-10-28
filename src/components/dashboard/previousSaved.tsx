@@ -1,3 +1,4 @@
+import { MonochromeSymbol } from "@/components/monochrome-symbol";
 import React, {
   useEffect,
   useCallback,
@@ -534,7 +535,7 @@ export function SavedTab({ selectedAssessment }: SavedTabProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center text-gray-500">
-              <p className="text-lg">📚</p>
+              <p className="text-lg"><MonochromeSymbol symbol="📚" size={48}/></p>
               <p className="mt-2">You haven&apos;t saved any questions yet.</p>
               <p className="text-sm text-muted-foreground">
                 Questions you bookmark will appear here for easy review.

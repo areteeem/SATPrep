@@ -1,6 +1,13 @@
 "use client";
-import { DatabaseIcon, Search, BookOpen, Play, Activity } from "lucide-react";
-import React, { useReducer, useMemo } from "react";
+import {
+  DatabaseIcon,
+  Search,
+  BookOpen,
+  Play,
+  Activity,
+  Flame,
+} from "lucide-react";
+import React, { useReducer, useMemo, useState } from "react";
 
 import {
   Card,
@@ -13,6 +20,10 @@ import { cn } from "@/lib/utils";
 import { vocabs_database } from "@/types/vocabulary";
 import { partOfSpeechType } from "@/types/dictionaryapi";
 import Link from "next/link";
+import {
+  VocabularyStudyLauncher,
+  readVocabularySchedule,
+} from "@/components/vocabulary-study-launcher";
 import {
   useResolvedVocabsData,
   useResolvedPracticePerformanceData,
@@ -73,6 +84,17 @@ export default function VocabsMainPage() {
     masteryFilter: "all",
   });
 
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [learnedFilter, setLearnedFilter] = useState("all");
+  const [reviewFilter, setReviewFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("alphabetical");
+  const categories = useMemo(
+    () =>
+      [
+        ...new Set(vocabs_database.flatMap((word) => word.categories || [])),
+      ].sort(),
+    [],
+  );
   const [vocabsData] = useResolvedVocabsData();
 
   // practicePerformanceData — authenticated users read from Redux (cloud),
@@ -209,8 +231,43 @@ export default function VocabsMainPage() {
       });
     }
 
-    return filtered;
+    if (categoryFilter !== "all")
+      filtered = filtered.filter((word) =>
+        word.categories?.includes(categoryFilter),
+      );
+    if (learnedFilter !== "all")
+      filtered = filtered.filter(
+        (word) =>
+          vocabsData.learntVocabs.includes(word.word) ===
+          (learnedFilter === "learned"),
+      );
+    const schedule = readVocabularySchedule();
+    if (reviewFilter !== "all")
+      filtered = filtered.filter((word) => {
+        const performance = practiceData.wordPerformance[word.word];
+        return reviewFilter === "due"
+          ? schedule[word.word]
+            ? schedule[word.word].due <= Date.now()
+            : Boolean(performance)
+          : reviewFilter === "mistakes"
+            ? Boolean(performance?.incorrectAttempts)
+            : !performance;
+      });
+    return [...filtered].sort((a, b) =>
+      sortOrder === "recent"
+        ? (practiceData.wordPerformance[b.word]?.lastAttemptTimestamp || 0) -
+          (practiceData.wordPerformance[a.word]?.lastAttemptTimestamp || 0)
+        : sortOrder === "mistakes"
+          ? (practiceData.wordPerformance[b.word]?.incorrectAttempts || 0) -
+            (practiceData.wordPerformance[a.word]?.incorrectAttempts || 0)
+          : a.word.localeCompare(b.word),
+    );
   }, [
+    categoryFilter,
+    learnedFilter,
+    reviewFilter,
+    sortOrder,
+    vocabsData.learntVocabs,
     searchState.query,
     searchState.difficultyFilter,
     searchState.partOfSpeechFilter,
@@ -249,7 +306,7 @@ export default function VocabsMainPage() {
   return (
     <React.Fragment>
       <h3 className="text-3xl font-bold Tracker flex  items-center mb-6 gap-2">
-        <DatabaseIcon className="text-2xl text-blue-500" /> SAT Vocabulary
+        <DatabaseIcon className="text-2xl text-neutral-500" /> SAT Vocabulary
         Wordbank
       </h3>
 
@@ -282,7 +339,7 @@ export default function VocabsMainPage() {
                     {/* Progress Bar */}
                     <div className="w-full bg-muted rounded-full h-2 mb-4">
                       <div
-                        className="bg-blue-600 rounded-full h-2 transition-all duration-300"
+                        className="bg-neutral-600 rounded-full h-2 transition-all duration-300"
                         style={{
                           width: `${vocabStats.overallPercentage}%`,
                         }}
@@ -295,7 +352,7 @@ export default function VocabsMainPage() {
                         <div className="text-sm text-muted-foreground mb-1">
                           Learned
                         </div>
-                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        <div className="text-2xl font-bold text-neutral-600 dark:text-neutral-400">
                           {vocabStats.totalLearned}
                         </div>
                       </Card>
@@ -304,7 +361,7 @@ export default function VocabsMainPage() {
                         <div className="text-sm text-muted-foreground mb-1">
                           Remaining
                         </div>
-                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                        <div className="text-2xl font-bold text-neutral-600 dark:text-neutral-400">
                           {vocabStats.remaining}
                         </div>
                       </Card>
@@ -324,10 +381,10 @@ export default function VocabsMainPage() {
                               <span
                                 className={`w-3 h-3 rounded-full ${
                                   difficulty === "easy"
-                                    ? "bg-green-500"
+                                    ? "bg-neutral-500"
                                     : difficulty === "medium"
-                                      ? "bg-yellow-500"
-                                      : "bg-red-500"
+                                      ? "bg-neutral-500"
+                                      : "bg-neutral-500"
                                 }`}
                               />
                               <span className="text-sm font-medium">
@@ -342,10 +399,10 @@ export default function VocabsMainPage() {
                             <div
                               className={`rounded-full h-2 transition-all duration-300 ${
                                 difficulty === "easy"
-                                  ? "bg-green-500"
+                                  ? "bg-neutral-500"
                                   : difficulty === "medium"
-                                    ? "bg-yellow-500"
-                                    : "bg-red-500"
+                                    ? "bg-neutral-500"
+                                    : "bg-neutral-500"
                               }`}
                               style={{ width: `${percentage}%` }}
                             />
@@ -361,36 +418,36 @@ export default function VocabsMainPage() {
                       Mastery Level Breakdown
                     </h3>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/40 rounded">
+                      <div className="flex items-center justify-between p-2 bg-neutral-50 dark:bg-neutral-950/40 rounded">
                         <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                          <span className="w-2 h-2 bg-neutral-500 rounded-full"></span>
                           <span>Struggling</span>
                         </div>
                         <span className="font-semibold">
                           {vocabStats.masteryStats.struggling}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between p-2 bg-orange-50 dark:bg-orange-950/40 rounded">
+                      <div className="flex items-center justify-between p-2 bg-neutral-50 dark:bg-neutral-950/40 rounded">
                         <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                          <span className="w-2 h-2 bg-neutral-500 rounded-full"></span>
                           <span>Learning</span>
                         </div>
                         <span className="font-semibold">
                           {vocabStats.masteryStats.learning}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-950/40 rounded">
+                      <div className="flex items-center justify-between p-2 bg-neutral-50 dark:bg-neutral-950/40 rounded">
                         <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                          <span className="w-2 h-2 bg-neutral-500 rounded-full"></span>
                           <span>Proficient</span>
                         </div>
                         <span className="font-semibold">
                           {vocabStats.masteryStats.proficient}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950/40 rounded">
+                      <div className="flex items-center justify-between p-2 bg-neutral-50 dark:bg-neutral-950/40 rounded">
                         <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                          <span className="w-2 h-2 bg-neutral-500 rounded-full"></span>
                           <span>Mastered</span>
                         </div>
                         <span className="font-semibold">
@@ -435,13 +492,13 @@ export default function VocabsMainPage() {
             {/* CTA Card for Learning - Duolingo Style */}
             <Card
               className={cn(
-                "rounded-3xl mt-6 border-2 border-blue-200 dark:border-blue-900 bg-gradient-to-br from-blue-50 to-emerald-50 dark:from-blue-950/50 dark:to-emerald-950/50",
-                "transition-all duration-300 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-700 hover:scale-[1.02]",
+                "vocab-study-cta rounded-xl mt-6 border border-neutral-700 bg-neutral-950 text-white",
+                "transition-all duration-300 hover:shadow-lg hover:border-neutral-300 dark:hover:border-neutral-700 hover:scale-[1.02]",
               )}
             >
               <CardContent className="p-6">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <div className="w-16 h-16 bg-neutral-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                     <BookOpen className="text-white w-8 h-8" />
                   </div>
 
@@ -455,14 +512,15 @@ export default function VocabsMainPage() {
                   </p>
 
                   <Link href={"/dashboard/vocabs/learn"}>
-                    <button className="w-full bg-gradient-to-b from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-150 flex items-center justify-center gap-3 shadow-[0_4px_0_0_theme(colors.blue.600),0_8px_20px_theme(colors.blue.500/0.25)] hover:shadow-[0_6px_0_0_theme(colors.blue.700),0_10px_25px_theme(colors.blue.500/0.3)] active:shadow-[0_2px_0_0_theme(colors.blue.600),0_4px_10px_theme(colors.blue.500/0.2)] active:translate-y-0.5 transform active:scale-95">
+                    <button className="w-full bg-gradient-to-b from-neutral-400 to-neutral-500 hover:from-neutral-500 hover:to-neutral-600 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-150 flex items-center justify-center gap-3 shadow-[0_4px_0_0_theme(colors.blue.600),0_8px_20px_theme(colors.blue.500/0.25)] hover:shadow-[0_6px_0_0_theme(colors.blue.700),0_10px_25px_theme(colors.blue.500/0.3)] active:shadow-[0_2px_0_0_theme(colors.blue.600),0_4px_10px_theme(colors.blue.500/0.2)] active:translate-y-0.5 transform active:scale-95">
                       <Play className="w-5 h-5" />
                       START LEARNING
                     </button>
                   </Link>
 
                   <p className="text-xs text-muted-foreground mt-3">
-                    🔥 Keep your streak alive! Start today
+                    <Flame size={14} className="mr-1 inline" /> Keep your streak
+                    alive! Start today
                   </p>
                 </div>
               </CardContent>
@@ -493,7 +551,7 @@ export default function VocabsMainPage() {
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
                   searchState.difficultyFilter === "all"
-                    ? "bg-blue-500 text-white"
+                    ? "bg-neutral-500 text-white"
                     : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
@@ -504,7 +562,7 @@ export default function VocabsMainPage() {
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
                   searchState.difficultyFilter === "easy"
-                    ? "bg-green-500 text-white"
+                    ? "bg-neutral-500 text-white"
                     : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
@@ -515,7 +573,7 @@ export default function VocabsMainPage() {
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
                   searchState.difficultyFilter === "medium"
-                    ? "bg-yellow-500 text-white"
+                    ? "bg-neutral-500 text-white"
                     : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
@@ -526,7 +584,7 @@ export default function VocabsMainPage() {
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
                   searchState.difficultyFilter === "hard"
-                    ? "bg-red-500 text-white"
+                    ? "bg-neutral-500 text-white"
                     : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
@@ -546,7 +604,7 @@ export default function VocabsMainPage() {
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
                   searchState.partOfSpeechFilter === "all"
-                    ? "bg-blue-500 text-white"
+                    ? "bg-neutral-500 text-white"
                     : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
@@ -557,7 +615,7 @@ export default function VocabsMainPage() {
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
                   searchState.partOfSpeechFilter === "noun"
-                    ? "bg-purple-500 text-white"
+                    ? "bg-neutral-500 text-white"
                     : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
@@ -568,7 +626,7 @@ export default function VocabsMainPage() {
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
                   searchState.partOfSpeechFilter === "verb"
-                    ? "bg-indigo-500 text-white"
+                    ? "bg-neutral-500 text-white"
                     : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
@@ -610,7 +668,7 @@ export default function VocabsMainPage() {
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
                   searchState.masteryFilter === "all"
-                    ? "bg-blue-500 text-white"
+                    ? "bg-neutral-500 text-white"
                     : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
@@ -632,7 +690,7 @@ export default function VocabsMainPage() {
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
                   searchState.masteryFilter === "struggling"
-                    ? "bg-red-500 text-white"
+                    ? "bg-neutral-500 text-white"
                     : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
@@ -643,7 +701,7 @@ export default function VocabsMainPage() {
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
                   searchState.masteryFilter === "learning"
-                    ? "bg-orange-500 text-white"
+                    ? "bg-neutral-500 text-white"
                     : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
@@ -654,7 +712,7 @@ export default function VocabsMainPage() {
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
                   searchState.masteryFilter === "proficient"
-                    ? "bg-blue-500 text-white"
+                    ? "bg-neutral-500 text-white"
                     : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
@@ -665,7 +723,7 @@ export default function VocabsMainPage() {
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
                   searchState.masteryFilter === "mastered"
-                    ? "bg-green-500 text-white"
+                    ? "bg-neutral-500 text-white"
                     : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
@@ -674,6 +732,63 @@ export default function VocabsMainPage() {
             </div>
           </div>
 
+          <div className="mb-5 grid gap-3 sm:grid-cols-2">
+            <label className="text-sm">
+              Category
+              <select
+                className="mt-2 block w-full rounded-xl border bg-background p-2"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+              >
+                <option value="all">All categories</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              Learning status
+              <select
+                className="mt-2 block w-full rounded-xl border bg-background p-2"
+                value={learnedFilter}
+                onChange={(e) => setLearnedFilter(e.target.value)}
+              >
+                <option value="all">All words</option>
+                <option value="learned">Learned</option>
+                <option value="new">Not learned</option>
+              </select>
+            </label>
+            <label className="text-sm">
+              Review queue
+              <select
+                className="mt-2 block w-full rounded-xl border bg-background p-2"
+                value={reviewFilter}
+                onChange={(e) => setReviewFilter(e.target.value)}
+              >
+                <option value="all">All words</option>
+                <option value="due">Due for review</option>
+                <option value="mistakes">Previous mistakes</option>
+                <option value="new">Never practiced</option>
+              </select>
+            </label>
+            <label className="text-sm">
+              Sort words
+              <select
+                className="mt-2 block w-full rounded-xl border bg-background p-2"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+              >
+                <option value="alphabetical">Alphabetical</option>
+                <option value="recent">Recently practiced</option>
+                <option value="mistakes">Most mistakes first</option>
+              </select>
+            </label>
+          </div>
+          <div className="mb-5">
+            <VocabularyStudyLauncher words={filteredVocabs} />
+          </div>
           <p className="text-sm text-muted-foreground mb-4">
             Showing {filteredVocabs.length} of {vocabs_database.length} words
           </p>
@@ -692,13 +807,13 @@ export default function VocabsMainPage() {
                     className={cn(
                       "p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md",
                       masteryLevel === "mastered" &&
-                        "border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/30",
+                        "border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/30",
                       masteryLevel === "proficient" &&
-                        "border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/30",
+                        "border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/30",
                       masteryLevel === "learning" &&
-                        "border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/30",
+                        "border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/30",
                       masteryLevel === "struggling" &&
-                        "border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/30",
+                        "border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/30",
                       !masteryLevel && "border-border bg-card",
                     )}
                   >
@@ -709,13 +824,13 @@ export default function VocabsMainPage() {
                           className={cn(
                             "text-xs px-2 py-1 rounded-full font-medium",
                             masteryLevel === "mastered" &&
-                              "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200",
+                              "bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200",
                             masteryLevel === "proficient" &&
-                              "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200",
+                              "bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200",
                             masteryLevel === "learning" &&
-                              "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200",
+                              "bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200",
                             masteryLevel === "struggling" &&
-                              "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200",
+                              "bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200",
                           )}
                         >
                           {masteryLevel.charAt(0).toUpperCase() +

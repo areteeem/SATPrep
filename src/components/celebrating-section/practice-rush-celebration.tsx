@@ -1,4 +1,6 @@
 "use client";
+import { MonochromeSymbol } from "@/components/monochrome-symbol";
+
 
 import React, { useEffect, useMemo } from "react";
 import { PracticeSession } from "@/types/session";
@@ -216,13 +218,7 @@ export default function PracticeRushCelebration({
         {/* Header Section */}
         <div className="text-center space-y-4">
           <div className="text-6xl mb-4">
-            {sessionData.status === "completed"
-              ? accuracyPercentage >= 80
-                ? "🎉"
-                : accuracyPercentage >= 60
-                  ? "👏"
-                  : ":D"
-              : "💾"}
+            <MonochromeSymbol symbol={sessionData.status === "completed" ? accuracyPercentage >= 80 ? "🎉" : "👏" : "💾"} size={60}/>
           </div>
           <h1 className="text-4xl font-bold text-foreground mb-2">
             {getCelebrationMessage()}

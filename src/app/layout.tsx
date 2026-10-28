@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import FooterSection from "@/components/footer";
 import { MathJaxContext } from "better-react-mathjax";
+import { MotionConfig } from "framer-motion";
 
 import { Toaster } from "sonner";
 
@@ -19,6 +20,8 @@ import { MigrationChecker } from "@/components/auth/MigrationChecker";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeApplier } from "@/components/ThemeApplier";
 import { FloatingPreferencesButton } from "@/components/preferences-popover";
+import { AssessmentToolsProvider } from "@/components/assessment-calculator-tools";
+import { AssessmentImageViewer } from "@/components/assessment-image-viewer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -191,19 +194,26 @@ export default function RootLayout({
           variant="rainbow"
         /> */}
 
-        <ErrorBoundary>
-          <AssessmentProvider>
-            <MathJaxContext version={3} config={config}>
-              <ReduxProvider>
-                <ThemeApplier />
-                <SessionInitializer />
-                <MigrationChecker />
-                <AuthSessionProvider>{children}</AuthSessionProvider>
-                <FloatingPreferencesButton />
-              </ReduxProvider>
-            </MathJaxContext>
-          </AssessmentProvider>
-        </ErrorBoundary>
+        <MotionConfig reducedMotion="always" transition={{ duration: 0 }}>
+          <ErrorBoundary>
+            <AssessmentProvider>
+              <MathJaxContext version={3} config={config}>
+                <ReduxProvider>
+                  <ThemeApplier />
+                  <SessionInitializer />
+                  <MigrationChecker />
+                  <AuthSessionProvider>
+                    <AssessmentToolsProvider>
+                    {children}
+                    <AssessmentImageViewer />
+                    </AssessmentToolsProvider>
+                  </AuthSessionProvider>
+                  <FloatingPreferencesButton />
+                </ReduxProvider>
+              </MathJaxContext>
+            </AssessmentProvider>
+          </ErrorBoundary>
+        </MotionConfig>
 
         <GoogleAnalytics gaId={process.env.GA_KEY || ""} />
         <GoogleTagManager gtmId={process.env.GT_KEY || ""} />

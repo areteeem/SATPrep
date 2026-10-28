@@ -1,24 +1,450 @@
 "use client";
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { MathJax } from 'better-react-mathjax';
-import type { PlainQuestionType, API_Response_Question } from '@/types/question';
-import { satRequest, type PracticeSettings } from '@/lib/satSharing';
-import { AnnotatedPassage } from '@/components/annotated-passage';
-import { SendSatResult } from '@/components/send-sat-result';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { MathJax } from "better-react-mathjax";
+import type {
+  PlainQuestionType,
+  API_Response_Question,
+} from "@/types/question";
+import { satRequest, type PracticeSettings } from "@/lib/satSharing";
+import { saveLocalAssessment } from "@/lib/local-assessments";
+import { AnnotatedPassage } from "@/components/annotated-passage";
+import { SendSatResult } from "@/components/send-sat-result";
+import {
+  AssessmentActivePage,
+  AssessmentAnswerOptions,
+  AssessmentAnswerInput,
+  AssessmentConfirm,
+  assessmentButton as button,
+  hasAssessmentContent,
+} from "@/components/assessment-controls";
+import {
+  AssessmentCalculatorTools,
+  AssessmentMathPanel,
+} from "@/components/assessment-calculator-tools";
+import { AssessmentCountdown } from "@/components/assessment-countdown";
 
-type State = { questions:PlainQuestionType[]; answers:Record<string,string>; index:number; deadline:number; done:boolean; notes?:Record<string,string>; eliminated?:Record<string,string[]> };
-const button='rounded-xl border px-4 py-2 disabled:opacity-40';
+type State = {
+  id?: string;
+  startedAt?: string;
+  questions: PlainQuestionType[];
+  answers: Record<string, string>;
+  index: number;
+  deadline: number;
+  done: boolean;
+  notes?: Record<string, string>;
+  eliminated?: Record<string, string[]>;
+  details?: Record<string, API_Response_Question>;
+};
+function readOptions(encoded: string): Partial<PracticeSettings> {
+  try {
+    const value = JSON.parse(decodeURIComponent(encoded));
+    return {
+      assessment: ["SAT", "PSAT/NMSQT", "PSAT"].includes(value.assessment)
+        ? value.assessment
+        : "SAT",
+      subject: ["math", "reading-writing"].includes(value.subject)
+        ? value.subject
+        : undefined,
+      skills: Array.isArray(value.skills)
+        ? value.skills.filter(
+            (s: unknown) => typeof s === "string" && /^[A-Z.]{1,8}$/.test(s),
+          )
+        : undefined,
+      difficulties: Array.isArray(value.difficulties)
+        ? value.difficulties.filter((d: string) => ["E", "M", "H"].includes(d))
+        : undefined,
+      randomize: value.randomize !== false,
+      excludeBluebook: value.excludeBluebook === true,
+    };
+  } catch {
+    return {};
+  }
+}
 export default function Assignment() {
-  const [token,setToken]=useState(''),[settings,setSettings]=useState<PracticeSettings|null>(null),[state,setState]=useState<State|null>(null),[detail,setDetail]=useState<API_Response_Question|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[now,setNow]=useState(Date.now()),[resultUrl,setResultUrl]=useState('');
-  useEffect(()=>{ const value=location.hash.slice(1) || sessionStorage.getItem('sat-current-assignment') || ''; if(value) sessionStorage.setItem('sat-current-assignment',value); history.replaceState(null,'',location.pathname); if(!/^[a-f0-9]{64}$/.test(value)){setError('This assignment link is invalid.');return;} setToken(value); void satRequest<{settings:PracticeSettings}>('resolve_assignment',{token:value}).then(data=>{setSettings(data.settings);try{const saved=localStorage.getItem(`sat-custom:${value}`);if(saved)setState(JSON.parse(saved));}catch{}}).catch(e=>setError(e.message)); },[]);
-  useEffect(()=>{if(token&&state)try{localStorage.setItem(`sat-custom:${token}`,JSON.stringify(state));}catch{setError('Could not save your progress on this device.');}},[token,state]);
-  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer);},[]);
-  useEffect(()=>{if(state&&!state.done&&now>=state.deadline)setState(s=>s?{...s,done:true}:s);},[now,state]);
-  const item=state?.questions[state.index];
-  useEffect(()=>{if(!item)return;const controller=new AbortController();setDetail(null);fetch(`/api/question/${encodeURIComponent(item.external_id||item.ibn||'')}`,{signal:controller.signal}).then(async r=>{const x=await r.json();if(!r.ok||!x.data)throw new Error('Question could not be loaded.');setDetail(x.data);}).catch(e=>{if(e.name!=='AbortError')setError(e.message);});return()=>controller.abort();},[item]);
-  async function start(){ if(!settings)return; setBusy(true);setError('');try{const response=await fetch(`/api/get-questions?assessment=SAT&domains=${settings.domains.join(',')}`);const data=await response.json();if(!response.ok||!Array.isArray(data.data))throw new Error('Question bank is unavailable.');const pool=(data.data as PlainQuestionType[]).filter(q=>q.external_id||q.ibn).sort(()=>Math.random()-.5);if(pool.length<settings.count)throw new Error('Not enough questions are available for this assignment.');setState({questions:pool.slice(0,settings.count),answers:{},index:0,deadline:Date.now()+settings.minutes*60000,done:false});}catch(e){setError(e instanceof Error?e.message:'Could not start practice.');}finally{setBusy(false);}}
-  async function share(){if(!state)return;setBusy(true);setError('');try{const result={mode:'custom',questions:state.questions.map(q=>({id:q.questionId,externalId:q.external_id||q.ibn||'',domain:q.primary_class_cd,answer:state.answers[q.questionId]||''}))};const r=await satRequest<{url:string}>('create_result',{assignmentToken:token,result});setResultUrl(r.url);}catch(e){setError(e instanceof Error?e.message:'Could not create result link.');}finally{setBusy(false);}}
-  const left=state?Math.max(0,Math.ceil((state.deadline-now)/1000)):0;
-  return <main className="mx-auto max-w-5xl px-6 py-10"><div className="flex justify-between"><Link href="/">← Home</Link><button className={button} onClick={()=>{if(document.fullscreenElement)void document.exitFullscreen();else void document.documentElement.requestFullscreen?.();}}>Full screen</button></div>{error&&<p className="mt-5 text-red-700" role="alert">{error}</p>}{!settings&&!error&&<p className="mt-8">Loading assignment…</p>}{settings&&!state&&<section className="py-12"><h1 className="text-3xl font-semibold">Your SAT practice</h1><p className="mt-4">{settings.mode==='full'?'Full-length test':`${settings.count} questions · ${settings.minutes} minutes`}</p><button className={`${button} mt-6`} disabled={busy} onClick={()=>{if(settings.mode==='full'){sessionStorage.setItem('sat-assignment-token',token);location.assign('/full-test?assigned=1');}else void start();}}>{busy?'Preparing…':'Start practice'}</button></section>}{state&&<section className="py-8"><div className="flex justify-between"><h1 className="font-semibold">{state.done?'Practice complete':`Question ${state.index+1} of ${state.questions.length}`}</h1>{!state.done&&<span>{Math.floor(left/60)}:{String(left%60).padStart(2,'0')}</span>}</div>{state.done?<div><p className="mt-5">Create a private result link to review answers and share them with your teacher.</p><button className={`${button} mt-5`} disabled={busy} onClick={()=>void share()}>{busy?'Creating…':'Create result link'}</button>{resultUrl&&<p className="mt-4 break-all">{resultUrl} <button className="underline" onClick={()=>void navigator.clipboard.writeText(resultUrl)}>Copy link</button></p>}{resultUrl&&<SendSatResult assignmentToken={token} resultUrl={resultUrl}/>}</div>:item&&<><div className="mt-6 grid gap-8 lg:grid-cols-2"><div>{detail?.stimulus && (['INI','CAS','EOI','SEC'].includes(item.primary_class_cd)?<AnnotatedPassage questionId={item.questionId} html={detail.stimulus}/>:<MathJax dynamic><div dangerouslySetInnerHTML={{__html:detail.stimulus}}/></MathJax>)}{['INI','CAS','EOI','SEC'].includes(item.primary_class_cd)&&<label className="mt-5 block text-sm">Notes<textarea className="mt-2 block min-h-24 w-full rounded-lg border bg-transparent p-3" value={state.notes?.[item.questionId]||''} onChange={e=>setState(s=>s?{...s,notes:{...s.notes,[item.questionId]:e.target.value}}:s)}/></label>}</div><div>{detail?<><MathJax dynamic><div dangerouslySetInnerHTML={{__html:detail.stem}}/></MathJax><div className="mt-5 space-y-2">{detail.answerOptions?Object.entries(detail.answerOptions).map(([key,value])=><div key={key} className="flex gap-2"><button disabled={state.eliminated?.[item.questionId]?.includes(key)} className={`${button} flex-1 text-left ${state.answers[item.questionId]===key?'bg-neutral-200 dark:bg-neutral-700':''} ${state.eliminated?.[item.questionId]?.includes(key)?'line-through opacity-50':''}`} onClick={()=>setState(s=>s?{...s,answers:{...s.answers,[item.questionId]:key}}:s)}><strong>{key} </strong><MathJax inline dynamic><span dangerouslySetInnerHTML={{__html:value}}/></MathJax></button><button className={button} aria-label={`Eliminate option ${key}`} onClick={()=>setState(s=>{if(!s)return s;const old=s.eliminated?.[item.questionId]||[];const exists=old.includes(key);return {...s,answers:!exists&&s.answers[item.questionId]===key?{...s.answers,[item.questionId]:''}:s.answers,eliminated:{...s.eliminated,[item.questionId]:exists?old.filter(x=>x!==key):[...old,key]}};})}>{state.eliminated?.[item.questionId]?.includes(key)?'Undo':'╱'}</button></div>):<input className="w-full rounded-lg border p-3" aria-label="Your answer" value={state.answers[item.questionId]||''} onChange={e=>setState(s=>s?{...s,answers:{...s.answers,[item.questionId]:e.target.value}}:s)}/>}</div></>:<p>Loading question…</p>}</div></div><div className="mt-8 flex flex-wrap gap-2"><button className={button} disabled={!state.index} onClick={()=>setState(s=>s?{...s,index:s.index-1}:s)}>Previous</button><button className={button} disabled={state.index===state.questions.length-1} onClick={()=>setState(s=>s?{...s,index:s.index+1}:s)}>Next</button><button className={button} onClick={()=>{if(confirm('Finish this assignment?'))setState(s=>s?{...s,done:true}:s);}}>Finish</button></div></>}</section>}</main>;
+  const [token, setToken] = useState(""),
+    [settings, setSettings] = useState<PracticeSettings | null>(null),
+    [state, setState] = useState<State | null>(null),
+    [detail, setDetail] = useState<API_Response_Question | null>(null),
+    [error, setError] = useState(""),
+    [busy, setBusy] = useState(false),
+    [resultUrl, setResultUrl] = useState(""),
+    [confirmFinish, setConfirmFinish] = useState(false);
+  useEffect(() => {
+    const raw =
+      location.hash.slice(1) ||
+      sessionStorage.getItem("sat-current-assignment") ||
+      "";
+    const [value, encoded = ""] = raw.split("~");
+    if (raw) sessionStorage.setItem("sat-current-assignment", raw);
+    history.replaceState(null, "", location.pathname);
+    if (!/^[a-f0-9]{64}$/.test(value)) {
+      setError("This assignment link is invalid.");
+      return;
+    }
+    setToken(value);
+    void satRequest<{ settings: PracticeSettings }>("resolve_assignment", {
+      token: value,
+    })
+      .then((data) => {
+        setSettings({ ...data.settings, ...readOptions(encoded) });
+        try {
+          const saved = localStorage.getItem(`sat-custom:${value}`);
+          if (saved) setState(JSON.parse(saved));
+        } catch {}
+      })
+      .catch((e) => setError(e.message));
+  }, []);
+  useEffect(() => {
+    if (!token || !state) return;
+    try {
+      localStorage.setItem(`sat-custom:${token}`, JSON.stringify(state));
+      if (state.id)
+        saveLocalAssessment({
+          id: state.id,
+          kind: "custom",
+          title: "Assigned practice",
+          startedAt: state.startedAt || "",
+          updatedAt: new Date().toISOString(),
+          status: state.done ? "completed" : "in_progress",
+          questions: state.questions.map((q) => ({
+            id: q.questionId,
+            externalId: q.external_id || q.ibn || "",
+            domain: q.primary_class_cd,
+            skill: q.skill_cd,
+            answer: state.answers[q.questionId] || "",
+            detail: state.details?.[q.questionId],
+            correctAnswers: state.details?.[q.questionId]?.correct_answer,
+          })),
+        });
+    } catch {
+      setError("Could not save your progress on this device.");
+    }
+  }, [token, state]);
+  useEffect(() => {
+    if (!state || state.done) return;
+    const timer = setTimeout(
+      () => setState((old) => (old ? { ...old, done: true } : old)),
+      Math.max(0, state.deadline - Date.now()),
+    );
+    return () => clearTimeout(timer);
+  }, [state?.deadline, state?.done]);
+  const item = state?.questions[state.index],
+    isMath = item && ["H", "P", "Q", "S"].includes(item.primary_class_cd),
+    hasStimulus = hasAssessmentContent(detail?.stimulus);
+  useEffect(() => {
+    if (!item) return;
+    const controller = new AbortController();
+    setDetail(null);
+    fetch(
+      `/api/question/${encodeURIComponent(item.external_id || item.ibn || "")}`,
+      { signal: controller.signal },
+    )
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok || !data.data)
+          throw new Error("Question could not be loaded.");
+        setDetail(data.data);
+        setState((old) =>
+          old
+            ? {
+                ...old,
+                details: { ...old.details, [item.questionId]: data.data },
+              }
+            : old,
+        );
+      })
+      .catch((e) => {
+        if (e.name !== "AbortError") setError(e.message);
+      });
+    return () => controller.abort();
+  }, [item]);
+  async function start() {
+    if (!settings) return;
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/get-questions?assessment=${encodeURIComponent(settings.assessment || "SAT")}&domains=${settings.domains.join(",")}`,
+      );
+      const data = await response.json();
+      if (!response.ok || !Array.isArray(data.data))
+        throw new Error("Question bank is unavailable.");
+      let pool = (data.data as PlainQuestionType[]).filter(
+        (q) =>
+          (q.external_id || q.ibn) &&
+          (!settings.skills?.length || settings.skills.includes(q.skill_cd)) &&
+          (!settings.difficulties?.length ||
+            settings.difficulties.includes(q.difficulty)),
+      );
+      if (settings.excludeBluebook) {
+        const response = await fetch("/api/lookup");
+        const lookup = await response.json();
+        if (!response.ok || !lookup.data)
+          throw new Error(
+            "Bluebook exclusions could not be loaded. Try again.",
+          );
+        const excluded = new Set([
+          ...(lookup.data.mathLiveItems || []),
+          ...(lookup.data.readingLiveItems || []),
+        ]);
+        pool = pool.filter(
+          (q) => !q.external_id || !excluded.has(q.external_id),
+        );
+      }
+      if (settings.randomize !== false) pool.sort(() => Math.random() - 0.5);
+      if (pool.length < settings.count)
+        throw new Error(
+          `Only ${pool.length} questions match the assigned skills and settings; ${settings.count} are required.`,
+        );
+      setState({
+        id: `assignment-${Date.now()}`,
+        startedAt: new Date().toISOString(),
+        questions: pool.slice(0, settings.count),
+        answers: {},
+        index: 0,
+        deadline: Date.now() + settings.minutes * 60000,
+        done: false,
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not start practice.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function share() {
+    if (!state) return;
+    setBusy(true);
+    setError("");
+    try {
+      const result = {
+        mode: "custom",
+        questions: state.questions.map((q) => ({
+          id: q.questionId,
+          externalId: q.external_id || q.ibn || "",
+          domain: q.primary_class_cd,
+          answer: state.answers[q.questionId] || "",
+        })),
+      };
+      const data = await satRequest<{ url: string }>("create_result", {
+        assignmentToken: token,
+        result,
+      });
+      setResultUrl(data.url);
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Could not create result link.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  const setAnswer = (value: string | null) =>
+    item &&
+    setState((old) =>
+      old
+        ? {
+            ...old,
+            answers: { ...old.answers, [item.questionId]: value || "" },
+          }
+        : old,
+    );
+  return (
+    <main
+      className="mx-auto min-h-dvh max-w-7xl px-5 py-6"
+      data-assessment-content
+    >
+      <AssessmentActivePage active={Boolean(state && !state.done)} />
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b pb-5">
+        <Link href="/results">← Practice sessions</Link>
+        {state && !state.done && (
+          <div className="flex flex-wrap items-center gap-3">
+            <AssessmentCountdown deadline={state.deadline} />
+            {isMath && <AssessmentCalculatorTools />}
+          </div>
+        )}
+      </header>
+      {error && (
+        <p className="mt-5 text-red-700" role="alert">
+          {error}
+        </p>
+      )}
+      {!settings && !error && <p className="mt-8">Loading assignment…</p>}
+      {settings && !state && (
+        <section className="py-12">
+          <h1 className="text-3xl font-semibold">
+            Your {settings.assessment || "SAT"} practice
+          </h1>
+          <p className="mt-4">
+            {settings.mode === "full"
+              ? "Full-length test"
+              : `${settings.count} questions · ${settings.minutes} minutes`}
+          </p>
+          <button
+            className={`${button} mt-6`}
+            disabled={busy}
+            onClick={() => {
+              if (settings.mode === "full") {
+                sessionStorage.setItem("sat-assignment-token", token);
+                location.assign("/full-test?assigned=1");
+              } else void start();
+            }}
+          >
+            {busy ? "Preparing…" : "Start practice"}
+          </button>
+        </section>
+      )}
+      {state && (
+        <section className="py-8">
+          <h1 className="mb-6 font-semibold">
+            {state.done
+              ? "Practice complete"
+              : `Question ${state.index + 1} of ${state.questions.length}`}
+          </h1>
+          {state.done ? (
+            <div>
+              <p>
+                Create a private result link to review answers and share them
+                with your teacher.
+              </p>
+              <button
+                className={`${button} mt-5`}
+                disabled={busy}
+                onClick={() => void share()}
+              >
+                {busy ? "Creating…" : "Create result link"}
+              </button>
+              <Link
+                className={`${button} ml-3 mt-5`}
+                href={`/results?local=${state.id}`}
+              >
+                Review on this device
+              </Link>
+              {resultUrl && (
+                <p className="mt-4 break-all">
+                  {resultUrl}{" "}
+                  <button
+                    className="underline"
+                    onClick={() =>
+                      void navigator.clipboard.writeText(resultUrl)
+                    }
+                  >
+                    Copy link
+                  </button>
+                </p>
+              )}
+              {resultUrl && (
+                <SendSatResult assignmentToken={token} resultUrl={resultUrl} />
+              )}
+            </div>
+          ) : (
+            item && (
+              <>
+                <div
+                  className={`assessment-question-grid ${hasStimulus || isMath ? "" : "assessment-question-centered"}`}
+                >
+                  <AssessmentMathPanel hidden={!isMath || hasStimulus} />
+                  {hasStimulus && (
+                    <div className="rounded-xl border p-5">
+                      <AnnotatedPassage
+                        questionId={item.questionId}
+                        html={detail?.stimulus || ""}
+                      />
+                    </div>
+                  )}
+                  <div>
+                    {detail ? (
+                      <>
+                        <AnnotatedPassage
+                          questionId={`${item.questionId}:stem`}
+                          html={detail.stem}
+                          className="mb-6"
+                        />
+                        {detail.answerOptions ? (
+                          <AssessmentAnswerOptions
+                            options={detail.answerOptions}
+                            selected={state.answers[item.questionId]}
+                            onSelect={setAnswer}
+                            eliminated={Object.fromEntries(
+                              (state.eliminated?.[item.questionId] || []).map(
+                                (key) => [key, true],
+                              ),
+                            )}
+                            onEliminate={(key) =>
+                              setState((old) => {
+                                if (!old) return old;
+                                const prior =
+                                  old.eliminated?.[item.questionId] || [];
+                                return {
+                                  ...old,
+                                  eliminated: {
+                                    ...old.eliminated,
+                                    [item.questionId]: prior.includes(key)
+                                      ? prior.filter((k) => k !== key)
+                                      : [...prior, key],
+                                  },
+                                };
+                              })
+                            }
+                          />
+                        ) : (
+                          <AssessmentAnswerInput
+                            value={state.answers[item.questionId] || ""}
+                            onChange={setAnswer}
+                          />
+                        )}
+                      </>
+                    ) : (
+                      <p>Loading question…</p>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-8 flex flex-wrap gap-2">
+                  <button
+                    className={button}
+                    disabled={!state.index}
+                    onClick={() =>
+                      setState((old) =>
+                        old ? { ...old, index: old.index - 1 } : old,
+                      )
+                    }
+                  >
+                    Previous
+                  </button>
+                  <button
+                    className={button}
+                    disabled={state.index === state.questions.length - 1}
+                    onClick={() =>
+                      setState((old) =>
+                        old ? { ...old, index: old.index + 1 } : old,
+                      )
+                    }
+                  >
+                    Next
+                  </button>
+                  <button
+                    className={`${button} ml-auto`}
+                    onClick={() => setConfirmFinish(true)}
+                  >
+                    Finish
+                  </button>
+                </div>
+              </>
+            )
+          )}
+        </section>
+      )}
+      <AssessmentConfirm
+        open={confirmFinish}
+        title="Finish this assignment?"
+        description="Your answers will be saved, and you can review the completed practice from this device."
+        confirmLabel="Finish assignment"
+        onCancel={() => setConfirmFinish(false)}
+        onConfirm={() => {
+          setState((old) => (old ? { ...old, done: true } : old));
+          setConfirmFinish(false);
+        }}
+      />
+    </main>
+  );
 }

@@ -1,4 +1,6 @@
 "use client";
+import { MonochromeSymbol } from "@/components/monochrome-symbol";
+
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -154,7 +156,7 @@ export default function VocabsPracticePage_Main() {
             className="space-y-8"
           >
             {/* Empty state illustration */}
-            <div className="text-8xl mb-6">📚</div>
+            <div className="text-8xl mb-6"><MonochromeSymbol symbol="📚" size={48}/></div>
 
             {/* Empty state content */}
             <div className="space-y-4">
@@ -194,7 +196,7 @@ export default function VocabsPracticePage_Main() {
             {/* Helpful tip */}
             <div className="mt-12 p-6 bg-blue-50 rounded-2xl border border-blue-200">
               <div className="flex items-start gap-4">
-                <div className="text-2xl">💡</div>
+                <div className="text-2xl"><MonochromeSymbol symbol="💡" size={48}/></div>
                 <div className="text-left">
                   <h3 className="font-semibold text-blue-900 mb-2">
                     Getting Started Tip
@@ -225,7 +227,7 @@ export default function VocabsPracticePage_Main() {
             className="space-y-8"
           >
             {/* Empty state illustration */}
-            <div className="text-8xl mb-6">📚</div>
+            <div className="text-8xl mb-6"><MonochromeSymbol symbol="📚" size={48}/></div>
 
             {/* Empty state content */}
             <div className="space-y-4">
@@ -264,7 +266,7 @@ export default function VocabsPracticePage_Main() {
             {/* Helpful tip */}
             <div className="mt-12 p-6 bg-blue-50 rounded-2xl border border-blue-200">
               <div className="flex items-start gap-4">
-                <div className="text-2xl">💡</div>
+                <div className="text-2xl"><MonochromeSymbol symbol="💡" size={48}/></div>
                 <div className="text-left">
                   <h3 className="font-semibold text-blue-900 mb-2">
                     Getting Started Tip
@@ -348,10 +350,10 @@ export default function VocabsPracticePage_Main() {
                   />
                   {method.aiPowered && (
                     <div className="absolute top-3 right-3 bg-blue-500  text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-                      ✨ AI Powered
+                      <MonochromeSymbol symbol="✨" size={17}/> AI Powered
                     </div>
                   )}
-                  <div className="text-6xl mb-3">{method.icon}</div>
+                  <div className="mb-3"><MonochromeSymbol symbol={method.icon} size={52}/></div>
                   <p className="text-2xl font-bold leading-none text-foreground">
                     {method.label}
                   </p>

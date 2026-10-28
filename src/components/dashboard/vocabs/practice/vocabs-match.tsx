@@ -1,4 +1,6 @@
 "use client";
+import { MonochromeSymbol } from "@/components/monochrome-symbol";
+
 
 import React, { useReducer, useEffect, useMemo, useCallback } from "react";
 import {
@@ -600,7 +602,7 @@ export default function VocabsMatchPractice({
     return (
       <div className="w-full flex flex-col min-h-[80vh] items-center justify-center p-8">
         <div className="text-center space-y-6 max-w-md">
-          <div className="text-6xl">🎯</div>
+          <div className="text-6xl"><MonochromeSymbol symbol="🎯" size={48}/></div>
           <h2 className="text-2xl font-bold text-gray-900">
             No Words Available
           </h2>
@@ -636,7 +638,7 @@ export default function VocabsMatchPractice({
           className="text-center space-y-8 max-w-md"
         >
           <div className="text-8xl">
-            {percentage >= 80 ? "🎉" : percentage >= 60 ? "👏" : "💪"}
+            <MonochromeSymbol symbol={percentage >= 80 ? "🎉" : percentage >= 60 ? "👏" : "💪"} size={60}/>
           </div>
 
           <div className="space-y-4">
@@ -724,7 +726,7 @@ export default function VocabsMatchPractice({
     return (
       <div className="w-full flex flex-col min-h-[80vh] items-center justify-center p-8">
         <div className="text-center space-y-6 max-w-md">
-          <div className="text-6xl">⏳</div>
+          <div className="text-6xl"><MonochromeSymbol symbol="⏳" size={48}/></div>
           <h2 className="text-2xl font-bold text-gray-900">Loading...</h2>
         </div>
       </div>
@@ -798,7 +800,7 @@ export default function VocabsMatchPractice({
             {/* Words Column */}
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-gray-800 text-center mb-6">
-                📚 Vocabulary Words
+                <MonochromeSymbol symbol="📚" size={17}/> Vocabulary Words
               </h3>
               <div className="space-y-3">
                 {shuffledWords.map((pair, index) => {
@@ -848,7 +850,7 @@ export default function VocabsMatchPractice({
                               )}
                               {isNewlyLearned && (
                                 <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
-                                  ✨ Learned!
+                                  <MonochromeSymbol symbol="✨" size={17}/> Learned!
                                 </span>
                               )}
                             </div>
@@ -876,7 +878,7 @@ export default function VocabsMatchPractice({
             {/* Definitions Column */}
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-gray-800 text-center mb-6">
-                📖 Definitions
+                <MonochromeSymbol symbol="📖" size={17}/> Definitions
               </h3>
               <div className="space-y-3">
                 {shuffledDefinitions.map((pair, index) => {

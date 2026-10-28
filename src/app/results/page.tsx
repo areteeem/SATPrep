@@ -1,17 +1,200 @@
 "use client";
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { MathJax } from 'better-react-mathjax';
-import Fraction from 'fraction.js';
-import type { API_Response_Question } from '@/types/question';
-import { satRequest, type SharedResult } from '@/lib/satSharing';
-import { SendIndependentSatResult } from '@/components/send-independent-sat-result';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { MathJax } from "better-react-mathjax";
+import Fraction from "fraction.js";
+import type { API_Response_Question } from "@/types/question";
+import { satRequest, type SharedResult } from "@/lib/satSharing";
+import { AssessmentAnswerOptions } from "@/components/assessment-controls";
+import { LocalAssessmentHistory } from "@/components/local-assessment-history";
+import { SendIndependentSatResult } from "@/components/send-independent-sat-result";
 
-function correct(answer:string,detail:API_Response_Question|undefined){if(!answer||!detail?.correct_answer)return false;return detail.correct_answer.some(x=>{if(x.trim().toLowerCase()===answer.trim().toLowerCase())return true;try{return new Fraction(x).equals(new Fraction(answer));}catch{return false;}});}
-export default function Results(){
- const [result,setResult]=useState<SharedResult|null>(null),[token,setToken]=useState(''),[index,setIndex]=useState(0),[details,setDetails]=useState<Record<string,API_Response_Question>>({}),[error,setError]=useState(''),[loading,setLoading]=useState(false),[isAssigned,setIsAssigned]=useState(false);
- useEffect(()=>{const raw=location.hash.slice(1) || sessionStorage.getItem('sat-current-result') || '';if(!raw)return;sessionStorage.setItem('sat-current-result',raw);history.replaceState(null,'',location.pathname);if(!/^[a-f0-9]{64}$/.test(raw)){setError('This result link is invalid.');return;}setToken(raw);void satRequest<{result:SharedResult;isAssigned:boolean}>('resolve_result',{token:raw}).then(x=>{setIsAssigned(x.isAssigned);setResult(x.result)}).catch(e=>setError(e.message));},[]);
- useEffect(()=>{if(!result)return;let stopped=false;setLoading(true);(async()=>{for(let i=0;i<result.questions.length;i+=5){const batch=result.questions.slice(i,i+5);const entries=await Promise.all(batch.map(async q=>{try{const r=await fetch(`/api/question/${encodeURIComponent(q.externalId)}`);const x=await r.json();return r.ok&&x.data?[q.id,x.data] as const:null;}catch{return null;}}));if(stopped)return;setDetails(old=>({...old,...Object.fromEntries(entries.filter(Boolean) as Array<readonly [string,API_Response_Question]>)}));}if(!stopped)setLoading(false);})();return()=>{stopped=true;};},[result]);
- const q=result?.questions[index],detail=q?details[q.id]:undefined;const count=result?.questions.filter(x=>correct(x.answer,details[x.id])).length||0;
- return <main className="mx-auto max-w-5xl px-6 py-12"><Link href="/">← Home</Link><h1 className="mt-8 text-3xl font-semibold">Check results</h1>{error&&<p role="alert" className="mt-4 text-red-700">This result could not be opened: {error}</p>}{!token&&!error&&<p className="mt-4">Open a private result link to review a student’s answers. <Link className="underline" href="/full-test">Review practice saved on this device</Link>.</p>}{token&&!result&&!error&&<p className="mt-4">Loading result…</p>}{result&&<>{!isAssigned&&<SendIndependentSatResult token={token}/>}<p className="mt-4">{loading?'Loading question explanations…':`${count} correct out of ${result.questions.length - result.questions.filter(x=>!details[x.id]).length} available questions`} · Unofficial practice result</p>{!loading&&result.questions.some(x=>!details[x.id])&&<p className="mt-2 text-neutral-500">Some questions are unavailable and are excluded from the total.</p>}{q&&<section className="mt-8 rounded-xl border p-5"><p className="font-semibold">Question {index+1} of {result.questions.length}</p>{detail?<><MathJax dynamic><div className="mt-4" dangerouslySetInnerHTML={{__html:detail.stimulus||''}}/><div className="mt-4" dangerouslySetInnerHTML={{__html:detail.stem}}/></MathJax>{detail.answerOptions&&Object.entries(detail.answerOptions).map(([k,v])=>{const selected=q.answer.trim().toLowerCase()===k.trim().toLowerCase();const isCorrect=detail.correct_answer?.some(answer=>answer.trim().toLowerCase()===k.trim().toLowerCase());return <div key={k} className={`mt-3 rounded-lg border p-3 ${isCorrect?'border-green-700 bg-green-50':selected?'border-red-700 bg-red-50':'border-neutral-200'}`}><div className="flex flex-wrap items-center gap-2"><strong>{k}</strong><MathJax inline dynamic><span dangerouslySetInnerHTML={{__html:v}}/></MathJax></div>{(selected||isCorrect)&&<div className="mt-2 flex flex-wrap gap-2 text-sm font-semibold">{selected&&<span>{isCorrect?'✓ Student’s answer':'Student’s answer'}</span>}{isCorrect&&<span>✓ Correct answer</span>}</div>}</div>})}<p className="mt-5">Student answer: {q.answer||'No answer'}</p><p>Correct answer: {detail.correct_answer?.join(', ')||'Unavailable'}</p><p className="mt-4 font-semibold">Explanation</p>{detail.rationale?<MathJax dynamic><div dangerouslySetInnerHTML={{__html:detail.rationale}}/></MathJax>:<p>No explanation is available.</p>}</>:<p className="mt-4">{loading?'Loading…':'This question is unavailable.'}</p>}<div className="mt-6 flex gap-2"><button className="rounded-lg border px-4 py-2 disabled:opacity-40" disabled={index===0} onClick={()=>setIndex(i=>i-1)}>Previous</button><button className="rounded-lg border px-4 py-2 disabled:opacity-40" disabled={index===result.questions.length-1} onClick={()=>setIndex(i=>i+1)}>Next</button></div></section>}</>}</main>;
+function correct(answer: string, detail: API_Response_Question | undefined) {
+  if (!answer || !detail?.correct_answer) return false;
+  return detail.correct_answer.some((x) => {
+    if (x.trim().toLowerCase() === answer.trim().toLowerCase()) return true;
+    try {
+      return new Fraction(x).equals(new Fraction(answer));
+    } catch {
+      return false;
+    }
+  });
+}
+export default function Results() {
+  const [result, setResult] = useState<SharedResult | null>(null),
+    [token, setToken] = useState(""),
+    [index, setIndex] = useState(0),
+    [details, setDetails] = useState<Record<string, API_Response_Question>>({}),
+    [error, setError] = useState(""),
+    [loading, setLoading] = useState(false),
+    [isAssigned, setIsAssigned] = useState(false);
+  useEffect(() => {
+    const raw =
+      location.hash.slice(1) ||
+      sessionStorage.getItem("sat-current-result") ||
+      "";
+    if (!raw) return;
+    sessionStorage.setItem("sat-current-result", raw);
+    history.replaceState(null, "", location.pathname);
+    if (!/^[a-f0-9]{64}$/.test(raw)) {
+      setError("This result link is invalid.");
+      return;
+    }
+    setToken(raw);
+    void satRequest<{ result: SharedResult; isAssigned: boolean }>(
+      "resolve_result",
+      { token: raw },
+    )
+      .then((x) => {
+        setIsAssigned(x.isAssigned);
+        setResult(x.result);
+      })
+      .catch((e) => setError(e.message));
+  }, []);
+  useEffect(() => {
+    if (!result) return;
+    let stopped = false;
+    setLoading(true);
+    (async () => {
+      for (let i = 0; i < result.questions.length; i += 5) {
+        const batch = result.questions.slice(i, i + 5);
+        const entries = await Promise.all(
+          batch.map(async (q) => {
+            try {
+              const r = await fetch(
+                `/api/question/${encodeURIComponent(q.externalId)}`,
+              );
+              const x = await r.json();
+              return r.ok && x.data ? ([q.id, x.data] as const) : null;
+            } catch {
+              return null;
+            }
+          }),
+        );
+        if (stopped) return;
+        setDetails((old) => ({
+          ...old,
+          ...Object.fromEntries(
+            entries.filter(Boolean) as Array<
+              readonly [string, API_Response_Question]
+            >,
+          ),
+        }));
+      }
+      if (!stopped) setLoading(false);
+    })();
+    return () => {
+      stopped = true;
+    };
+  }, [result]);
+  const q = result?.questions[index],
+    detail = q ? details[q.id] : undefined;
+  const count =
+    result?.questions.filter((x) => correct(x.answer, details[x.id])).length ||
+    0;
+  return (
+    <main className="mx-auto max-w-7xl px-6 py-12" data-assessment-content>
+      <Link href="/">← Home</Link>
+      <h1 className="mt-8 text-3xl font-semibold">Check results</h1>
+      {error && (
+        <p role="alert" className="mt-4 text-red-700">
+          This result could not be opened: {error}
+        </p>
+      )}
+      {!token && !error && (
+        <p className="mt-4">
+          Open a private result link to review a student’s answers. Your saved
+          sessions are listed below.
+        </p>
+      )}
+      <LocalAssessmentHistory />
+      {token && !result && !error && <p className="mt-4">Loading result…</p>}
+      {result && (
+        <>
+          {!isAssigned && <SendIndependentSatResult token={token} />}
+          <p className="mt-4">
+            {loading
+              ? "Loading question explanations…"
+              : `${count} correct out of ${result.questions.length - result.questions.filter((x) => !details[x.id]).length} available questions`}{" "}
+            · Unofficial practice result
+          </p>
+          {!loading && result.questions.some((x) => !details[x.id]) && (
+            <p className="mt-2 text-neutral-500">
+              Some questions are unavailable and are excluded from the total.
+            </p>
+          )}
+          {q && (
+            <section className="mt-8 rounded-xl border p-5">
+              <p className="font-semibold">
+                Question {index + 1} of {result.questions.length}
+              </p>
+              {detail ? (
+                <>
+                  <MathJax dynamic>
+                    <div
+                      className="mt-4"
+                      dangerouslySetInnerHTML={{
+                        __html: detail.stimulus || "",
+                      }}
+                    />
+                    <div
+                      className="mt-4"
+                      dangerouslySetInnerHTML={{ __html: detail.stem }}
+                    />
+                  </MathJax>
+                  {detail.answerOptions && (
+                    <AssessmentAnswerOptions
+                      options={detail.answerOptions}
+                      selected={q.answer}
+                      onSelect={() => {}}
+                      checked
+                      disabled
+                      correctAnswers={detail.correct_answer}
+                    />
+                  )}
+                  <p className="mt-5">
+                    Student answer: {q.answer || "No answer"}
+                  </p>
+                  <p>
+                    Correct answer:{" "}
+                    {detail.correct_answer?.join(", ") || "Unavailable"}
+                  </p>
+                  <p className="mt-4 font-semibold">Explanation</p>
+                  {detail.rationale ? (
+                    <MathJax dynamic>
+                      <div
+                        dangerouslySetInnerHTML={{ __html: detail.rationale }}
+                      />
+                    </MathJax>
+                  ) : (
+                    <p>No explanation is available.</p>
+                  )}
+                </>
+              ) : (
+                <p className="mt-4">
+                  {loading ? "Loading…" : "This question is unavailable."}
+                </p>
+              )}
+              <div className="mt-6 flex gap-2">
+                <button
+                  className="rounded-lg border px-4 py-2 disabled:opacity-40"
+                  disabled={index === 0}
+                  onClick={() => setIndex((i) => i - 1)}
+                >
+                  Previous
+                </button>
+                <button
+                  className="rounded-lg border px-4 py-2 disabled:opacity-40"
+                  disabled={index === result.questions.length - 1}
+                  onClick={() => setIndex((i) => i + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            </section>
+          )}
+        </>
+      )}
+    </main>
+  );
 }

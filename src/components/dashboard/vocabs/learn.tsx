@@ -7,6 +7,7 @@ import {
   VocabularyWord,
 } from "@/types/vocabulary";
 import React, { useReducer, useEffect, useState } from "react";
+import { VocabularyStudyLauncher } from "@/components/vocabulary-study-launcher";
 import CardFlip from "@/components/ui/flip-card";
 import { Button } from "@/components/ui/button";
 import {
@@ -539,6 +540,7 @@ export default function LearnVocab() {
 
         {/* Flashcard */}
         <div className="flex justify-center mb-8">
+          <VocabularyStudyLauncher words={learnState.filteredVocabs}/>
           <CardFlip
             isVocabCard={true}
             word={learnState.currentVocab.word}

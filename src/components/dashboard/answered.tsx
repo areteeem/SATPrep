@@ -1,3 +1,4 @@
+import { MonochromeSymbol } from "@/components/monochrome-symbol";
 import React, { useCallback, useEffect, useReducer } from "react";
 import { Button } from "@/components/ui/button";
 import { AssessmentWorkspace } from "@/app/dashboard/types";
@@ -411,7 +412,7 @@ export function AnsweredTab({ selectedAssessment }: AnsweredTabProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center text-gray-500">
-              <p className="text-lg">📝</p>
+              <p className="text-lg"><MonochromeSymbol symbol="📝" size={48}/></p>
               <p className="mt-2">
                 You haven&apos;t answered any questions yet.
               </p>

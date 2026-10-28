@@ -1,4 +1,6 @@
 "use client";
+import { MonochromeSymbol } from "@/components/monochrome-symbol";
+
 
 import React, {
   useEffect,
@@ -1368,7 +1370,7 @@ export function QuestionResults({
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-center text-gray-500">
-                    <p className="text-4xl mb-4">🔍</p>
+                    <p className="text-4xl mb-4"><MonochromeSymbol symbol="🔍" size={48}/></p>
                     <h3 className="text-lg font-medium mb-2">
                       {state.selectedDifficulties.length > 0 ||
                       state.selectedSkills.length > 0 ||

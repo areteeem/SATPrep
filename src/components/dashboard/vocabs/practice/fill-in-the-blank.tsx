@@ -1,4 +1,6 @@
 "use client";
+import { MonochromeSymbol } from "@/components/monochrome-symbol";
+
 
 import React, { useReducer, useEffect, useMemo, useRef } from "react";
 import {
@@ -679,7 +681,7 @@ export default function VocabsFillinTheBlankPractice({
     return (
       <div className="w-full flex flex-col min-h-[80vh] items-center justify-center p-8">
         <div className="text-center space-y-6 max-w-md">
-          <div className="text-6xl">🤔</div>
+          <div className="text-6xl"><MonochromeSymbol symbol="🤔" size={48}/></div>
           <h2 className="text-2xl font-bold text-gray-900">
             No Words to Practice
           </h2>
@@ -704,7 +706,7 @@ export default function VocabsFillinTheBlankPractice({
     return (
       <div className="w-full flex flex-col min-h-[80vh] items-center justify-center p-8">
         <div className="text-center space-y-6 max-w-md">
-          <div className="text-6xl">📝</div>
+          <div className="text-6xl"><MonochromeSymbol symbol="📝" size={48}/></div>
           <h2 className="text-2xl font-bold text-gray-900">
             No Questions Available
           </h2>
@@ -740,7 +742,7 @@ export default function VocabsFillinTheBlankPractice({
           className="text-center space-y-8 max-w-md"
         >
           <div className="text-8xl">
-            {percentage >= 80 ? "🎉" : percentage >= 60 ? "👏" : "💪"}
+            <MonochromeSymbol symbol={percentage >= 80 ? "🎉" : percentage >= 60 ? "👏" : "💪"} size={60}/>
           </div>
 
           <div className="space-y-4">
@@ -857,7 +859,7 @@ export default function VocabsFillinTheBlankPractice({
               {currentQuestion.isUserSentence && (
                 <div className="mt-3 flex justify-center">
                   <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-                    📝 Your sentence
+                    <MonochromeSymbol symbol="note" size={17}/> Your sentence
                   </span>
                 </div>
               )}
@@ -1016,7 +1018,7 @@ export default function VocabsFillinTheBlankPractice({
                     {currentQuestion.originalExample}
                     {currentQuestion.isUserSentence && (
                       <span className="ml-2 inline-block px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">
-                        📝 Your sentence
+                        <MonochromeSymbol symbol="note" size={17}/> Your sentence
                       </span>
                     )}
                   </p>

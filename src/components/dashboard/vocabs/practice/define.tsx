@@ -1,4 +1,6 @@
 "use client";
+import { MonochromeSymbol } from "@/components/monochrome-symbol";
+
 
 import React, { useReducer, useEffect, useMemo, useState, useRef } from "react";
 import {
@@ -687,7 +689,7 @@ export default function VocabsDefinePractice({
     return (
       <div className="w-full flex flex-col min-h-[80vh] items-center justify-center p-8">
         <div className="text-center space-y-6 max-w-md">
-          <div className="text-6xl">🤔</div>
+          <div className="text-6xl"><MonochromeSymbol symbol="🤔" size={48}/></div>
           <h2 className="text-2xl font-bold text-gray-900">
             No Words to Define
           </h2>
@@ -721,7 +723,7 @@ export default function VocabsDefinePractice({
           className="text-center space-y-8 max-w-md"
         >
           <div className="text-8xl">
-            {percentage >= 80 ? "🎉" : percentage >= 60 ? "👏" : "💪"}
+            <MonochromeSymbol symbol={percentage >= 80 ? "🎉" : percentage >= 60 ? "👏" : "💪"} size={60}/>
           </div>
 
           <div className="space-y-4">

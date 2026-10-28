@@ -1,4 +1,6 @@
 "use client";
+import { MonochromeSymbol } from "@/components/monochrome-symbol";
+
 import { useAssessment } from "@/contexts/assessment-context";
 import { useState, useRef } from "react";
 import {
@@ -28,12 +30,12 @@ export default function SessionsPage() {
       downloadExportedData(exportedData);
       setMessage({
         type: "success",
-        text: "✅ Data exported successfully! Your backup file has been downloaded.",
+        text: "Data exported successfully! Your backup file has been downloaded.",
       });
     } catch (error) {
       setMessage({
         type: "error",
-        text: `❌ Export failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        text: `Export failed: ${error instanceof Error ? error.message : "Unknown error"}`,
       });
     } finally {
       setIsExporting(false);
@@ -57,7 +59,7 @@ export default function SessionsPage() {
       const result = importLocalStorageData(importedData);
       setMessage({
         type: "success",
-        text: `✅ Import successful! ${result.imported} items imported.${result.skipped > 0 ? ` (${result.skipped} items skipped due to errors)` : ""} Page will refresh in 2 seconds...`,
+        text: `Import successful! ${result.imported} items imported.${result.skipped > 0 ? ` (${result.skipped} items skipped due to errors)` : ""} Page will refresh in 2 seconds...`,
       });
       // Refresh the page after 2 seconds
       setTimeout(() => {
@@ -66,7 +68,7 @@ export default function SessionsPage() {
     } catch (error) {
       setMessage({
         type: "error",
-        text: `❌ Import failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        text: `Import failed: ${error instanceof Error ? error.message : "Unknown error"}`,
       });
     } finally {
       setIsImporting(false);
@@ -154,7 +156,7 @@ export default function SessionsPage() {
               : "bg-red-100 text-red-800"
           }`}
         >
-          {message.text}
+          <MonochromeSymbol symbol={message.type === "success" ? "🎯" : "❓"} size={18}/> {message.text}
         </div>
       )}
     </section>

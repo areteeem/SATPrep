@@ -1,4 +1,6 @@
 "use client";
+import { MonochromeSymbol } from "@/components/monochrome-symbol";
+
 import { QuestionById_Data } from "@/types";
 import { SavedQuestions, SavedQuestion } from "@/types/savedQuestions";
 import { QuestionNotes, QuestionNote } from "@/types/questionNotes";
@@ -1224,7 +1226,7 @@ const QuestionProblemCard = React.memo(function QuestionProblemCard({
           <div className="bg-background rounded-2xl border-2 border-b-4 border-border shadow-2xl p-6 max-w-md w-full mx-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-foreground">
-                📤 Share Question
+                <MonochromeSymbol symbol="share" size={17}/> Share Question
               </h3>
               <Button
                 variant="outline"
@@ -1284,7 +1286,7 @@ const QuestionProblemCard = React.memo(function QuestionProblemCard({
                   }}
                   className="w-full px-4 py-2 rounded-xl border-2 border-b-4 font-bold transition-all duration-200 bg-gray-500 hover:bg-gray-600 dark:bg-neutral-600 dark:hover:bg-neutral-500 border-gray-700 dark:border-neutral-700 text-white"
                 >
-                  🔗 View Question Page
+                  <MonochromeSymbol symbol="link" size={17}/> View Question Page
                 </Button>
               </div>
             )}

@@ -449,7 +449,7 @@ export function SaveButton({
   };
 
   return (
-    <div className="inline-flex rounded-xl md:rounded-2xl shadow-md hover:shadow-lg overflow-hidden">
+    <div className="inline-flex items-center gap-2 rounded-xl overflow-visible">
       <Button
         variant="default"
         className={`flex cursor-pointer items-center gap-1 md:gap-2 font-bold py-2 md:py-3 px-3 md:px-6 border-b-4 transform transition-all duration-200 active:translate-y-0.5 active:border-b-2 text-xs md:text-sm rounded-none ${

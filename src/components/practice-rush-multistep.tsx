@@ -1,6 +1,9 @@
 "use client";
 
 import { AnnotatedPassage } from "./annotated-passage";
+import { AssessmentCalculatorTools, AssessmentMathPanel } from "@/components/assessment-calculator-tools";
+import { AssessmentActivePage, AssessmentAnswerInput, AssessmentAnswerOptions, hasAssessmentContent } from "@/components/assessment-controls";
+import { saveLocalAssessment } from "@/lib/local-assessments";
 
 import React, {
   useRef,
@@ -54,6 +57,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  TrendingUp,
   ArrowLeftIcon,
   ArrowRightIcon,
   CheckCircle,
@@ -200,7 +204,7 @@ function DuolingoTimer({
     if (isActive) {
       interval = setInterval(() => {
         setElapsedTime(Date.now() - startTime + savedElapsedTime);
-      }, 100); // Update every 100ms for smooth animation
+      }, 1000);
     }
 
     return () => {
@@ -218,23 +222,15 @@ function DuolingoTimer({
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  const getTimerColor = (ms: number) => {
-    const totalSeconds = Math.floor(ms / 1000);
-    if (totalSeconds < 30) return "text-green-600 dark:text-green-400";
-    if (totalSeconds < 60) return "text-yellow-600 dark:text-yellow-400";
-    if (totalSeconds < 120) return "text-orange-600 dark:text-orange-400";
-    return "text-red-600 dark:text-red-400";
-  };
-
   return (
     <div className="flex flex-row items-center py-3 gap-2">
       <div
         className={`${
           isVisible ? "block" : "hidden"
-        } flex items-center gap-2 bg-white dark:bg-neutral-800 border-2 border-gray-300 dark:border-neutral-600 rounded-2xl px-4 py-2 shadow-sm`}
+        } flex items-center gap-2 bg-transparent border border-neutral-300 dark:border-neutral-700 rounded-xl px-3 py-2`}
       >
-        <Clock className={`h-5 w-5 ${getTimerColor(displayTime)}`} />
-        <span className={`font-bold text-lg ${getTimerColor(displayTime)}`}>
+        <Clock className="h-4 w-4" />
+        <span className="font-mono text-base">
           {formatTime(displayTime)}
         </span>
         {fixedTime !== undefined && (
@@ -556,45 +552,15 @@ interface DuolingoInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  checked?: boolean;
+  correct?: boolean;
   disabled?: boolean;
   onSubmit?: () => void;
 }
 
 // Optimized Duolingo-styled Input Component
-const DuolingoInput = React.memo(function DuolingoInput({
-  value,
-  onChange,
-  placeholder = "Type your answer here...",
-  disabled = false,
-  onSubmit,
-}: DuolingoInputProps) {
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !disabled && onSubmit && value?.trim()) {
-      e.preventDefault();
-      onSubmit();
-    }
-  };
-
-  return (
-    <div className="w-full">
-      <div className="relative">
-        <input
-          type="text"
-          value={value || ""}
-          onChange={(e) => !disabled && onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onFocus={() => !disabled && playSound("button-pressed.wav")}
-          placeholder={placeholder}
-          disabled={disabled}
-          className={`w-full px-4 py-4 text-lg font-medium border-2 border-b-4 rounded-2xl focus:outline-none transition-all duration-200 shadow-sm ${
-            disabled
-              ? "border-gray-300 bg-gray-100 dark:bg-neutral-700 dark:border-neutral-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-              : "border-gray-300 dark:border-neutral-600 focus:border-blue-500 focus:border-b-blue-500 focus:ring-0 bg-white dark:bg-neutral-800 dark:text-foreground hover:shadow-md focus:shadow-lg"
-          }`}
-        />
-      </div>
-    </div>
-  );
+const DuolingoInput = React.memo(function DuolingoInput({value,onChange,disabled=false,onSubmit,checked=false,correct=false}:DuolingoInputProps) {
+  return <AssessmentAnswerInput value={value||""} onChange={onChange} disabled={disabled} onSubmit={onSubmit} checked={checked} correct={correct}/>;
 });
 
 // Answer Options Component
@@ -613,144 +579,8 @@ interface AnswerOptionsProps {
 }
 
 // Optimized Answer Options Component
-const AnswerOptions = React.memo(function AnswerOptions({
-  answerOptions,
-  questionId,
-  selectedAnswer,
-  disabledOptions,
-  onAnswerSelect,
-  onToggleDisabled,
-  showStrikethrough,
-  correctAnswers = [],
-  isAnswerChecked = false,
-  isReviewMode = false,
-  duplicateSession,
-}: AnswerOptionsProps) {
-  const optionEntries = useMemo(
-    () => Object.entries(answerOptions),
-    [answerOptions],
-  );
-
-  // Note: isReviewMode indicates when displaying a previously answered question
-  // This can be used for additional review-specific logic if needed
-  React.useEffect(() => {
-    if (isReviewMode) {
-      // Additional review-specific setup can be added here
-    }
-  }, [isReviewMode]);
-
-  return (
-    <RadioGroup className="flex flex-col gap-3" defaultValue="1">
-      {optionEntries.map(([key, value], index) => {
-        const trimmedKey = key.trim();
-        const isCorrectAnswer =
-          isAnswerChecked && checkAnswerValidity(trimmedKey, correctAnswers);
-        const isSelectedWrongAnswer =
-          isAnswerChecked &&
-          selectedAnswer?.trim() === trimmedKey &&
-          !checkAnswerValidity(trimmedKey, correctAnswers);
-        const isSelected = selectedAnswer?.trim() === trimmedKey;
-
-        return (
-          <div
-            key={`${key}-${questionId}`}
-            className="flex z-20 items-center gap-2 answer-option"
-          >
-            <label
-              onClick={() => {
-                if (
-                  selectedAnswer?.trim() !== trimmedKey &&
-                  !disabledOptions[key] &&
-                  !isAnswerChecked &&
-                  !isReviewMode
-                ) {
-                  playSound("button-pressed.wav");
-                  onAnswerSelect(key);
-                }
-              }}
-              className={`relative ${
-                disabledOptions[key]
-                  ? " cursor-not-allowed after:absolute after:inset-0 after:h-0.5 after:w-[102.5%] after:bg-black dark:after:bg-white after:-translate-x-1/2 after:left-1/2 after:top-1/2 after:-translate-y-1/2"
-                  : isAnswerChecked || isReviewMode
-                    ? "cursor-default"
-                    : "cursor-pointer"
-              } w-full transition duration-500 ${
-                isAnswerChecked &&
-                (isCorrectAnswer || checkAnswerValidity(key, correctAnswers))
-                  ? "border-2 border-green-500 bg-green-500/10"
-                  : isSelectedWrongAnswer
-                    ? "border-2 border-red-500 bg-red-500/10"
-                    : isSelected
-                      ? "border-2 border-blue-500 bg-blue-500/10"
-                      : "border-2 border-input"
-              } has-[[data-disabled]]:opacity-50  has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring/70 flex flex-col items-start gap-4 rounded-lg p-3 shadow-sm shadow-black/5`}
-            >
-              <div className={`grid grid-cols-9 items-center gap-3 `}>
-                <div className="col-span-1 flex items-center justify-center">
-                  <div
-                    className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-semibold ${
-                      isAnswerChecked && isCorrectAnswer
-                        ? "border-green-500 bg-green-500 text-white"
-                        : isSelectedWrongAnswer
-                          ? "border-red-500 bg-red-500 text-white"
-                          : isSelected
-                            ? "border-blue-500 bg-blue-500 text-white"
-                            : "border-gray-300 bg-gray-50 dark:bg-neutral-700 dark:border-neutral-500 text-gray-600 dark:text-gray-300"
-                    }`}
-                  >
-                    {isCorrectAnswer ? (
-                      <CheckCircle className="h-4 w-4" />
-                    ) : isSelectedWrongAnswer ? (
-                      <X className="h-4 w-4" />
-                    ) : (
-                      String.fromCharCode(65 + index)
-                    )}
-                  </div>
-                </div>
-                <Label className="col-span-8" htmlFor={`${key}-${questionId}`}>
-                  <MathJax
-                    className={`inline-block ${
-                      !isReviewMode && "cursor-pointer"
-                    }`}
-                    inline
-                    dynamic
-                  >
-                    <span
-                      className="text-xl inline-block"
-                      dangerouslySetInnerHTML={{
-                        __html: value,
-                      }}
-                    ></span>
-                  </MathJax>
-                </Label>
-              </div>
-            </label>
-            {showStrikethrough && (
-              <Button
-                variant={"ghost"}
-                type="button"
-                aria-label={`${disabledOptions[key] ? "Restore" : "Eliminate"} option ${String.fromCharCode(65 + index)}`}
-                aria-pressed={Boolean(disabledOptions[key])}
-                className="h-12 w-12 shrink-0 cursor-pointer p-0"
-                onClick={() => {
-                  if (isAnswerChecked || isReviewMode) return;
-                  if (selectedAnswer?.trim() === trimmedKey) onAnswerSelect(null);
-                  playSound("button-pressed.wav");
-                  onToggleDisabled(key);
-                }}
-              >
-                {disabledOptions[key] ? (
-                  <RotateCcw className="h-5 w-5" aria-hidden="true" />
-                ) : (
-                  <Strikethrough className="h-6 w-6" />
-                )}
-              </Button>
-            )}
-          </div>
-        );
-      })}
-    </RadioGroup>
-  );
+const AnswerOptions = React.memo(function AnswerOptions({answerOptions,selectedAnswer,disabledOptions,onAnswerSelect,onToggleDisabled,showStrikethrough,correctAnswers=[],isAnswerChecked=false,isReviewMode=false}:AnswerOptionsProps) {
+  return <AssessmentAnswerOptions options={answerOptions} selected={selectedAnswer} eliminated={disabledOptions} onSelect={onAnswerSelect} onEliminate={showStrikethrough?onToggleDisabled:undefined} correctAnswers={correctAnswers} checked={isAnswerChecked} disabled={isAnswerChecked||isReviewMode}/>;
 });
 
 // State management with useReducer for better performance
@@ -1377,6 +1207,14 @@ export default function PracticeRushMultistep({
     [state.questions, state.currentQuestionStep],
   );
 
+  const hasStimulus = hasAssessmentContent(currentQuestion?.stimulus);
+  const mathQuestion = practiceSelections.subject === "math";
+  const persistDeviceSession = useCallback((status: string) => {
+    if (!state.questions?.length || !state.sessionId) return;
+    try { saveLocalAssessment({id:state.sessionId,kind:"rush",title:`${practiceSelections.assessment} ${mathQuestion?"Math":"Reading & Writing"} Rush`,startedAt:new Date(state.sessionStartTime).toISOString(),updatedAt:new Date().toISOString(),status,selections:practiceSelections,questions:state.questions.map((question)=>({id:question.plainQuestion.questionId,externalId:question.plainQuestion.external_id||question.plainQuestion.ibn||"",domain:question.plainQuestion.primary_class_cd,skill:question.plainQuestion.skill_cd,answer:state.questionAnswers[question.plainQuestion.questionId]||"",correctAnswers:question.correct_answer,detail:question as unknown as API_Response_Question}))}); } catch { toast.error("This device could not save the practice session."); }
+  },[state.questions,state.questionAnswers,state.sessionId,state.sessionStartTime,practiceSelections,mathQuestion]);
+  useEffect(()=>{persistDeviceSession("in_progress");},[persistDeviceSession]);
+
   // A passage can stay in view only when it fits within the visible viewport.
   useEffect(() => {
     const passage = document.querySelector<HTMLElement>(".sat-passage");
@@ -1520,7 +1358,7 @@ export default function PracticeRushMultistep({
       {
         id: "querying",
         title: "Querying",
-        content: "Querying Questions 🔍",
+        content: "Querying Questions",
       },
       {
         id: "fetching-questions",
@@ -1537,7 +1375,7 @@ export default function PracticeRushMultistep({
                   state.questionsProcessedCount -
                   Math.floor(state.totalQuestionsToFetch / 2)
                 }/${Math.floor(state.totalQuestionsToFetch / 2)})`
-            : "Fetching Each Question 🔍",
+            : "Fetching Each Question",
       },
       {
         id: "verifying",
@@ -1555,7 +1393,7 @@ export default function PracticeRushMultistep({
       {
         id: "launching",
         title: "Launching Practice",
-        content: "Launching Practice... 🚀",
+        content: "Launching Practice...",
       },
     ],
     [
@@ -1754,6 +1592,7 @@ export default function PracticeRushMultistep({
 
   // Function to handle session completion
   const completeSession = useCallback(() => {
+    persistDeviceSession("completed");
     // Calculate correct answers by comparing user answers with correct answers
     const answeredQuestions = Object.keys(state.questionAnswers).filter(
       (id) => state.questionAnswers[id] !== null,
@@ -1883,6 +1722,7 @@ export default function PracticeRushMultistep({
     state.sessionXPReceived,
     practiceSelections,
     onSessionComplete,
+    persistDeviceSession,
   ]);
 
   // Scroll to top when question step changes
@@ -3403,7 +3243,8 @@ export default function PracticeRushMultistep({
   // console.log(currentQuestion?.plainQuestion);
   return (
     <React.Fragment>
-      <div className="max-w-11/12 mx-auto px-4 sm:px-6 lg:px-8">
+      <AssessmentActivePage active/>
+      <div className="assessment-player" data-assessment-content>
         {!currentQuestion ? (
           <div className="h-screen flex flex-col items-center justify-center gap-8">
             {/* OnboardCard Component */}
@@ -3417,11 +3258,11 @@ export default function PracticeRushMultistep({
           </div>
         ) : (
           <React.Fragment>
-            <div className="min-h-screen items-center justify-center pt-32 pb-10">
+            <div className="min-h-full pb-10">
               {effectiveReviewMode && (
                 <div className="mb-6 p-4 bg-blue-100 dark:bg-blue-950 border-2 border-blue-300 dark:border-blue-800 rounded-lg text-center">
                   <h4 className="text-lg font-bold text-blue-800 dark:text-blue-200 mb-1">
-                    📚 Review Mode - Session ID: {state.sessionId}
+                    Review Mode - Session ID: {state.sessionId}
                   </h4>
                   <p className="text-sm text-blue-600 dark:text-blue-400">
                     You are reviewing a completed practice session. All answers
@@ -3647,30 +3488,13 @@ export default function PracticeRushMultistep({
               <div className="grid grid-cols-12 justify-between mb-10">
                 <div className="col-span-12 xl:col-span-5">
                   <div className="flex flex-col lg:flex-col gap-4 items-start">
-                    <Pill className="text-md font-semibold">
-                      {currentQuestion.plainQuestion.difficulty == "E" ? (
-                        <React.Fragment>
-                          <PillIndicator variant="success" pulse />
-                          Easy
-                        </React.Fragment>
-                      ) : currentQuestion.plainQuestion.difficulty == "M" ? (
-                        <React.Fragment>
-                          <PillIndicator variant="warning" pulse />
-                          Medium
-                        </React.Fragment>
-                      ) : (
-                        <React.Fragment>
-                          <PillIndicator variant="error" pulse />
-                          Hard
-                        </React.Fragment>
-                      )}
-                    </Pill>
+                    <span className="inline-flex items-center gap-2 rounded-lg border px-3 py-1 text-sm"><TrendingUp size={16}/>{currentQuestion.plainQuestion.difficulty === "E" ? "Easy" : currentQuestion.plainQuestion.difficulty === "M" ? "Medium" : "Hard"}</span>
                     <div className="h-full flex gap-2 justify-center items-center">
                       <div>
-                        <h5 className="font-black text-2xl">
-                          Question ID {currentQuestion.plainQuestion.questionId}
+                        <h5 className="font-semibold text-lg">
+                          Question {state.currentQuestionStep + 1} · {currentQuestion.plainQuestion.questionId}
                         </h5>
-                        <h6 className="text-xl">
+                        <h6 className="text-base">
                           {currentQuestion.plainQuestion.primary_class_cd_desc}{" "}
                           - {currentQuestion.plainQuestion.skill_desc}
                           {state.isSavingSession && (
@@ -3702,7 +3526,8 @@ export default function PracticeRushMultistep({
                     </div>
                   </div>
                 </div>
-                <div className="col-span-12 xl:col-span-7 flex flex-wrap gap-2 items-end justify-center md:justify-start mt-6 xl:mt-0 lg:justify-end  xl:justify-end">
+                <div className="col-span-12 xl:col-span-7 flex flex-wrap gap-2 items-end justify-center md:justify-start mt-6 xl:mt-0 lg:justify-end xl:justify-end">
+                  {mathQuestion && <AssessmentCalculatorTools />}
                   <TooltipProvider delayDuration={100}>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -3840,10 +3665,7 @@ export default function PracticeRushMultistep({
                         </Tooltip>
                       )}
 
-                    <Button type="button" variant="outline" onClick={() => {
-                      if (document.fullscreenElement) void document.exitFullscreen();
-                      else void document.documentElement.requestFullscreen?.();
-                    }}>Full screen</Button>
+
 
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -3981,269 +3803,22 @@ export default function PracticeRushMultistep({
                 </div>
               </div>
 
-              <div className="w-full grid grid-cols-4 lg:grid-cols-8 items-center justify-center gap-8 h-full">
-                <div
-                  className={`col-span-4 ${
-                    practiceSelections?.subject === "reading-writing"
-                      ? "lg:col-span-5 sat-passage-column"
-                      : "lg:col-span-3"
-                  }  flex flex-col gap-6 h-full relative`}
-                >
-                  <React.Fragment>
-                    {currentQuestion.stimulus && (
-                      practiceSelections?.subject === "reading-writing" ? (
-                        <AnnotatedPassage questionId={currentQuestion.plainQuestion.questionId} html={currentQuestion.stimulus} className="text-xl sat-passage" />
-                      ) : (
-                        <MathJax inline dynamic className="text-xl answer-option"><span dangerouslySetInnerHTML={{__html: currentQuestion.stimulus}} /></MathJax>
-                      )
-                    )}
-
-                    {practiceSelections?.subject !== "reading-writing" &&
-                      currentQuestion.stem && (
-                        <MathJax inline dynamic>
-                          <span
-                            id="question_stem"
-                            className="text-xl answer-option"
-                            dangerouslySetInnerHTML={{
-                              __html: currentQuestion.stem,
-                            }}
-                          ></span>
-                        </MathJax>
-                      )}
-
-                    {practiceSelections?.subject !== "reading-writing" &&
-                      (currentQuestion.answerOptions ? (
-                        <AnswerOptions
-                          answerOptions={currentQuestion.answerOptions}
-                          questionId={currentQuestion.plainQuestion.questionId}
-                          selectedAnswer={state.selectedAnswer}
-                          disabledOptions={state.disabledOptions}
-                          onAnswerSelect={(key) =>
-                            dispatch({
-                              type: "SET_SELECTED_ANSWER",
-                              payload: key,
-                            })
-                          }
-                          onToggleDisabled={(key) => {
-                            dispatch({
-                              type: "SET_DISABLED_OPTION",
-                              payload: {
-                                key,
-                                value: !state.disabledOptions[key],
-                              },
-                            });
-                          }}
-                          showStrikethrough={true}
-                          correctAnswers={currentQuestion.correct_answer.map(
-                            (answer) => answer.trim(),
-                          )}
-                          isAnswerChecked={state.isAnswerChecked}
-                          isReviewMode={
-                            isReviewMode ||
-                            Boolean(
-                              state.questionAnswers[
-                                currentQuestion.plainQuestion.questionId
-                              ],
-                            )
-                          }
-                        />
-                      ) : (
-                        <DuolingoInput
-                          value={state.selectedAnswer || ""}
-                          onChange={(value) =>
-                            dispatch({
-                              type: "SET_SELECTED_ANSWER",
-                              payload: value,
-                            })
-                          }
-                          onSubmit={handleAnsweringQuestion(
-                            currentQuestion.plainQuestion.questionId,
-                          )}
-                          disabled={state.isAnswerChecked || isReviewMode}
-                        />
-                      ))}
-                    <div className="pt-1 pb-2 relative overflow-visible">
-                      {/* Show Load More and Finish buttons when at end of loaded questions and answer is checked */}
-                      {practiceSelections?.subject !== "reading-writing" &&
-                        (isAtEndOfBatch &&
-                        state.isAnswerChecked &&
-                        state.questionAnswers[
-                          currentQuestion.plainQuestion.questionId
-                        ] ? (
-                          <div className="flex gap-3 mt-5">
-                            {canLoadMore && (
-                              <Button
-                                variant="default"
-                                className={`flex-1 font-bold text-lg py-6 border-b-4 rounded-2xl text-white shadow-lg transform transition-all duration-200 ${
-                                  state.isLoadingNextBatch
-                                    ? "bg-blue-400 border-blue-500 cursor-not-allowed"
-                                    : "bg-blue-500 hover:bg-blue-600 border-blue-700 hover:border-blue-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
-                                }`}
-                                onClick={() => {
-                                  console.log("LOAD NEXT BATCH");
-                                  if (!state.isLoadingNextBatch) {
-                                    loadNextBatch();
-                                  }
-                                }}
-                                disabled={state.isLoadingNextBatch}
-                              >
-                                {state.isLoadingNextBatch ? (
-                                  <span className="flex items-center justify-center gap-2">
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    LOADING... ({state.questionsProcessedCount}
-                                    /22)
-                                  </span>
-                                ) : (
-                                  "LOAD MORE"
-                                )}
-                              </Button>
-                            )}
-                            <Button
-                              variant="default"
-                              className="flex-1 font-bold text-lg py-6 border-b-4 rounded-2xl text-white shadow-lg transform transition-all duration-200 bg-green-500 hover:bg-green-600 border-green-700 hover:border-green-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
-                              onClick={handleFinish}
-                            >
-                              FINISH
-                            </Button>
-                          </div>
-                        ) : (
-                          <Button
-                            variant={"default"}
-                            className={`mt-5 w-full relative font-bold text-lg py-6 border-b-4 rounded-2xl text-white shadow-lg transform transition-all duration-200 ${
-                              state.isLoadingNextBatch
-                                ? "bg-yellow-500 hover:bg-yellow-600 border-yellow-700 hover:border-yellow-800 cursor-wait animate-pulse"
-                                : state.isAnswerChecked && state.isAnswerCorrect
-                                  ? "bg-green-500 hover:bg-green-600 border-green-700 hover:border-green-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
-                                  : state.isAnswerChecked &&
-                                      !state.isAnswerCorrect
-                                    ? "bg-red-500 hover:bg-red-600 border-red-700 hover:border-red-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
-                                    : "bg-blue-500 hover:bg-blue-600 border-blue-700 hover:border-blue-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
-                            }`}
-                            disabled={
-                              (state.selectedAnswer == null &&
-                                !state.questionAnswers[
-                                  currentQuestion.plainQuestion.questionId
-                                ]) ||
-                              state.isLoadingNextBatch
-                            }
-                            onClick={handleAnsweringQuestion(
-                              currentQuestion.plainQuestion.questionId,
-                            )}
-                          >
-                            {state.isLoadingNextBatch ? (
-                              <DuolingoLoadingSpinner
-                                progress={state.questionsProcessedCount}
-                                total={22}
-                              />
-                            ) : state.questionAnswers[
-                                currentQuestion.plainQuestion.questionId
-                              ] ? (
-                              "NEXT"
-                            ) : !state.isAnswerChecked ? (
-                              "CHECK"
-                            ) : (
-                              "CONTINUE"
-                            )}
-                          </Button>
-                        ))}
-                      <Confetti
-                        ref={confettiRef}
-                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-full h-full pointer-events-none"
+              <div className={`assessment-question-grid ${!hasStimulus&&!mathQuestion ? "assessment-question-centered" : ""}`}>
+                <AssessmentMathPanel hidden={!mathQuestion||hasStimulus}/>
+                <div className="sat-passage-column flex flex-col gap-6 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700" style={{display:hasStimulus?undefined:"none"}}>
+                  {currentQuestion.stimulus && (
+                      <AnnotatedPassage
+                        questionId={currentQuestion.plainQuestion.questionId}
+                        html={currentQuestion.stimulus}
+                        className="text-xl sat-passage"
                       />
-                    </div>
-                    {/* <Button
-                      variant={"ghost"}
-                      className="text-md cursor-pointer"
-                      disabled={!state.isAnswerChecked}
-                    >
-                      EXPLAIN
-                    </Button> */}
-
-                    {state.isAnswerChecked && state.selectedAnswer && (
-                      <React.Fragment>
-                        {/* Show review indicator when viewing previous question */}
-                        {state.questionAnswers[
-                          currentQuestion.plainQuestion.questionId
-                        ] && (
-                          <div className="bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                              <span className="text-orange-700 dark:text-orange-300 font-semibold">
-                                Question Review
-                              </span>
-                            </div>
-                            <p className="text-orange-600 dark:text-orange-400 text-sm">
-                              You are reviewing a previously answered question.
-                              Your original answer and the explanation are shown
-                              below.
-                              <br /> <br />
-                              Please scroll down to bottom to see explanation,{" "}
-                              {
-                                "we've moved it to the bottom for better visibility."
-                              }
-                            </p>
-                          </div>
-                        )}
-
-                        <Label className="text-lg font-semibold">
-                          Your Answer:{" "}
-                          <span
-                            className={`${
-                              state.isAnswerCorrect
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-red-600 dark:text-red-400"
-                            }`}
-                          >
-                            {state.selectedAnswer}
-                          </span>
-                          {state.isAnswerCorrect ? (
-                            <span className="ml-2 text-green-600 dark:text-green-400 text-sm">
-                              ✓ Correct
-                            </span>
-                          ) : (
-                            <span className="ml-2 text-red-600 dark:text-red-400 text-sm">
-                              ✗ Incorrect
-                            </span>
-                          )}
-                        </Label>
-                        <Label className="text-lg font-semibold">
-                          Correct Answer:{" "}
-                          <span
-                            className={"text-green-600 dark:text-green-400"}
-                          >
-                            {currentQuestion.correct_answer.join(", ")}
-                          </span>
-                        </Label>
-                      </React.Fragment>
-                    )}
-                  </React.Fragment>
+                  )}
                 </div>
 
-                <div
-                  className={`col-span-4 ${
-                    practiceSelections?.subject === "reading-writing"
-                      ? "lg:col-span-3"
-                      : "lg:col-span-5"
-                  } h-full `}
-                >
-                  {practiceSelections?.subject !== "reading-writing" ? (
-                    <div className="border-2 border-gray-200 dark:border-neutral-700 shadow-lg overflow-hidden rounded-lg">
-                      <iframe
-                        src="https://www.desmos.com/testing/cb-sat-ap/graphing"
-                        width={"100%"}
-                        className="h-[800px]"
-                      ></iframe>
-                    </div>
-                  ) : (
+                <div className="assessment-question">
                     <React.Fragment>
-                      <MathJax inline dynamic className="text-xl">
-                        <span
-                          dangerouslySetInnerHTML={{
-                            __html: currentQuestion.stem,
-                          }}
-                        ></span>
-                      </MathJax>
-                      <Separator className="my-4" />
+                      <AnnotatedPassage questionId={`${currentQuestion.plainQuestion.questionId}:stem`} html={currentQuestion.stem} className="mb-6" />
+
                       {currentQuestion.answerOptions ? (
                         <AnswerOptions
                           answerOptions={currentQuestion.answerOptions}
@@ -4292,11 +3867,12 @@ export default function PracticeRushMultistep({
                             currentQuestion.plainQuestion.questionId,
                           )}
                           disabled={state.isAnswerChecked || isReviewMode}
+                          checked={state.isAnswerChecked}
+                          correct={state.isAnswerCorrect}
                         />
                       )}
                       <div className="py-1 relative overflow-visible">
-                        {practiceSelections?.subject == "reading-writing" &&
-                          (isAtEndOfBatch &&
+                        {(isAtEndOfBatch &&
                           state.isAnswerChecked &&
                           state.questionAnswers[
                             currentQuestion.plainQuestion.questionId
@@ -4393,12 +3969,31 @@ export default function PracticeRushMultistep({
                       >
                         Explain
                       </Button> */}
+                      {state.isAnswerChecked && state.selectedAnswer && (
+                        <div className="mt-4 space-y-2">
+                          {state.questionAnswers[
+                            currentQuestion.plainQuestion.questionId
+                          ] && (
+                            <p className="rounded-lg border border-neutral-200 p-3 text-sm text-neutral-600 dark:border-neutral-700 dark:text-neutral-300">
+                              You are reviewing a previously answered question. Your original answer and the explanation are shown below.
+                            </p>
+                          )}
+                          <Label className="text-lg font-semibold">
+                            Your Answer: <span>{state.selectedAnswer}</span>
+                            <span className="ml-2 text-sm">
+                              {state.isAnswerCorrect ? "✓ Correct" : "✗ Incorrect"}
+                            </span>
+                          </Label>
+                          <Label className="block text-lg font-semibold">
+                            Correct Answer: {currentQuestion.correct_answer.join(", ")}
+                          </Label>
+                        </div>
+                      )}
                     </React.Fragment>
-                  )}
                 </div>
 
                 {state.isAnswerChecked && state.selectedAnswer && (
-                  <div className="mt-4 col-span-4 lg:col-span-8">
+                  <div className="mt-4 col-span-full">
                     <Label className="text-lg font-semibold mb-2 block">
                       Explanation:
                     </Label>
