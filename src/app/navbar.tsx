@@ -8,11 +8,9 @@ import Link from "next/link";
 import { Logo } from "@/components/logo";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 
@@ -21,32 +19,6 @@ const menuItems = [
   { name: "Question Bank", href: "/questionbank" },
   { name: "Resources", href: "/resources" },
 ];
-
-const CommunityListItem = React.forwardRef<
-  React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, ...props }, ref) => {
-  return (
-    <li>
-      <NavigationMenuLink asChild>
-        <a
-          ref={ref}
-          className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-            className,
-          )}
-          {...props}
-        >
-          <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {children}
-          </p>
-        </a>
-      </NavigationMenuLink>
-    </li>
-  );
-});
-CommunityListItem.displayName = "CommunityListItem";
 
 export const SiteHeader = ({
   IsScrolled = false,
@@ -123,48 +95,6 @@ export const SiteHeader = ({
                       </NavigationMenuLink>
                     </NavigationMenuItem>
                   ))}
-                  <NavigationMenuItem>
-                    <NavigationMenuTrigger className="text-muted-foreground hover:text-accent-foreground">
-                      Community
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                        <li className="row-span-3">
-                          <NavigationMenuLink asChild>
-                            <Link
-                              className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                              href="/changelogs"
-                            >
-                              <div className="mb-2 mt-4 text-lg font-medium">
-                                Changelogs
-                              </div>
-                              <p className="text-sm leading-tight text-muted-foreground">
-                                Check out the latest updates and improvements
-                              </p>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                        <CommunityListItem
-                          href="/contributors"
-                          title="Contributors"
-                        >
-                          Meet the amazing people behind SAT Prep
-                        </CommunityListItem>
-                        <CommunityListItem
-                          href="/report-bug"
-                          title="Report Bug"
-                        >
-                          Help us improve by reporting issues
-                        </CommunityListItem>
-                        <CommunityListItem
-                          href="/suggest-feature"
-                          title="Suggest a Feature"
-                        >
-                          Share your ideas to make SAT Prep better
-                        </CommunityListItem>
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
                 </NavigationMenuList>
               </NavigationMenu>
             </div>
@@ -182,45 +112,6 @@ export const SiteHeader = ({
                       </Link>
                     </li>
                   ))}
-                  <li>
-                    <div className="text-base font-semibold mb-3">
-                      Community
-                    </div>
-                    <ul className="space-y-3 ml-4">
-                      <li>
-                        <Link
-                          href="/contributors"
-                          className="text-muted-foreground hover:text-accent-foreground block duration-150"
-                        >
-                          <span>Contributors</span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/report-bug"
-                          className="text-muted-foreground hover:text-accent-foreground block duration-150"
-                        >
-                          <span>Report Bug</span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/suggest-feature"
-                          className="text-muted-foreground hover:text-accent-foreground block duration-150"
-                        >
-                          <span>Suggest a Feature</span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/changelogs"
-                          className="text-muted-foreground hover:text-accent-foreground block duration-150"
-                        >
-                          <span>Changelogs</span>
-                        </Link>
-                      </li>
-                    </ul>
-                  </li>
                 </ul>
               </div>
               <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">

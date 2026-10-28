@@ -245,6 +245,82 @@
 }
 
 /* styles/globals.css */
+[class~="bg-blue-500"],
+[class~="bg-blue-600"],
+[class~="bg-blue-700"] {
+  background-color: #171717 !important;
+}
+
+[class~="bg-blue-50"],
+[class~="bg-blue-100"] {
+  background-color: #f4f4f5 !important;
+}
+
+.dark [class~="bg-blue-50"],
+.dark [class~="bg-blue-100"],
+.dark [class~="dark:bg-blue-950/30"],
+.dark [class~="dark:bg-blue-950/40"] {
+  background-color: #27272a !important;
+}
+
+[class~="text-blue-400"],
+[class~="text-blue-500"],
+[class~="text-blue-600"],
+[class~="text-blue-700"] {
+  color: #27272a !important;
+}
+
+.dark [class~="text-blue-400"],
+.dark [class~="text-blue-500"],
+.dark [class~="text-blue-600"],
+.dark [class~="text-blue-700"],
+.dark [class~="dark:text-blue-400"] {
+  color: #e4e4e7 !important;
+}
+
+[class~="border-blue-300"],
+[class~="border-blue-400"],
+[class~="border-blue-500"],
+[class~="border-blue-600"],
+[class~="border-blue-700"] {
+  border-color: #27272a !important;
+}
+
+.dark [class~="dark:border-blue-800"] {
+  border-color: #27272a !important;
+}
+
+[class*="has-[[data-state=checked]]:border-blue-"] {
+  border-color: #171717 !important;
+}
+
+[class*="has-[[data-state=checked]]:bg-blue-"] {
+  background-color: #f4f4f5 !important;
+}
+
+.dark [class*="has-[[data-state=checked]]:bg-blue-"] {
+  background-color: #27272a !important;
+}
+
+[class*="hover:border-blue-"]:hover {
+  border-color: #52525b !important;
+}
+
+[class*="from-blue-"] {
+  background-image: none !important;
+  background-color: #171717 !important;
+}
+
+[class*="hover:bg-blue-"]:hover,
+[class*="hover:from-blue-"]:hover {
+  background-image: none !important;
+  background-color: #3f3f46 !important;
+}
+
+[class*="colors.blue."] {
+  --tw-shadow-color: rgb(0 0 0 / 0.16) !important;
+}
+
 #question_stem img {
   display: inline-block;
 }

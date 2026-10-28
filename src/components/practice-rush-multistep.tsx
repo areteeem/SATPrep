@@ -65,6 +65,7 @@ import {
   PyramidIcon,
   SendIcon,
   Strikethrough,
+  RotateCcw,
   X,
 } from "lucide-react";
 import Image from "next/image";
@@ -730,7 +731,7 @@ const AnswerOptions = React.memo(function AnswerOptions({
                 type="button"
                 aria-label={`${disabledOptions[key] ? "Restore" : "Eliminate"} option ${String.fromCharCode(65 + index)}`}
                 aria-pressed={Boolean(disabledOptions[key])}
-                className="h-12 w-14 shrink-0 cursor-pointer"
+                className="h-12 w-12 shrink-0 cursor-pointer p-0"
                 onClick={() => {
                   if (isAnswerChecked || isReviewMode) return;
                   if (selectedAnswer?.trim() === trimmedKey) onAnswerSelect(null);
@@ -739,7 +740,7 @@ const AnswerOptions = React.memo(function AnswerOptions({
                 }}
               >
                 {disabledOptions[key] ? (
-                  <p className=" underline">Undo</p>
+                  <RotateCcw className="h-5 w-5" aria-hidden="true" />
                 ) : (
                   <Strikethrough className="h-6 w-6" />
                 )}

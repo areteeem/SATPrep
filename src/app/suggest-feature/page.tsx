@@ -61,25 +61,6 @@ export default function Page() {
                 Share product ideas, request improvements, or suggest new
                 features to help shape the SAT Prep experience.
               </p>
-              <p className="text-muted-foreground text-sm lg:px-36 mt-4">
-                Alternatively, you can also suggest features by creating an
-                issue on our{" "}
-                <a
-                  href="/ Prep/"
-                  className="text-blue-500 hover:underline"
-                >
-                  open source community repository.
-                </a>{" "}
-                Then, if it is feasible, I would add you to our{" "}
-                <a
-                  href="/contributors"
-                  className="text-blue-500 hover:underline"
-                >
-                  contributors list page
-                </a>{" "}
-                and feature you on the website as a thank you for your
-                contribution!
-              </p>
             </div>
             <iframe
               className="airtable-embed rounded-xl mt-14"
