@@ -12,7 +12,6 @@ import { AssessmentWorkspaceActions } from "@/components/assessment-workspace-ac
 import { fillQuestionBlank } from "@/lib/assessment-blanks";
 import { AssessmentCompletion } from "@/components/assessment-completion";
 import { AnnotatedPassage } from "@/components/annotated-passage";
-import { SendSatResult } from "@/components/send-sat-result";
 import {
   AssessmentActivePage,
   AssessmentAnswerOptions,
@@ -75,7 +74,6 @@ export default function Assignment() {
     [detail, setDetail] = useState<API_Response_Question | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
-    [resultUrl, setResultUrl] = useState(""),
     [confirmFinish, setConfirmFinish] = useState(false);
   useEffect(() => {
     const raw =
@@ -224,33 +222,6 @@ export default function Assignment() {
       setBusy(false);
     }
   }
-  async function share() {
-    if (!state) return;
-    setBusy(true);
-    setError("");
-    try {
-      const result = {
-        mode: "custom",
-        questions: state.questions.map((q) => ({
-          id: q.questionId,
-          externalId: q.external_id || q.ibn || "",
-          domain: q.primary_class_cd,
-          answer: state.answers[q.questionId] || "",
-        })),
-      };
-      const data = await satRequest<{ url: string }>("create_result", {
-        assignmentToken: token,
-        result,
-      });
-      setResultUrl(data.url);
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Could not create result link.",
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
   const setAnswer = (value: string | null) =>
     item &&
     setState((old) =>
@@ -359,35 +330,12 @@ export default function Assignment() {
                   })),
                 }}
               />
-              <button
-                className={`${button} mt-5`}
-                disabled={busy}
-                onClick={() => void share()}
-              >
-                {busy ? "Creating…" : "Send result to teacher’s Telegram"}
-              </button>
               <Link
-                className={`${button} ml-3 mt-5`}
+                className={`${button} mt-5`}
                 href={`/results?local=${state.id}`}
               >
                 Review on this device
               </Link>
-              {resultUrl && (
-                <p className="mt-4 break-all">
-                  {resultUrl}{" "}
-                  <button
-                    className="underline"
-                    onClick={() =>
-                      void navigator.clipboard.writeText(resultUrl)
-                    }
-                  >
-                    Copy link
-                  </button>
-                </p>
-              )}
-              {resultUrl && (
-                <SendSatResult assignmentToken={token} resultUrl={resultUrl} />
-              )}
             </div>
           ) : (
             item && (

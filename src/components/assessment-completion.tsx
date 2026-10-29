@@ -19,11 +19,29 @@ export function AssessmentCompletion({
   useEffect(() => {
     if (started.current || !result.questions.length) return;
     started.current = true;
+    const publicationKey = localId
+      ? `sat-published-result-v1:${localId}`
+      : "";
+    if (publicationKey) {
+      try {
+        const existingUrl = localStorage.getItem(publicationKey);
+        if (existingUrl) {
+          router.replace(resultPath(existingUrl, assignmentToken));
+          return;
+        }
+      } catch {}
+    }
     void satRequest<{ url: string }>("create_result", {
       result,
       ...(assignmentToken ? { assignmentToken } : {}),
     })
-      .then((data) => router.replace(resultPath(data.url, assignmentToken)))
+      .then((data) => {
+        if (publicationKey)
+          try {
+            localStorage.setItem(publicationKey, data.url);
+          } catch {}
+        router.replace(resultPath(data.url, assignmentToken));
+      })
       .catch(() => {
         if (localId)
           router.replace(

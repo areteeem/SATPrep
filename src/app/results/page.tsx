@@ -16,7 +16,8 @@ export default function Results() {
     [loading, setLoading] = useState(false),
     [error, setError] = useState(""),
     [assigned, setAssigned] = useState(false),
-    [savedToTutPro, setSavedToTutPro] = useState(false);
+    [savedToTutPro, setSavedToTutPro] = useState(false),
+    [deliveryNotice, setDeliveryNotice] = useState("");
   useEffect(() => {
     const controller = new AbortController();
     let stopped = false;
@@ -33,11 +34,16 @@ export default function Results() {
       return;
     }
     setToken(raw);
+    const deliveryKey = `sat-result-delivery:${raw}`;
+    const deliveryMessage = sessionStorage.getItem(deliveryKey);
+    if (deliveryMessage) {
+      setDeliveryNotice(deliveryMessage);
+      sessionStorage.removeItem(deliveryKey);
+    }
     setAssignmentToken(
       sessionStorage.getItem(`sat-result-assignment:${raw}`) || "",
     );
     sessionStorage.setItem("sat-current-result", raw);
-    history.replaceState(null, "", location.pathname);
     setLoading(true);
     void (async () => {
       try {
@@ -102,10 +108,17 @@ export default function Results() {
         actions={
           assigned ? (
             assignmentToken ? (
-              <SendSatResult
-                assignmentToken={assignmentToken}
-                resultUrl={`${location.origin}/results#${token}`}
-              />
+              <div>
+                {deliveryNotice && (
+                  <p role="status" className="mb-3 text-sm font-medium text-neutral-700">
+                    {deliveryNotice}
+                  </p>
+                )}
+                <SendSatResult
+                  assignmentToken={assignmentToken}
+                  resultUrl={`${location.origin}/results#${token}`}
+                />
+              </div>
             ) : (
               <p className="text-sm text-neutral-500">
                 This result is connected to its assigning teacher.

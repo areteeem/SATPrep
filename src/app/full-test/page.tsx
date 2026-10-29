@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { MathJax } from "better-react-mathjax";
 import {
   AssessmentWorkspaceActions,
@@ -23,13 +24,13 @@ import {
   assessmentButton as button,
   hasAssessmentContent,
 } from "@/components/assessment-controls";
-import { satRequest } from "@/lib/satSharing";
+import { resultPath, satRequest } from "@/lib/satSharing";
 import {
   isCorrectAnswer,
   readLocalAssessments,
   saveLocalAssessment,
 } from "@/lib/local-assessments";
-import { SendSatResult } from "@/components/send-sat-result";
+import { satResultDeliveryMessage } from "@/components/send-sat-result";
 import { AnnotatedPassage } from "@/components/annotated-passage";
 import type {
   PlainQuestionType as Item,
@@ -141,6 +142,7 @@ function Countdown({
   return children(Math.max(0, Math.ceil((deadline - now) / 1000)));
 }
 export default function FullTest() {
+  const router = useRouter();
   const [session, setSession] = useState<Saved>(empty),
     [hydrated, setHydrated] = useState(false),
     [busy, setBusy] = useState(false),
@@ -353,6 +355,33 @@ export default function FullTest() {
         result,
         ...(assignmentToken ? { assignmentToken } : {}),
       });
+      if (assignmentToken) {
+        const resultToken = new URL(data.url, location.origin).hash.slice(1);
+        let deliveryNotice = "";
+        try {
+          const delivery = await satRequest<{
+            status: string;
+            reason?: string;
+          }>("notify_teacher", {
+            assignmentToken,
+            resultToken,
+          });
+          deliveryNotice = satResultDeliveryMessage(
+            delivery.status,
+            delivery.reason,
+          );
+        } catch (notifyError) {
+          deliveryNotice = notifyError instanceof Error
+            ? `The result was published, but Telegram could not be queued: ${notifyError.message}`
+            : "The result was published, but Telegram could not be queued.";
+        }
+        sessionStorage.setItem(
+          `sat-result-delivery:${resultToken}`,
+          deliveryNotice,
+        );
+        router.replace(resultPath(data.url, assignmentToken));
+        return;
+      }
       setShareUrl(data.url);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not share result.");
@@ -599,13 +628,15 @@ export default function FullTest() {
               })}
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
-              <button
-                className={button}
-                disabled={busy}
-                onClick={() => void shareResult()}
-              >
-                {busy ? "Creating link…" : "Send result to teacher’s Telegram"}
-              </button>
+              {hydrated && !assignmentToken && (
+                <button
+                  className={button}
+                  disabled={busy}
+                  onClick={() => void shareResult()}
+                >
+                  {busy ? "Creating link…" : "Create result link"}
+                </button>
+              )}
               <Link
                 className={button}
                 href={`/review-session?local=${encodeURIComponent(session.id || "")}`}
@@ -634,12 +665,6 @@ export default function FullTest() {
                   Copy link
                 </button>
               </p>
-            )}
-            {shareUrl && assignmentToken && (
-              <SendSatResult
-                assignmentToken={assignmentToken}
-                resultUrl={shareUrl}
-              />
             )}
           </section>
         )}

@@ -90,13 +90,45 @@ function AnnotatedPassageView({
       copy.title = "Copy table to Desmos";
       copy.innerHTML = '<span class="assessment-table-desmos-icon">▦</span><span>Desmos</span>';
       copy.addEventListener("click", async () => {
-        const text = Array.from(table.rows)
-          .map((row) => Array.from(row.cells).map((cell) => cell.innerText.trim().replace(/\s+/g, " ")).join("\t"))
+        const rows = Array.from(table.rows).map((row) =>
+          Array.from(row.cells).map((cell) =>
+            cell.innerText.trim().replace(/\s+/g, " "),
+          ),
+        );
+        const hasHeader = Boolean(
+          table.tHead || table.rows[0]?.querySelector("th"),
+        );
+        const headers = hasHeader ? rows[0] || [] : [];
+        const dataRows = hasHeader ? rows.slice(1) : rows;
+        const columnCount = Math.max(0, ...rows.map((row) => row.length));
+        const columns = Array.from({ length: columnCount }, (_, index) => {
+          const candidate = (headers[index] || "").trim();
+          const latex = /^[a-zA-Z][a-zA-Z0-9_]*$/.test(candidate)
+            ? candidate
+            : index === 0
+              ? "x"
+              : index === 1
+                ? "y"
+                : `x_${index + 1}`;
+          return {
+            latex,
+            values: dataRows.map((row) => row[index] || ""),
+          };
+        });
+        const text = rows
+          .map((row) => row.join("\t"))
           .join("\n");
         try {
-          await navigator.clipboard.writeText(text);
-          window.dispatchEvent(new CustomEvent("sat-open-desmos"));
-          setMessage("Table copied. Paste it into Desmos.");
+          if (!process.env.NEXT_PUBLIC_DESMOS_API_KEY)
+            await navigator.clipboard.writeText(text);
+          window.dispatchEvent(
+            new CustomEvent("sat-open-desmos", { detail: { columns } }),
+          );
+          setMessage(
+            process.env.NEXT_PUBLIC_DESMOS_API_KEY
+              ? "Table added to Desmos."
+              : "Table copied. Paste it into Desmos to use it.",
+          );
         } catch {
           setMessage("Allow clipboard access to copy this table into Desmos.");
         }

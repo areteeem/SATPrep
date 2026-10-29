@@ -15,6 +15,22 @@ import { FloatingToolWindow } from "@/components/floating-tool-window";
 import { assessmentButton } from "@/components/assessment-controls";
 
 type Calculation = { expression: string; result: string };
+type DesmosColumn = { latex: string; values: string[] };
+type DesmosTableRequest = { id: number; columns: DesmosColumn[] };
+type DesmosCalculatorInstance = {
+  setExpression: (expression: {
+    id: string;
+    type: "table";
+    columns: DesmosColumn[];
+  }) => void;
+  destroy: () => void;
+};
+type DesmosApi = {
+  GraphingCalculator: (
+    element: HTMLElement,
+    options: Record<string, unknown>,
+  ) => DesmosCalculatorInstance;
+};
 type CalculatorState = {
   expression: string;
   result: string;
@@ -22,6 +38,7 @@ type CalculatorState = {
 };
 type Tools = {
   openTool: (tool: "calculator" | "desmos") => void;
+  tableRequest: DesmosTableRequest | null;
   calculation: CalculatorState;
   setExpression: (value: string) => void;
   calculate: () => void;
@@ -30,6 +47,82 @@ type Tools = {
 };
 const ToolsContext = createContext<Tools | null>(null);
 const KEY = "sat-calculator-v1";
+const DESMOS_API_KEY = process.env.NEXT_PUBLIC_DESMOS_API_KEY || "";
+let desmosApiPromise: Promise<DesmosApi> | null = null;
+function loadDesmosApi(): Promise<DesmosApi> {
+  if (!DESMOS_API_KEY) return Promise.reject(new Error("Desmos API key is missing."));
+  const desmosWindow = window as Window & { Desmos?: DesmosApi };
+  if (desmosWindow.Desmos) return Promise.resolve(desmosWindow.Desmos);
+  if (desmosApiPromise) return desmosApiPromise;
+  desmosApiPromise = new Promise<DesmosApi>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = `https://www.desmos.com/api/v1.12/calculator.js?apiKey=${encodeURIComponent(DESMOS_API_KEY)}`;
+    script.async = true;
+    script.onload = () => {
+      if (desmosWindow.Desmos) resolve(desmosWindow.Desmos);
+      else reject(new Error("Desmos did not initialize."));
+    };
+    script.onerror = () => reject(new Error("Desmos could not be loaded."));
+    document.head.appendChild(script);
+  }).catch((error) => {
+    desmosApiPromise = null;
+    throw error;
+  });
+  return desmosApiPromise;
+}
+function DesmosCalculator({
+  className,
+  tableRequest,
+  title,
+}: {
+  className: string;
+  tableRequest: DesmosTableRequest | null;
+  title: string;
+}) {
+  const container = useRef<HTMLDivElement>(null);
+  const calculator = useRef<DesmosCalculatorInstance | null>(null);
+  const latestRequest = useRef(tableRequest);
+  const lastApplied = useRef(0);
+  latestRequest.current = tableRequest;
+  useEffect(() => {
+    let cancelled = false;
+    void loadDesmosApi()
+      .then((api) => {
+        if (cancelled || !container.current) return;
+        const instance = api.GraphingCalculator(container.current, {
+          degreeMode: true,
+          restrictedFunctions: true,
+          pasteTableData: true,
+        });
+        calculator.current = instance;
+        const request = latestRequest.current;
+        if (request) {
+          instance.setExpression({
+            id: `sat-table-${request.id}`,
+            type: "table",
+            columns: request.columns,
+          });
+          lastApplied.current = request.id;
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      calculator.current?.destroy();
+      calculator.current = null;
+    };
+  }, []);
+  useEffect(() => {
+    if (!tableRequest || tableRequest.id === lastApplied.current) return;
+    calculator.current?.setExpression({
+      id: `sat-table-${tableRequest.id}`,
+      type: "table",
+      columns: tableRequest.columns,
+    });
+    lastApplied.current = tableRequest.id;
+  }, [tableRequest]);
+  return <div ref={container} className={className} aria-label={title} />;
+}
 const initial: CalculatorState = { expression: "", result: "", history: [] };
 const engineExpression = (value: string) =>
   value
@@ -71,6 +164,8 @@ export function AssessmentToolsProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [error, setError] = useState("");
   const [windows, setWindows] = useState({ calculator: false, desmos: false });
+  const [tableRequest, setTableRequest] = useState<DesmosTableRequest | null>(null);
+  const tableRequestId = useRef(0);
   const [activeTool, setActiveTool] = useState<"calculator" | "desmos">(
     "calculator",
   );
@@ -92,9 +187,18 @@ export function AssessmentToolsProvider({ children }: { children: ReactNode }) {
       } catch {}
   }, [calculation, hydrated]);
   useEffect(() => {
-    const openDesmos = () => {
+    const openDesmos = (event: Event) => {
+      const columns = (event as CustomEvent<{ columns?: DesmosColumn[] }>)
+        .detail?.columns;
+      if (columns?.length) {
+        tableRequestId.current += 1;
+        setTableRequest({ id: tableRequestId.current, columns });
+      }
       setActiveTool("desmos");
-      setWindows((old) => ({ ...old, desmos: true }));
+      const visiblePanel = document.querySelector(
+        '[data-assessment-math-panel="visible"]',
+      );
+      if (!visiblePanel) setWindows((old) => ({ ...old, desmos: true }));
     };
     window.addEventListener("sat-open-desmos", openDesmos);
     return () => window.removeEventListener("sat-open-desmos", openDesmos);
@@ -134,6 +238,7 @@ export function AssessmentToolsProvider({ children }: { children: ReactNode }) {
           setActiveTool(tool);
           setWindows((old) => ({ ...old, [tool]: true }));
         },
+        tableRequest,
         calculation,
         setExpression,
         calculate,
@@ -162,11 +267,19 @@ export function AssessmentToolsProvider({ children }: { children: ReactNode }) {
         onClose={() => setWindows((old) => ({ ...old, desmos: false }))}
         wide
       >
-        <iframe
-          title="Desmos graphing calculator window"
-          src="https://www.desmos.com/testing/cb-sat-ap/graphing"
-          className="h-full min-h-[300px] w-full border-0"
-        />
+        {DESMOS_API_KEY ? (
+          <DesmosCalculator
+            title="Desmos graphing calculator window"
+            className="h-full min-h-[300px] w-full"
+            tableRequest={tableRequest}
+          />
+        ) : (
+          <iframe
+            title="Desmos graphing calculator window"
+            src="https://www.desmos.com/testing/cb-sat-ap/graphing"
+            className="h-full min-h-[300px] w-full border-0"
+          />
+        )}
       </FloatingToolWindow>
     </ToolsContext.Provider>
   );
@@ -323,10 +436,15 @@ export function AssessmentCalculatorTools() {
 }
 export function AssessmentMathPanel({ hidden = false }: { hidden?: boolean }) {
   const [tab, setTab] = useState("desmos");
+  const tools = useContext(ToolsContext);
+  useEffect(() => {
+    if (tools?.tableRequest && !hidden) setTab("desmos");
+  }, [hidden, tools?.tableRequest]);
   return (
     <section
       className="assessment-math-panel rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"
       style={{ display: hidden ? "none" : undefined }}
+      data-assessment-math-panel={hidden ? "hidden" : "visible"}
       aria-label="Math tools"
     >
       <div
@@ -354,11 +472,19 @@ export function AssessmentMathPanel({ hidden = false }: { hidden?: boolean }) {
         </button>
       </div>
       <div style={{ display: tab === "desmos" ? "block" : "none" }}>
-        <iframe
-          title="Desmos side calculator"
-          src="https://www.desmos.com/testing/cb-sat-ap/graphing"
-          className="h-[560px] max-h-[65dvh] w-full border-0"
-        />
+        {DESMOS_API_KEY ? (
+          <DesmosCalculator
+            title="Desmos side calculator"
+            className="h-[560px] max-h-[65dvh] w-full"
+            tableRequest={tools?.tableRequest || null}
+          />
+        ) : (
+          <iframe
+            title="Desmos side calculator"
+            src="https://www.desmos.com/testing/cb-sat-ap/graphing"
+            className="h-[560px] max-h-[65dvh] w-full border-0"
+          />
+        )}
       </div>
       <div style={{ display: tab === "calculator" ? "block" : "none" }}>
         <ScientificCalculator />
