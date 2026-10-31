@@ -5,6 +5,7 @@ import type { MouseEvent } from "react";
 import { createPortal } from "react-dom";
 import { MathJax } from "better-react-mathjax";
 import { Quickdraw } from "@quickdrawjs/react";
+import { pageBounds } from "@quickdrawjs/core";
 import type { Editor, Snapshot } from "@quickdrawjs/core";
 import type { QuickdrawRef } from "@quickdrawjs/react";
 import {
@@ -75,6 +76,7 @@ export default function AssessmentWhiteboard({
   const [showAnswer, setShowAnswer] = useState(false);
   const [bounds, setBounds] = useState({ x: -20, y: -20, w: 1120, h: 760 });
   const [viewport, setViewport] = useState({ x: -20, y: -20, w: 1120, h: 760 });
+  const [hitboxes, setHitboxes] = useState<Array<{ x: number; y: number; w: number; h: number }>>([]);
   const contentRef = useRef<HTMLDivElement>(null);
   const questionIdRef = useRef(initialBoard.questions[index]?.id || initialBoard.id);
   const mountCleanup = useRef<(() => void) | null>(null);
@@ -206,10 +208,14 @@ export default function AssessmentWhiteboard({
       updateViewport(editor);
       saveSnapshot(editor);
     });
+    const updateHitboxes = () => setHitboxes(editor.store.shapes().map(pageBounds));
+    const stopShapes = editor.store.listen(updateHitboxes);
+    updateHitboxes();
     updateViewport(editor);
     mountCleanup.current = () => {
       stopTool();
       stopCamera();
+      stopShapes();
       menuObserver.disconnect();
       editor.container.removeEventListener("pointerdown", selectControl, true);
     };
@@ -554,6 +560,19 @@ export default function AssessmentWhiteboard({
           />
         {canvasHost && createPortal(detailPane, canvasHost)}
         <div className="sat-quickdraw-map" onClick={navigateMap} role="button" tabIndex={0} aria-label="Whiteboard overview map" title="Click the map to move the canvas">
+          {hitboxes.map((hitbox, index) => (
+            <div
+              key={index}
+              className="sat-quickdraw-map-hitbox"
+              aria-hidden="true"
+              style={{
+                left: `${((hitbox.x - bounds.x) / bounds.w) * 100}%`,
+                top: `${((hitbox.y - bounds.y) / bounds.h) * 100}%`,
+                width: `${(hitbox.w / bounds.w) * 100}%`,
+                height: `${(hitbox.h / bounds.h) * 100}%`,
+              }}
+            />
+          ))}
           <div className="sat-quickdraw-map-content" style={{ left: `${Math.max(0, ((viewport.x - bounds.x) / bounds.w) * 100)}%`, top: `${Math.max(0, ((viewport.y - bounds.y) / bounds.h) * 100)}%`, width: `${Math.min(100, Math.max(10, (viewport.w / bounds.w) * 100))}%`, height: `${Math.min(100, Math.max(10, (viewport.h / bounds.h) * 100))}%` }} />
         </div>
       </div>
