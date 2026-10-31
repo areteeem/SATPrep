@@ -4,8 +4,9 @@ import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import PracticeOnboarding from "@/components/practice-onboarding";
 import PracticeRushMultistep from "@/components/practice-rush-multistep";
-import PracticeRushCelebration from "@/components/celebrating-section/practice-rush-celebration";
+import PracticeRushResults from "@/components/practice-rush-results";
 import { ShareRushResult } from "@/components/share-rush-result";
+import type { WorkspaceQuestion } from "@/lib/assessment-workspace";
 // import type { Metadata } from "next";
 
 import {
@@ -212,6 +213,8 @@ function Practice() {
   const [correctAnswers, setCorrectAnswers] = useState<{
     [questionId: string]: Array<string>;
   } | null>(null);
+  const [scoreQuestions, setScoreQuestions] = useState<WorkspaceQuestion[]>([]);
+  const [sharedResultToken, setSharedResultToken] = useState("");
 
   const [showValidationBanner, setShowValidationBanner] =
     useState<boolean>(false);
@@ -1002,9 +1005,11 @@ function Practice() {
   const handleSessionComplete = (
     sessionData: PracticeSession,
     correctAnswers: { [questionId: string]: Array<string> },
+    scoreQuestions: WorkspaceQuestion[] = [],
   ) => {
     setSessionData(sessionData);
     setCorrectAnswers(correctAnswers);
+    setScoreQuestions(scoreQuestions);
     setSessionComplete(true);
   };
 
@@ -1012,9 +1017,30 @@ function Practice() {
     // Reset to onboarding to start a new practice session
     setSessionComplete(false);
     setSessionData(null);
+    setScoreQuestions([]);
+    setSharedResultToken("");
     setOnboardingComplete(false);
     setPracticeSelections(null);
   };
+
+  const scoreReportQuestions = sessionData
+    ? scoreQuestions.length
+      ? scoreQuestions
+      : sessionData.answeredQuestionDetails.map((item) => ({
+          id: item.questionId,
+          externalId: item.externalId || item.ibn || "",
+          domain:
+            item.plainQuestion?.primary_class_cd ||
+            sessionData.practiceSelections.domains[0]?.primaryClassCd ||
+            "",
+          skill: item.plainQuestion?.skill_cd,
+          answer: sessionData.questionAnswers[item.questionId] || "",
+          correctAnswers:
+            correctAnswers?.[item.questionId] ||
+            sessionData.questionCorrectChoices?.[item.questionId] ||
+            [],
+        }))
+    : [];
 
   return (
     <React.Fragment>
@@ -1031,7 +1057,10 @@ function Practice() {
               : "Loading your practice data"
           }
         >
-          <div className="sat-loading-spinner h-8 w-8 rounded-full border-2 border-neutral-900 border-t-transparent" aria-hidden="true" />
+          <div
+            className="sat-loading-spinner h-8 w-8 rounded-full border-2 border-neutral-900 border-t-transparent"
+            aria-hidden="true"
+          />
           <p className="text-sm text-muted-foreground animate-pulse">
             {!sessionChecked
               ? "Checking your session…"
@@ -1066,11 +1095,22 @@ function Practice() {
           )}
 
           {!shouldRestoreSession && sessionComplete && sessionData ? (
-            <><PracticeRushCelebration
-              sessionData={sessionData}
-              onContinue={handleContinuePracticing}
-              correctAnswerChoices={correctAnswers || {}}
-            /><ShareRushResult session={sessionData} /></>
+            <>
+              <PracticeRushResults
+                sessionData={sessionData}
+                onContinue={handleContinuePracticing}
+                questions={scoreReportQuestions}
+                resultToken={sharedResultToken}
+              />
+              <ShareRushResult
+                session={sessionData}
+                onResultReady={(url) =>
+                  setSharedResultToken(
+                    new URL(url, location.origin).hash.slice(1),
+                  )
+                }
+              />
+            </>
           ) : !shouldRestoreSession && !onboardingComplete ? (
             <React.Fragment>
               <PracticeOnboarding onComplete={handleOnboardingComplete} />

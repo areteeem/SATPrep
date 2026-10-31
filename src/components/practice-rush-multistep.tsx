@@ -1,10 +1,18 @@
 "use client";
 
-import { AssessmentWorkspaceActions,AssessmentExplanation } from "@/components/assessment-workspace-actions";
+import {
+  AssessmentWorkspaceActions,
+  AssessmentExplanation,
+} from "@/components/assessment-workspace-actions";
 import { AnnotatedPassage } from "./annotated-passage";
 import { AssessmentMathPanel } from "@/components/assessment-calculator-tools";
 import { fillQuestionBlank } from "@/lib/assessment-blanks";
-import { AssessmentActivePage, AssessmentAnswerInput, AssessmentAnswerOptions, hasAssessmentContent } from "@/components/assessment-controls";
+import {
+  AssessmentActivePage,
+  AssessmentAnswerInput,
+  AssessmentAnswerOptions,
+  hasAssessmentContent,
+} from "@/components/assessment-controls";
 import { saveLocalAssessment } from "@/lib/local-assessments";
 
 import React, {
@@ -44,6 +52,7 @@ import {
 } from "@/lib/userProfile";
 import { toast } from "sonner";
 import { getSubjectByPrimaryClassCd } from "@/static-data/domains";
+import type { WorkspaceQuestion } from "@/lib/assessment-workspace";
 
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { Pill, PillIndicator } from "@/components/ui/pill";
@@ -147,7 +156,10 @@ function DuolingoLoadingSpinner({
 
   return (
     <div className="flex items-center justify-center gap-3">
-      <div className="sat-loading-spinner h-5 w-5 rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />
+      <div
+        className="sat-loading-spinner h-5 w-5 rounded-full border-2 border-white border-t-transparent"
+        aria-hidden="true"
+      />
       <span className="text-white font-bold text-lg">
         {showProgress
           ? `Loading batch... (${progress}/${total})`
@@ -242,7 +254,16 @@ function DuolingoTimer({
         className="assessment-timer-button"
       >
         <Clock className="h-4 w-4" />
-        {isVisible ? <><span className="font-mono">{formatTime(displayTime)}</span>{fixedTime !== undefined && <span className="text-xs text-neutral-500">(completed)</span>}</> : <span className="sr-only">Timer hidden</span>}
+        {isVisible ? (
+          <>
+            <span className="font-mono">{formatTime(displayTime)}</span>
+            {fixedTime !== undefined && (
+              <span className="text-xs text-neutral-500">(completed)</span>
+            )}
+          </>
+        ) : (
+          <span className="sr-only">Timer hidden</span>
+        )}
       </button>
     </div>
   );
@@ -281,29 +302,34 @@ function ExitConfirmation({
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[200] bg-black/20 dark:bg-black/40">
-      <div className="bg-red-50 dark:bg-red-950 border-4 border-red-200 dark:border-red-800 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
+    <div className="assessment-modal-overlay">
+      <div
+        className="assessment-modal assessment-modal--compact"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="exit-practice-title"
+      >
         <div className="text-center">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <X className="h-8 w-8 text-red-600 dark:text-red-400" />
-            <h2 className="text-3xl font-bold text-red-800 dark:text-red-200">
+            <X className="h-8 w-8 text-neutral-600 dark:text-neutral-300" />
+            <h2 id="exit-practice-title" className="assessment-modal-title">
               Exit Practice?
             </h2>
           </div>
-          <p className="text-lg text-red-700 dark:text-red-300 mb-8">
+          <p className="assessment-modal-copy mb-8">
             Your progress will be saved, but you&apos;ll lose your current
             streak. Are you sure you want to exit?
           </p>
-          <div className="flex gap-4">
+          <div className="assessment-modal-actions flex gap-4">
             <button
               onClick={handleCancel}
-              className="cursor-pointer flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold text-lg py-4 px-6 rounded-2xl border-b-4 border-blue-600 hover:border-blue-700 shadow-lg hover:shadow-xl transform transition-all duration-200 active:translate-y-0.5 active:border-b-2"
+              className="assessment-modal-button assessment-modal-button--secondary flex-1"
             >
               STAY
             </button>
             <button
               onClick={handleConfirm}
-              className="cursor-pointer flex-1 bg-red-600 hover:bg-red-700 text-white font-bold text-lg py-4 px-6 rounded-2xl border-b-4 border-red-800 hover:border-red-900 shadow-lg hover:shadow-xl transform transition-all duration-200 active:translate-y-0.5 active:border-b-2"
+              className="assessment-modal-button assessment-modal-button--primary flex-1"
             >
               EXIT
             </button>
@@ -349,31 +375,36 @@ function FinishConfirmation({
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[200] bg-black/20 dark:bg-black/40">
-      <div className="bg-green-50 dark:bg-green-950 border-4 border-green-200 dark:border-green-800 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
+    <div className="assessment-modal-overlay">
+      <div
+        className="assessment-modal assessment-modal--confirm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="finish-practice-title"
+      >
         <div className="text-center">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
-            <h2 className="text-3xl font-bold text-green-800 dark:text-green-200">
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <CheckCircle className="h-10 w-10 text-neutral-600 dark:text-neutral-300" />
+            <h2 id="finish-practice-title" className="assessment-modal-title">
               Finish Practice?
             </h2>
           </div>
-          <p className="text-lg text-green-700 dark:text-green-300 mb-4">
+          <p className="assessment-modal-copy mb-4">
             You&apos;ve answered {questionsAnswered} questions so far.
           </p>
-          <p className="text-lg text-green-700 dark:text-green-300 mb-8">
+          <p className="assessment-modal-copy mb-8">
             Are you ready to finish this practice session and see your results?
           </p>
-          <div className="flex gap-4">
+          <div className="assessment-modal-actions flex gap-4">
             <button
               onClick={handleCancel}
-              className="cursor-pointer flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold text-lg py-4 px-6 rounded-2xl border-b-4 border-blue-600 hover:border-blue-700 shadow-lg hover:shadow-xl transform transition-all duration-200 active:translate-y-0.5 active:border-b-2"
+              className="assessment-modal-button assessment-modal-button--primary flex-1"
             >
               CONTINUE
             </button>
             <button
               onClick={handleConfirm}
-              className="cursor-pointer flex-1 bg-green-600 hover:bg-green-700 text-white font-bold text-lg py-4 px-6 rounded-2xl border-b-4 border-green-800 hover:border-green-900 shadow-lg hover:shadow-xl transform transition-all duration-200 active:translate-y-0.5 active:border-b-2"
+              className="assessment-modal-button assessment-modal-button--primary flex-1"
             >
               FINISH
             </button>
@@ -459,16 +490,21 @@ function ShareModal({
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[200] bg-black/20 dark:bg-black/40">
-      <div className="bg-blue-50 dark:bg-blue-950 border-4 border-blue-200 dark:border-blue-800 rounded-3xl p-8 max-w-lg w-full mx-4 shadow-2xl">
+    <div className="assessment-modal-overlay">
+      <div
+        className="assessment-modal assessment-modal--wide"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="share-practice-title"
+      >
         <div className="text-center">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <SendIcon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-            <h2 className="text-3xl font-bold text-blue-800 dark:text-blue-200">
+            <SendIcon className="h-8 w-8 text-neutral-600 dark:text-neutral-300" />
+            <h2 id="share-practice-title" className="assessment-modal-title">
               Share Practice Session
             </h2>
           </div>
-          <p className="text-lg text-blue-700 dark:text-blue-300 mb-6">
+          <p className="assessment-modal-copy mb-6">
             Share this practice session with others! They&apos;ll get the same
             questions and settings.
           </p>
@@ -480,16 +516,12 @@ function ShareModal({
                 type="text"
                 value={shareUrl}
                 readOnly
-                className="flex-1 px-4 py-3 text-sm bg-white dark:bg-neutral-800 border-2 border-blue-300 dark:border-blue-700 rounded-2xl font-mono text-blue-800 dark:text-blue-200 focus:outline-none focus:border-blue-500 transition-all duration-200"
+                className="min-w-0 flex-1 rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-mono text-neutral-700 outline-none transition focus-visible:ring-2 focus-visible:ring-neutral-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
                 placeholder="Generating share link..."
               />
               <Button
                 onClick={handleCopy}
-                className={`px-6 py-3 font-bold text-sm rounded-2xl border-2 border-b-4 shadow-lg transform transition-all duration-200 active:translate-y-0.5 active:border-b-2 ${
-                  isCopied
-                    ? "bg-green-500 hover:bg-green-600 text-white border-green-700 hover:border-green-800"
-                    : "bg-blue-500 hover:bg-blue-600 text-white border-blue-700 hover:border-blue-800"
-                }`}
+                className="assessment-modal-button assessment-modal-button--primary min-h-12 px-5 py-2 text-sm"
               >
                 {isCopied ? "Copied!" : "Copy"}
               </Button>
@@ -498,19 +530,17 @@ function ShareModal({
 
           {/* Success message */}
           {isCopied && (
-            <div className="mb-6 p-3 bg-green-100 dark:bg-green-900 border-2 border-green-300 dark:border-green-700 rounded-2xl">
-              <p className="text-green-800 dark:text-green-200 font-semibold">
-                ✓ Link copied to clipboard!
-              </p>
+            <div className="assessment-modal-inset mb-6 p-3 text-left">
+              <p className="font-semibold">✓ Link copied to clipboard!</p>
             </div>
           )}
 
           {/* Practice details */}
-          <div className="mb-6 p-4 bg-white dark:bg-neutral-800 border-2 border-blue-200 dark:border-blue-700 rounded-2xl text-left">
-            <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-2">
+          <div className="assessment-modal-inset mb-6 text-left">
+            <h3 className="mb-2 font-bold text-neutral-900 dark:text-neutral-100">
               Session Details:
             </h3>
-            <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+            <div className="space-y-1 text-sm">
               <p>
                 <span className="font-semibold">Assessment:</span>{" "}
                 {practiceSelections.assessment}
@@ -536,7 +566,7 @@ function ShareModal({
 
           <Button
             onClick={handleClose}
-            className="cursor-pointer w-full bg-blue-500 hover:bg-blue-600 text-white font-bold text-lg py-4 px-6 rounded-2xl border-b-4 border-blue-600 hover:border-blue-700 shadow-lg hover:shadow-xl transform transition-all duration-200 active:translate-y-0.5 active:border-b-2"
+            className="assessment-modal-button assessment-modal-button--secondary w-full"
           >
             Close
           </Button>
@@ -558,8 +588,24 @@ interface DuolingoInputProps {
 }
 
 // Optimized Duolingo-styled Input Component
-const DuolingoInput = React.memo(function DuolingoInput({value,onChange,disabled=false,onSubmit,checked=false,correct=false}:DuolingoInputProps) {
-  return <AssessmentAnswerInput value={value||""} onChange={onChange} disabled={disabled} onSubmit={onSubmit} checked={checked} correct={correct}/>;
+const DuolingoInput = React.memo(function DuolingoInput({
+  value,
+  onChange,
+  disabled = false,
+  onSubmit,
+  checked = false,
+  correct = false,
+}: DuolingoInputProps) {
+  return (
+    <AssessmentAnswerInput
+      value={value || ""}
+      onChange={onChange}
+      disabled={disabled}
+      onSubmit={onSubmit}
+      checked={checked}
+      correct={correct}
+    />
+  );
 });
 
 // Answer Options Component
@@ -578,8 +624,29 @@ interface AnswerOptionsProps {
 }
 
 // Optimized Answer Options Component
-const AnswerOptions = React.memo(function AnswerOptions({answerOptions,selectedAnswer,disabledOptions,onAnswerSelect,onToggleDisabled,showStrikethrough,correctAnswers=[],isAnswerChecked=false,isReviewMode=false}:AnswerOptionsProps) {
-  return <AssessmentAnswerOptions options={answerOptions} selected={selectedAnswer} eliminated={disabledOptions} onSelect={onAnswerSelect} onEliminate={showStrikethrough?onToggleDisabled:undefined} correctAnswers={correctAnswers} checked={isAnswerChecked} disabled={isAnswerChecked||isReviewMode}/>;
+const AnswerOptions = React.memo(function AnswerOptions({
+  answerOptions,
+  selectedAnswer,
+  disabledOptions,
+  onAnswerSelect,
+  onToggleDisabled,
+  showStrikethrough,
+  correctAnswers = [],
+  isAnswerChecked = false,
+  isReviewMode = false,
+}: AnswerOptionsProps) {
+  return (
+    <AssessmentAnswerOptions
+      options={answerOptions}
+      selected={selectedAnswer}
+      eliminated={disabledOptions}
+      onSelect={onAnswerSelect}
+      onEliminate={showStrikethrough ? onToggleDisabled : undefined}
+      correctAnswers={correctAnswers}
+      checked={isAnswerChecked}
+      disabled={isAnswerChecked || isReviewMode}
+    />
+  );
 });
 
 // State management with useReducer for better performance
@@ -972,6 +1039,7 @@ interface PracticeRushMultistepProps {
   onSessionComplete?: (
     sessionData: PracticeSession,
     correctAnswers: { [questionId: string]: Array<string> },
+    scoreQuestions?: WorkspaceQuestion[],
   ) => void;
   restoredSessionData?: PracticeSession; // New prop for passing down localStorage data
   isReviewMode?: boolean; // New prop for review-only mode
@@ -1206,7 +1274,18 @@ export default function PracticeRushMultistep({
     [state.questions, state.currentQuestionStep],
   );
 
-  const workspaceQuestions=(state.questions||[]).map(q=>({id:q.plainQuestion.questionId,externalId:q.plainQuestion.external_id||q.plainQuestion.ibn||"",domain:q.plainQuestion.primary_class_cd,answer:state.questionAnswers[q.plainQuestion.questionId]||(q.plainQuestion.questionId===currentQuestion?.plainQuestion.questionId?state.selectedAnswer:"")||"",detail:q as unknown as API_Response_Question}));
+  const workspaceQuestions = (state.questions || []).map((q) => ({
+    id: q.plainQuestion.questionId,
+    externalId: q.plainQuestion.external_id || q.plainQuestion.ibn || "",
+    domain: q.plainQuestion.primary_class_cd,
+    answer:
+      state.questionAnswers[q.plainQuestion.questionId] ||
+      (q.plainQuestion.questionId === currentQuestion?.plainQuestion.questionId
+        ? state.selectedAnswer
+        : "") ||
+      "",
+    detail: q as unknown as API_Response_Question,
+  }));
   const hasStimulus = hasAssessmentContent(currentQuestion?.stimulus);
   const mathQuestion = practiceSelections.subject === "math";
   const [split, setSplit] = React.useState(50);
@@ -1216,7 +1295,12 @@ export default function PracticeRushMultistep({
     event.preventDefault();
     const move = (pointer: PointerEvent) => {
       const rect = grid.getBoundingClientRect();
-      setSplit(Math.min(75, Math.max(25, ((pointer.clientX - rect.left) / rect.width) * 100)));
+      setSplit(
+        Math.min(
+          75,
+          Math.max(25, ((pointer.clientX - rect.left) / rect.width) * 100),
+        ),
+      );
     };
     const stop = () => {
       window.removeEventListener("pointermove", move);
@@ -1227,11 +1311,48 @@ export default function PracticeRushMultistep({
     window.addEventListener("pointerup", stop, { once: true });
     window.addEventListener("pointercancel", stop, { once: true });
   };
-  const persistDeviceSession = useCallback((status: string) => {
-    if (!state.questions?.length || !state.sessionId) return;
-    try { saveLocalAssessment({id:state.sessionId,kind:"rush",title:`${practiceSelections.assessment} ${mathQuestion?"Math":"Reading & Writing"} Rush`,startedAt:new Date(state.sessionStartTime).toISOString(),updatedAt:new Date().toISOString(),status,selections:practiceSelections,questions:state.questions.map((question)=>({id:question.plainQuestion.questionId,externalId:question.plainQuestion.external_id||question.plainQuestion.ibn||"",domain:question.plainQuestion.primary_class_cd,skill:question.plainQuestion.skill_cd,answer:state.questionAnswers[question.plainQuestion.questionId]||"",correctAnswers:question.correct_answer,detail:question as unknown as API_Response_Question}))}); } catch { toast.error("This device could not save the practice session."); }
-  },[state.questions,state.questionAnswers,state.sessionId,state.sessionStartTime,practiceSelections,mathQuestion]);
-  useEffect(()=>{persistDeviceSession("in_progress");},[persistDeviceSession]);
+  const persistDeviceSession = useCallback(
+    (status: string) => {
+      if (!state.questions?.length || !state.sessionId) return;
+      try {
+        saveLocalAssessment({
+          id: state.sessionId,
+          kind: "rush",
+          title: `${practiceSelections.assessment} ${mathQuestion ? "Math" : "Reading & Writing"} Rush`,
+          startedAt: new Date(state.sessionStartTime).toISOString(),
+          updatedAt: new Date().toISOString(),
+          status,
+          selections: practiceSelections,
+          questions: state.questions.map((question) => ({
+            id: question.plainQuestion.questionId,
+            externalId:
+              question.plainQuestion.external_id ||
+              question.plainQuestion.ibn ||
+              "",
+            domain: question.plainQuestion.primary_class_cd,
+            skill: question.plainQuestion.skill_cd,
+            answer:
+              state.questionAnswers[question.plainQuestion.questionId] || "",
+            correctAnswers: question.correct_answer,
+            detail: question as unknown as API_Response_Question,
+          })),
+        });
+      } catch {
+        toast.error("This device could not save the practice session.");
+      }
+    },
+    [
+      state.questions,
+      state.questionAnswers,
+      state.sessionId,
+      state.sessionStartTime,
+      practiceSelections,
+      mathQuestion,
+    ],
+  );
+  useEffect(() => {
+    persistDeviceSession("in_progress");
+  }, [persistDeviceSession]);
 
   // A passage can stay in view only when it fits within the visible viewport.
   useEffect(() => {
@@ -1239,7 +1360,10 @@ export default function PracticeRushMultistep({
     if (!passage || practiceSelections?.subject !== "reading-writing") return;
     const update = () => {
       const height = window.visualViewport?.height ?? window.innerHeight;
-      passage.classList.toggle("sat-passage-fits", passage.offsetHeight <= height - 48);
+      passage.classList.toggle(
+        "sat-passage-fits",
+        passage.offsetHeight <= height - 48,
+      );
     };
     const observer = new ResizeObserver(update);
     observer.observe(passage);
@@ -1719,7 +1843,19 @@ export default function PracticeRushMultistep({
           correctAnswers[q.plainQuestion.questionId] = q.correct_answer;
         });
 
-        onSessionComplete(completedSession, correctAnswers);
+        const scoreQuestions: WorkspaceQuestion[] = (state.questions || []).map(
+          (q) => ({
+            id: q.plainQuestion.questionId,
+            externalId:
+              q.plainQuestion.external_id || q.plainQuestion.ibn || "",
+            domain: q.plainQuestion.primary_class_cd || "",
+            skill: q.plainQuestion.skill_cd,
+            answer: state.questionAnswers[q.plainQuestion.questionId] || "",
+            correctAnswers: q.correct_answer,
+            detail: q,
+          }),
+        );
+        onSessionComplete(completedSession, correctAnswers, scoreQuestions);
       }
     } catch (error) {
       console.error("Failed to save completed session:", error);
@@ -2890,9 +3026,7 @@ export default function PracticeRushMultistep({
                 skillCd: currentQuestion.plainQuestion.skill_cd,
                 questionId: currentQuestion.plainQuestion.questionId,
                 difficulty: currentQuestion.plainQuestion.difficulty as
-                  | "E"
-                  | "M"
-                  | "H",
+                  "E" | "M" | "H",
                 external_id:
                   currentQuestion.plainQuestion.external_id || undefined,
                 ibn: currentQuestion.plainQuestion.ibn || undefined,
@@ -3261,7 +3395,7 @@ export default function PracticeRushMultistep({
   // console.log(currentQuestion?.plainQuestion);
   return (
     <React.Fragment>
-      <AssessmentActivePage active/>
+      <AssessmentActivePage active />
       <div className="assessment-player" data-assessment-content>
         {!currentQuestion ? (
           <div className="h-screen flex flex-col items-center justify-center gap-8">
@@ -3480,37 +3614,42 @@ export default function PracticeRushMultistep({
                   )}
                 </div>
               )}
-              <div className="w-full flex justify-start">
-                {" "}
-                <DuolingoTimer
-                  startTime={state.questionStartTime}
-                  isActive={state.isTimerActive}
-                  isPinned={state.isTimerPinned}
-                  onTogglePinned={() => {
-                    dispatch({ type: "TOGGLE_TIMER_PIN" });
-                    playSound("button-pressed.wav");
-                  }}
-                  fixedTime={
-                    state.questionAnswers[
-                      currentQuestion.plainQuestion.questionId
-                    ]
-                      ? state.questionTimes[
-                          currentQuestion.plainQuestion.questionId
-                        ]
-                      : undefined
-                  }
-                  savedElapsedTime={state.currentQuestionElapsedTime}
-                />
-              </div>
+              <DuolingoTimer
+                startTime={state.questionStartTime}
+                isActive={state.isTimerActive}
+                isPinned={state.isTimerPinned}
+                onTogglePinned={() => {
+                  dispatch({ type: "TOGGLE_TIMER_PIN" });
+                  playSound("button-pressed.wav");
+                }}
+                fixedTime={
+                  state.questionAnswers[
+                    currentQuestion.plainQuestion.questionId
+                  ]
+                    ? state.questionTimes[
+                        currentQuestion.plainQuestion.questionId
+                      ]
+                    : undefined
+                }
+                savedElapsedTime={state.currentQuestionElapsedTime}
+              />
 
               <div className="grid grid-cols-12 justify-between mb-10">
                 <div className="col-span-12 xl:col-span-5">
                   <div className="flex flex-col lg:flex-col gap-4 items-start">
-                    <span className="inline-flex items-center gap-2 rounded-lg border px-3 py-1 text-sm"><TrendingUp size={16}/>{currentQuestion.plainQuestion.difficulty === "E" ? "Easy" : currentQuestion.plainQuestion.difficulty === "M" ? "Medium" : "Hard"}</span>
+                    <span className="inline-flex items-center gap-2 rounded-lg border px-3 py-1 text-sm">
+                      <TrendingUp size={16} />
+                      {currentQuestion.plainQuestion.difficulty === "E"
+                        ? "Easy"
+                        : currentQuestion.plainQuestion.difficulty === "M"
+                          ? "Medium"
+                          : "Hard"}
+                    </span>
                     <div className="h-full flex gap-2 justify-center items-center">
                       <div>
                         <h5 className="font-semibold text-lg">
-                          Question {state.currentQuestionStep + 1} · {currentQuestion.plainQuestion.questionId}
+                          Question {state.currentQuestionStep + 1} ·{" "}
+                          {currentQuestion.plainQuestion.questionId}
                         </h5>
                         <h6 className="text-base">
                           {currentQuestion.plainQuestion.primary_class_cd_desc}{" "}
@@ -3545,7 +3684,62 @@ export default function PracticeRushMultistep({
                   </div>
                 </div>
                 <div className="assessment-rush-toolbar col-span-12 xl:col-span-7 flex flex-wrap gap-2 items-end justify-center md:justify-start mt-6 xl:mt-0 lg:justify-end xl:justify-end">
-                  <AssessmentWorkspaceActions sessionId={state.sessionId} question={workspaceQuestions.find(q=>q.id===currentQuestion.plainQuestion.questionId)} questions={workspaceQuestions} title="Practice Rush" showSolutions={effectiveReviewMode||state.isAnswerChecked}/>
+                  <AssessmentWorkspaceActions
+                    sessionId={state.sessionId}
+                    question={workspaceQuestions.find(
+                      (q) => q.id === currentQuestion.plainQuestion.questionId,
+                    )}
+                    questions={workspaceQuestions}
+                    title="Practice Rush"
+                    showSolutions={effectiveReviewMode || state.isAnswerChecked}
+                    compactMenu
+                    hideNotes
+                    extraMenuActions={[
+                      {
+                        label: "Share practice session",
+                        icon: <SendIcon size={16} />,
+                        onSelect: () => {
+                          dispatch({ type: "TOGGLE_SHARE_MODAL" });
+                          playSound("button-pressed.wav");
+                        },
+                      },
+                      {
+                        label: "Copy question link",
+                        icon: <LinkIcon size={16} />,
+                        onSelect: () => {
+                          const questionId =
+                            currentQuestion.plainQuestion.questionId;
+                          const questionUrl = `${window.location.origin}/question/${questionId}`;
+                          void navigator.clipboard
+                            .writeText(questionUrl)
+                            .then(() => {
+                              toast.success("Link Copied!", {
+                                position: "top-center",
+                                description:
+                                  "Question link has been copied to your clipboard.",
+                                duration: 3000,
+                              });
+                              playSound("button-pressed.wav");
+                            })
+                            .catch(() => {
+                              toast.error("Failed to Copy", {
+                                description:
+                                  "Unable to copy link to clipboard. Please try again.",
+                                duration: 3000,
+                              });
+                            });
+                        },
+                      },
+                      {
+                        label: "Question notes",
+                        icon: <NotebookPen size={16} />,
+                        onSelect: () => {
+                          dispatch({ type: "TOGGLE_NOTES_POPUP" });
+                          playSound("button-pressed.wav");
+                        },
+                      },
+                    ]}
+                  />
                   <TooltipProvider delayDuration={100}>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -3682,66 +3876,6 @@ export default function PracticeRushMultistep({
                           </TooltipContent>
                         </Tooltip>
                       )}
-
-
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="default"
-                          className="assessment-icon-button justify-center items-center cursor-pointer bg-neutral-700 hover:bg-neutral-800 text-white font-bold rounded-xl border border-neutral-700"
-                          onClick={() => {
-                            dispatch({ type: "TOGGLE_SHARE_MODAL" });
-                            playSound("button-pressed.wav");
-                          }}
-                        >
-                          <SendIcon className="group-hover:rotate-12 duration-300 mr-1" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Share this practice session</p>
-                      </TooltipContent>
-                    </Tooltip>
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="default"
-                          className="assessment-icon-button justify-center items-center cursor-pointer bg-neutral-700 hover:bg-neutral-800 text-white font-bold rounded-xl border border-neutral-700"
-                          onClick={() => {
-                            const questionId =
-                              currentQuestion?.plainQuestion.questionId;
-                            if (questionId) {
-                              const questionUrl = `${window.location.origin}/question/${questionId}`;
-                              navigator.clipboard
-                                .writeText(questionUrl)
-                                .then(() => {
-                                  toast.success("Link Copied!", {
-                                    position: "top-center",
-                                    description:
-                                      "Question link has been copied to your clipboard.",
-                                    duration: 3000,
-                                  });
-                                  playSound("button-pressed.wav");
-                                })
-                                .catch(() => {
-                                  toast.error("Failed to Copy", {
-                                    description:
-                                      "Unable to copy link to clipboard. Please try again.",
-                                    duration: 3000,
-                                  });
-                                });
-                            }
-                          }}
-                        >
-                          <LinkIcon className="group-hover:rotate-12 duration-300 mr-1" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Copy link to this question</p>
-                      </TooltipContent>
-                    </Tooltip>
-
                     {currentQuestionForSave && (
                       <SaveButton
                         question={currentQuestionForSave}
@@ -3752,64 +3886,6 @@ export default function PracticeRushMultistep({
                         compact
                       />
                     )}
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="default"
-                          className="assessment-icon-button justify-center items-center cursor-pointer bg-neutral-700 hover:bg-neutral-800 text-white font-bold rounded-xl border border-neutral-700"
-                          onClick={() => {
-                            dispatch({ type: "TOGGLE_NOTES_POPUP" });
-                            playSound("button-pressed.wav");
-                          }}
-                        >
-                          {(() => {
-                            try {
-                              const assessmentNotes =
-                                questionNotes[practiceSelections.assessment] ||
-                                [];
-                              const hasNote = assessmentNotes.some(
-                                (note: QuestionNote) =>
-                                  note.questionId ===
-                                  currentQuestion?.plainQuestion.questionId,
-                              );
-
-                              return (
-                                <NotebookPen
-                                  className={`group-hover:rotate-12 duration-300 mr-2`}
-                                />
-                              );
-                            } catch {
-                              return (
-                                <NotebookPen className="group-hover:rotate-12 duration-300 mr-2" />
-                              );
-                            }
-                          })()}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>
-                          {(() => {
-                            try {
-                              const assessmentNotes =
-                                questionNotes[practiceSelections.assessment] ||
-                                [];
-                              const hasNote = assessmentNotes.some(
-                                (note: QuestionNote) =>
-                                  note.questionId ===
-                                  currentQuestion?.plainQuestion.questionId,
-                              );
-
-                              return hasNote
-                                ? "Edit personal note for this question"
-                                : "Add personal note to this question";
-                            } catch {
-                              return "Add personal note to this question";
-                            }
-                          })()}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
                   </TooltipProvider>
 
                   {/* <Button
@@ -3822,201 +3898,276 @@ export default function PracticeRushMultistep({
                 </div>
               </div>
 
-              <div className={`assessment-question-grid ${!hasStimulus&&!mathQuestion ? "assessment-question-centered" : ""}`} style={hasStimulus||mathQuestion ? {gridTemplateColumns:`minmax(0, ${split}fr) 10px minmax(0, ${100-split}fr)`} : undefined}>
-                <AssessmentMathPanel hidden={!mathQuestion||hasStimulus}/>
-                <div className="sat-passage-column flex flex-col gap-6 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700" style={{display:hasStimulus?undefined:"none"}}>
+              <div
+                className={`assessment-question-grid ${!hasStimulus && !mathQuestion ? "assessment-question-centered" : ""}`}
+                style={
+                  hasStimulus || mathQuestion
+                    ? {
+                        gridTemplateColumns: `minmax(0, ${split}fr) 4px minmax(0, ${100 - split}fr)`,
+                      }
+                    : undefined
+                }
+              >
+                <AssessmentMathPanel hidden={!mathQuestion || hasStimulus} />
+                <div
+                  className="sat-passage-column flex flex-col gap-6 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700"
+                  style={{ display: hasStimulus ? undefined : "none" }}
+                >
                   {currentQuestion.stimulus && (
-                      <AnnotatedPassage
-                        questionId={currentQuestion.plainQuestion.questionId}
-                        html={practiceSelections.subject === "reading-writing" ? fillQuestionBlank(currentQuestion.stimulus, currentQuestion.answerOptions, state.selectedAnswer || state.questionAnswers[currentQuestion.plainQuestion.questionId]) : currentQuestion.stimulus}
-                        blankOptions={practiceSelections.subject === "reading-writing" ? currentQuestion.answerOptions : undefined}
-                        selectedBlankAnswer={state.selectedAnswer || state.questionAnswers[currentQuestion.plainQuestion.questionId]}
-                        className="text-xl sat-passage"
-                      />
+                    <AnnotatedPassage
+                      questionId={currentQuestion.plainQuestion.questionId}
+                      html={
+                        practiceSelections.subject === "reading-writing"
+                          ? fillQuestionBlank(
+                              currentQuestion.stimulus,
+                              currentQuestion.answerOptions,
+                              state.selectedAnswer ||
+                                state.questionAnswers[
+                                  currentQuestion.plainQuestion.questionId
+                                ],
+                            )
+                          : currentQuestion.stimulus
+                      }
+                      blankOptions={
+                        practiceSelections.subject === "reading-writing"
+                          ? currentQuestion.answerOptions
+                          : undefined
+                      }
+                      selectedBlankAnswer={
+                        state.selectedAnswer ||
+                        state.questionAnswers[
+                          currentQuestion.plainQuestion.questionId
+                        ]
+                      }
+                      className="text-xl sat-passage"
+                    />
                   )}
                 </div>
 
-                {(hasStimulus || mathQuestion) && <div className="assessment-split-divider" role="separator" aria-orientation="vertical" aria-label="Resize question and reference panels" onPointerDown={resizeSplit} />}
+                {(hasStimulus || mathQuestion) && (
+                  <div
+                    className="assessment-split-divider"
+                    role="separator"
+                    aria-orientation="vertical"
+                    aria-label="Resize question and reference panels"
+                    onPointerDown={resizeSplit}
+                  />
+                )}
 
                 <div className="assessment-question">
-                    <React.Fragment>
-                      <AnnotatedPassage questionId={`${currentQuestion.plainQuestion.questionId}:stem`} html={practiceSelections.subject === "reading-writing" ? fillQuestionBlank(currentQuestion.stem, currentQuestion.answerOptions, state.selectedAnswer || state.questionAnswers[currentQuestion.plainQuestion.questionId]) : currentQuestion.stem} blankOptions={practiceSelections.subject === "reading-writing" ? currentQuestion.answerOptions : undefined} selectedBlankAnswer={state.selectedAnswer || state.questionAnswers[currentQuestion.plainQuestion.questionId]} className="mb-6" />
-
-                      {currentQuestion.answerOptions ? (
-                        <AnswerOptions
-                          answerOptions={currentQuestion.answerOptions}
-                          questionId={currentQuestion.plainQuestion.questionId}
-                          selectedAnswer={state.selectedAnswer}
-                          disabledOptions={state.disabledOptions}
-                          onAnswerSelect={(key) =>
-                            dispatch({
-                              type: "SET_SELECTED_ANSWER",
-                              payload: key,
-                            })
-                          }
-                          onToggleDisabled={(key) => {
-                            dispatch({
-                              type: "SET_DISABLED_OPTION",
-                              payload: {
-                                key,
-                                value: !state.disabledOptions[key],
-                              },
-                            });
-                          }}
-                          showStrikethrough={true}
-                          correctAnswers={currentQuestion.correct_answer.map(
-                            (answer) => answer.trim(),
-                          )}
-                          isAnswerChecked={state.isAnswerChecked}
-                          isReviewMode={
-                            isReviewMode ||
-                            Boolean(
-                              state.questionAnswers[
-                                currentQuestion.plainQuestion.questionId
-                              ],
+                  <React.Fragment>
+                    <AnnotatedPassage
+                      questionId={`${currentQuestion.plainQuestion.questionId}:stem`}
+                      html={
+                        practiceSelections.subject === "reading-writing"
+                          ? fillQuestionBlank(
+                              currentQuestion.stem,
+                              currentQuestion.answerOptions,
+                              state.selectedAnswer ||
+                                state.questionAnswers[
+                                  currentQuestion.plainQuestion.questionId
+                                ],
                             )
-                          }
-                        />
-                      ) : (
-                        <DuolingoInput
-                          value={state.selectedAnswer || ""}
-                          onChange={(value) =>
-                            dispatch({
-                              type: "SET_SELECTED_ANSWER",
-                              payload: value,
-                            })
-                          }
-                          onSubmit={handleAnsweringQuestion(
-                            currentQuestion.plainQuestion.questionId,
-                          )}
-                          disabled={state.isAnswerChecked || isReviewMode}
-                          checked={state.isAnswerChecked}
-                          correct={state.isAnswerCorrect}
-                        />
-                      )}
-                      <div className="py-1 relative overflow-visible">
-                        {(isAtEndOfBatch &&
-                          state.isAnswerChecked &&
-                          state.questionAnswers[
-                            currentQuestion.plainQuestion.questionId
-                          ] ? (
-                            <div className="flex gap-3 mt-5">
-                              {canLoadMore && (
-                                <Button
-                                  variant="default"
-                                  className={`flex-1 font-bold text-lg py-6 border-b-4 rounded-2xl text-white shadow-lg transform transition-all duration-200 ${
-                                    state.isLoadingNextBatch
-                                      ? "bg-blue-400 border-blue-500 cursor-not-allowed"
-                                      : "bg-blue-500 hover:bg-blue-600 border-blue-700 hover:border-blue-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
-                                  }`}
-                                  onClick={() => {
-                                    console.log("LOAD NEXT BATCH");
+                          : currentQuestion.stem
+                      }
+                      blankOptions={
+                        practiceSelections.subject === "reading-writing"
+                          ? currentQuestion.answerOptions
+                          : undefined
+                      }
+                      selectedBlankAnswer={
+                        state.selectedAnswer ||
+                        state.questionAnswers[
+                          currentQuestion.plainQuestion.questionId
+                        ]
+                      }
+                      className="mb-6"
+                    />
 
-                                    if (!state.isLoadingNextBatch) {
-                                      loadNextBatch();
-                                    }
-                                  }}
-                                  disabled={state.isLoadingNextBatch}
-                                >
-                                  {state.isLoadingNextBatch ? (
-                                    <span className="flex items-center justify-center gap-2">
-                                      <div className="sat-loading-spinner w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                                      LOADING... (
-                                      {state.questionsProcessedCount}
-                                      /22)
-                                    </span>
-                                  ) : (
-                                    "LOAD MORE"
-                                  )}
-                                </Button>
-                              )}
-                              <Button
-                                variant="default"
-                                className="flex-1 font-bold text-lg py-6 border-b-4 rounded-2xl text-white shadow-lg transform transition-all duration-200 bg-green-500 hover:bg-green-600 border-green-700 hover:border-green-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
-                                onClick={handleFinish}
-                              >
-                                FINISH
-                              </Button>
-                            </div>
-                          ) : (
+                    {currentQuestion.answerOptions ? (
+                      <AnswerOptions
+                        answerOptions={currentQuestion.answerOptions}
+                        questionId={currentQuestion.plainQuestion.questionId}
+                        selectedAnswer={state.selectedAnswer}
+                        disabledOptions={state.disabledOptions}
+                        onAnswerSelect={(key) =>
+                          dispatch({
+                            type: "SET_SELECTED_ANSWER",
+                            payload: key,
+                          })
+                        }
+                        onToggleDisabled={(key) => {
+                          dispatch({
+                            type: "SET_DISABLED_OPTION",
+                            payload: {
+                              key,
+                              value: !state.disabledOptions[key],
+                            },
+                          });
+                        }}
+                        showStrikethrough={true}
+                        correctAnswers={currentQuestion.correct_answer.map(
+                          (answer) => answer.trim(),
+                        )}
+                        isAnswerChecked={state.isAnswerChecked}
+                        isReviewMode={
+                          isReviewMode ||
+                          Boolean(
+                            state.questionAnswers[
+                              currentQuestion.plainQuestion.questionId
+                            ],
+                          )
+                        }
+                      />
+                    ) : (
+                      <DuolingoInput
+                        value={state.selectedAnswer || ""}
+                        onChange={(value) =>
+                          dispatch({
+                            type: "SET_SELECTED_ANSWER",
+                            payload: value,
+                          })
+                        }
+                        onSubmit={handleAnsweringQuestion(
+                          currentQuestion.plainQuestion.questionId,
+                        )}
+                        disabled={state.isAnswerChecked || isReviewMode}
+                        checked={state.isAnswerChecked}
+                        correct={state.isAnswerCorrect}
+                      />
+                    )}
+                    <div className="py-1 relative overflow-visible">
+                      {isAtEndOfBatch &&
+                      state.isAnswerChecked &&
+                      state.questionAnswers[
+                        currentQuestion.plainQuestion.questionId
+                      ] ? (
+                        <div className="flex gap-3 mt-5">
+                          {canLoadMore && (
                             <Button
-                              variant={"default"}
-                              className={`mt-5 w-full relative font-bold text-lg py-6 border-b-4 rounded-2xl text-white shadow-lg transform transition-all duration-200 ${
+                              variant="default"
+                              className={`flex-1 font-bold text-lg py-6 border-b-4 rounded-2xl text-white shadow-lg transform transition-all duration-200 ${
                                 state.isLoadingNextBatch
-                                  ? "bg-yellow-500 hover:bg-yellow-600 border-yellow-700 hover:border-yellow-800 cursor-wait animate-pulse"
-                                  : state.isAnswerChecked &&
-                                      state.isAnswerCorrect
-                                    ? "bg-green-500 hover:bg-green-600 border-green-700 hover:border-green-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
-                                    : state.isAnswerChecked &&
-                                        !state.isAnswerCorrect
-                                      ? "bg-red-500 hover:bg-red-600 border-red-700 hover:border-red-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
-                                      : "bg-blue-500 hover:bg-blue-600 border-blue-700 hover:border-blue-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
+                                  ? "bg-blue-400 border-blue-500 cursor-not-allowed"
+                                  : "bg-blue-500 hover:bg-blue-600 border-blue-700 hover:border-blue-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
                               }`}
-                              disabled={
-                                (state.selectedAnswer == null &&
-                                  !state.questionAnswers[
-                                    currentQuestion.plainQuestion.questionId
-                                  ]) ||
-                                state.isLoadingNextBatch
-                              }
-                              onClick={handleAnsweringQuestion(
-                                currentQuestion.plainQuestion.questionId,
-                              )}
+                              onClick={() => {
+                                console.log("LOAD NEXT BATCH");
+
+                                if (!state.isLoadingNextBatch) {
+                                  loadNextBatch();
+                                }
+                              }}
+                              disabled={state.isLoadingNextBatch}
                             >
                               {state.isLoadingNextBatch ? (
-                                <DuolingoLoadingSpinner
-                                  progress={state.questionsProcessedCount}
-                                  total={22}
-                                />
-                              ) : state.questionAnswers[
-                                  currentQuestion.plainQuestion.questionId
-                                ] ? (
-                                "NEXT"
-                              ) : !state.isAnswerChecked ? (
-                                "CHECK"
+                                <span className="flex items-center justify-center gap-2">
+                                  <div className="sat-loading-spinner w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                                  LOADING... ({state.questionsProcessedCount}
+                                  /22)
+                                </span>
                               ) : (
-                                "CONTINUE"
+                                "LOAD MORE"
                               )}
                             </Button>
-                          ))}
-                        <Confetti
-                          ref={confettiRef}
-                          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-full h-full pointer-events-none"
-                        />
-                      </div>
+                          )}
+                          <Button
+                            variant="default"
+                            className="flex-1 font-bold text-lg py-6 border-b-4 rounded-2xl text-white shadow-lg transform transition-all duration-200 bg-green-500 hover:bg-green-600 border-green-700 hover:border-green-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
+                            onClick={handleFinish}
+                          >
+                            FINISH
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant={"default"}
+                          className={`mt-5 w-full relative font-bold text-lg py-6 border-b-4 rounded-2xl text-white shadow-lg transform transition-all duration-200 ${
+                            state.isLoadingNextBatch
+                              ? "bg-yellow-500 hover:bg-yellow-600 border-yellow-700 hover:border-yellow-800 cursor-wait animate-pulse"
+                              : state.isAnswerChecked && state.isAnswerCorrect
+                                ? "bg-green-500 hover:bg-green-600 border-green-700 hover:border-green-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
+                                : state.isAnswerChecked &&
+                                    !state.isAnswerCorrect
+                                  ? "bg-red-500 hover:bg-red-600 border-red-700 hover:border-red-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
+                                  : "bg-blue-500 hover:bg-blue-600 border-blue-700 hover:border-blue-800 cursor-pointer hover:shadow-xl active:translate-y-0.5 active:border-b-2"
+                          }`}
+                          disabled={
+                            (state.selectedAnswer == null &&
+                              !state.questionAnswers[
+                                currentQuestion.plainQuestion.questionId
+                              ]) ||
+                            state.isLoadingNextBatch
+                          }
+                          onClick={handleAnsweringQuestion(
+                            currentQuestion.plainQuestion.questionId,
+                          )}
+                        >
+                          {state.isLoadingNextBatch ? (
+                            <DuolingoLoadingSpinner
+                              progress={state.questionsProcessedCount}
+                              total={22}
+                            />
+                          ) : state.questionAnswers[
+                              currentQuestion.plainQuestion.questionId
+                            ] ? (
+                            "NEXT"
+                          ) : !state.isAnswerChecked ? (
+                            "CHECK"
+                          ) : (
+                            "CONTINUE"
+                          )}
+                        </Button>
+                      )}
+                      <Confetti
+                        ref={confettiRef}
+                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-full h-full pointer-events-none"
+                      />
+                    </div>
 
-                      {/* <Button
+                    {/* <Button
                         variant={"ghost"}
                         className="text-md cursor-pointer"
                         disabled={!state.isAnswerChecked}
                       >
                         Explain
                       </Button> */}
-                      {state.isAnswerChecked && state.selectedAnswer && !currentQuestion.answerOptions && (
+                    {state.isAnswerChecked &&
+                      state.selectedAnswer &&
+                      !currentQuestion.answerOptions && (
                         <div className="mt-4 space-y-2">
                           {state.questionAnswers[
                             currentQuestion.plainQuestion.questionId
                           ] && (
                             <p className="rounded-lg border border-neutral-200 p-3 text-sm text-neutral-600 dark:border-neutral-700 dark:text-neutral-300">
-                              You are reviewing a previously answered question. Your original answer and the explanation are shown below.
+                              You are reviewing a previously answered question.
+                              Your original answer and the explanation are shown
+                              below.
                             </p>
                           )}
                           <Label className="text-lg font-semibold">
                             Your Answer: <span>{state.selectedAnswer}</span>
                             <span className="ml-2 text-sm">
-                              {state.isAnswerCorrect ? "✓ Correct" : "✗ Incorrect"}
+                              {state.isAnswerCorrect
+                                ? "✓ Correct"
+                                : "✗ Incorrect"}
                             </span>
                           </Label>
                           <Label className="block text-lg font-semibold">
-                            Correct Answer: {currentQuestion.correct_answer.join(", ")}
+                            Correct Answer:{" "}
+                            {currentQuestion.correct_answer.join(", ")}
                           </Label>
                         </div>
                       )}
-                    </React.Fragment>
+                  </React.Fragment>
                 </div>
 
-                {state.isAnswerChecked && state.selectedAnswer && <AssessmentExplanation html={currentQuestion.rationale} questionId={currentQuestion.plainQuestion.questionId}/>}
-
+                {state.isAnswerChecked && state.selectedAnswer && (
+                  <AssessmentExplanation
+                    html={currentQuestion.rationale}
+                    questionId={currentQuestion.plainQuestion.questionId}
+                  />
+                )}
               </div>
             </div>
           </React.Fragment>

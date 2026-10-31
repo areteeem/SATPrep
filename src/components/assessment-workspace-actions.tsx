@@ -1,8 +1,24 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Bookmark, Check, NotebookPen, Presentation } from "lucide-react";
+import type { ReactNode } from "react";
+import {
+  Bookmark,
+  Check,
+  Ellipsis,
+  NotebookPen,
+  Presentation,
+} from "lucide-react";
 import { FloatingToolWindow } from "@/components/floating-tool-window";
 import { assessmentButton as button } from "@/components/assessment-controls";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   openWhiteboard,
   readReviewMarks,
@@ -36,15 +52,30 @@ export function WhiteboardButton({
     return () => document.removeEventListener("pointerdown", close);
   }, [open]);
   const marked = questions.filter((q) => q.marked);
-  const openSet = (items: WorkspaceQuestion[], suffix: string) => {
+  const openSet = (
+    items: WorkspaceQuestion[],
+    suffix: string,
+    singlePage = false,
+  ) => {
     setError("");
     setOpen(false);
-    void openWhiteboard(title, items, showSolutions, `${boardKey || title}:${suffix}`).catch(
-      (e) => setError(e instanceof Error ? e.message : "Could not open the whiteboard."),
+    void openWhiteboard(
+      title,
+      items,
+      showSolutions,
+      `${boardKey || title}:${suffix}`,
+      singlePage,
+    ).catch((e) =>
+      setError(
+        e instanceof Error ? e.message : "Could not open the whiteboard.",
+      ),
     );
   };
   return (
-    <span ref={root} className="assessment-whiteboard-menu-root relative inline-flex flex-col gap-1">
+    <span
+      ref={root}
+      className="assessment-whiteboard-menu-root relative inline-flex flex-col gap-1"
+    >
       <button
         type="button"
         className={`${button} assessment-icon-button`}
@@ -57,9 +88,37 @@ export function WhiteboardButton({
       </button>
       {open && (
         <div className="assessment-whiteboard-menu absolute right-0 top-full z-[220] mt-2 grid min-w-52 gap-1 rounded-xl border bg-white p-2 text-neutral-900 shadow-xl">
-          {question && <button className="assessment-whiteboard-menu-item" onClick={() => openSet([question], "question")}>This question</button>}
-          <button className="assessment-whiteboard-menu-item" disabled={!marked.length} onClick={() => openSet(marked, "marked")}>Marked questions{marked.length ? ` (${marked.length})` : ""}</button>
-          <button className="assessment-whiteboard-menu-item" disabled={!questions.length} onClick={() => openSet(questions, "collection")}>Question collection{questions.length ? ` (${questions.length})` : ""}</button>
+          {question && (
+            <button
+              className="assessment-whiteboard-menu-item"
+              onClick={() => openSet([question], "question")}
+            >
+              This question
+            </button>
+          )}
+          <button
+            className="assessment-whiteboard-menu-item"
+            disabled={!marked.length}
+            onClick={() => openSet(marked, "marked")}
+          >
+            Marked questions{marked.length ? ` (${marked.length})` : ""}
+          </button>
+          <button
+            className="assessment-whiteboard-menu-item"
+            disabled={!questions.length}
+            onClick={() => openSet(questions, "collection")}
+          >
+            Question collection
+            {questions.length ? ` (${questions.length})` : ""}
+          </button>
+          <button
+            className="assessment-whiteboard-menu-item"
+            disabled={!questions.length}
+            onClick={() => openSet(questions, "single-page", true)}
+          >
+            All questions on one page
+            {questions.length ? ` (${questions.length})` : ""}
+          </button>
         </div>
       )}
       {error && (
@@ -80,6 +139,8 @@ export function AssessmentWorkspaceActions({
   onNotesChange,
   hideNotes = false,
   notesOnly = false,
+  compactMenu = false,
+  extraMenuActions = [],
 }: {
   sessionId: string;
   question?: WorkspaceQuestion;
@@ -89,11 +150,19 @@ export function AssessmentWorkspaceActions({
   notes?: string;
   hideNotes?: boolean;
   notesOnly?: boolean;
+  compactMenu?: boolean;
+  extraMenuActions?: Array<{
+    label: string;
+    icon: ReactNode;
+    onSelect: () => void;
+    disabled?: boolean;
+  }>;
   onNotesChange?: (value: string) => void;
 }) {
   const [marks, setMarks] = useState<string[]>([]),
     [notesOpen, setNotesOpen] = useState(false),
-    [localNote, setLocalNote] = useState("");
+    [localNote, setLocalNote] = useState(""),
+    [menuError, setMenuError] = useState("");
   const key = `sat-workspace-notes-v1:${sessionId}:${question?.id}`;
   useEffect(() => {
     const update = () => setMarks(readReviewMarks(sessionId));
@@ -108,8 +177,117 @@ export function AssessmentWorkspaceActions({
       setLocalNote("");
     }
   }, [key, question?.notes]);
-  const markedQuestions = questions.map((q) => ({ ...q, marked: marks.includes(q.id) }));
+  const markedQuestions = questions.map((q) => ({
+    ...q,
+    marked: marks.includes(q.id),
+  }));
   const marked = question && marks.includes(question.id);
+  const openSet = (
+    items: WorkspaceQuestion[],
+    suffix: string,
+    singlePage = false,
+  ) => {
+    if (!items.length) return;
+    setMenuError("");
+    void openWhiteboard(
+      title,
+      items,
+      showSolutions,
+      `${sessionId}:${question?.id || "session"}:${suffix}`,
+      singlePage,
+    ).catch((error) =>
+      setMenuError(
+        error instanceof Error
+          ? error.message
+          : "Could not open the whiteboard.",
+      ),
+    );
+  };
+  if (compactMenu) {
+    return (
+      <div className="assessment-workspace-actions relative">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={`${button} assessment-icon-button`}
+              aria-label="More question tools"
+              title="More question tools"
+            >
+              <Ellipsis size={18} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-60">
+            <DropdownMenuLabel>Question tools</DropdownMenuLabel>
+            {question && (
+              <DropdownMenuCheckboxItem
+                checked={Boolean(marked)}
+                onCheckedChange={(checked) => {
+                  const next = checked
+                    ? [...marks, question.id]
+                    : marks.filter((id) => id !== question.id);
+                  setReviewMarks(sessionId, next);
+                  setMarks(next);
+                }}
+              >
+                {marked ? "Remove review mark" : "Mark for review"}
+              </DropdownMenuCheckboxItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Whiteboard</DropdownMenuLabel>
+            {question && (
+              <DropdownMenuItem
+                onSelect={() => openSet([question], "question")}
+              >
+                <Presentation /> This question
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem
+              disabled={!markedQuestions.some((item) => item.marked)}
+              onSelect={() =>
+                openSet(
+                  markedQuestions.filter((item) => item.marked),
+                  "marked",
+                )
+              }
+            >
+              <Presentation /> Marked questions
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={!questions.length}
+              onSelect={() => openSet(markedQuestions, "collection")}
+            >
+              <Presentation /> Question collection
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={!questions.length}
+              onSelect={() => openSet(markedQuestions, "single-page", true)}
+            >
+              <Presentation /> All questions on one page
+            </DropdownMenuItem>
+            {extraMenuActions.length > 0 && <DropdownMenuSeparator />}
+            {extraMenuActions.map((action) => (
+              <DropdownMenuItem
+                key={action.label}
+                disabled={action.disabled}
+                onSelect={action.onSelect}
+              >
+                {action.icon} {action.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {menuError && (
+          <span
+            role="alert"
+            className="absolute right-0 top-full mt-1 w-56 text-xs"
+          >
+            {menuError}
+          </span>
+        )}
+      </div>
+    );
+  }
   return (
     <div className="assessment-workspace-actions flex flex-wrap items-center gap-2">
       {question && !notesOnly && (
@@ -141,7 +319,13 @@ export function AssessmentWorkspaceActions({
       )}
       {question && !hideNotes && (
         <>
-          <button type="button" className={`${button} assessment-icon-button`} aria-label="Question notes" title="Question notes" onClick={() => setNotesOpen(true)}>
+          <button
+            type="button"
+            className={`${button} assessment-icon-button`}
+            aria-label="Question notes"
+            title="Question notes"
+            onClick={() => setNotesOpen(true)}
+          >
             <NotebookPen size={17} />
           </button>
           <FloatingToolWindow

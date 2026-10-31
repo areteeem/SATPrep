@@ -1200,10 +1200,10 @@ const QuestionProblemCard = React.memo(function QuestionProblemCard({
 
       {/* Share Modal */}
       {isShareModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/20">
-          <div className="bg-white rounded-2xl border-2 border-b-4 border-gray-300 shadow-2xl p-6 max-w-md w-full mx-4">
+        <div className="assessment-modal-overlay">
+          <div className="assessment-modal assessment-modal--compact" role="dialog" aria-modal="true" aria-labelledby="share-question-title">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-gray-800">
+              <h3 id="share-question-title" className="assessment-modal-title text-2xl">
                 <MonochromeSymbol symbol="share" size={17}/> Share Question
               </h3>
               <Button
@@ -1214,13 +1214,13 @@ const QuestionProblemCard = React.memo(function QuestionProblemCard({
                   setIsShareModalOpen(false);
                   setIsCopied(false);
                 }}
-                className="rounded-xl"
+                className="assessment-modal-button assessment-modal-button--secondary assessment-modal-button--compact w-10 p-2"
               >
                 ✕
               </Button>
             </div>
 
-            <p className="text-gray-600 mb-4">
+            <p className="assessment-modal-copy mb-4 text-sm">
               Share this question with others by copying the link below:
             </p>
 
@@ -1229,16 +1229,11 @@ const QuestionProblemCard = React.memo(function QuestionProblemCard({
                 type="text"
                 value={shareUrl}
                 readOnly
-                className="flex-1 px-3 py-2 border-2 rounded-xl bg-gray-50 text-sm"
+                className="min-w-0 flex-1 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
               />
               <Button
-                variant="default"
                 onClick={handleCopy}
-                className={`px-4 py-2 rounded-xl border-2 border-b-4 font-bold transition-all duration-200 ${
-                  isCopied
-                    ? "bg-green-500 border-green-700 text-white"
-                    : "bg-blue-500 hover:bg-blue-600 border-blue-700 text-white"
-                }`}
+                className="assessment-modal-button assessment-modal-button--primary assessment-modal-button--compact px-4 py-2"
               >
                 {isCopied ? (
                   <>
@@ -1257,19 +1252,18 @@ const QuestionProblemCard = React.memo(function QuestionProblemCard({
             {!hideViewQuestionButton && (
               <div className="mb-4">
                 <Button
-                  variant="default"
                   onClick={() => {
                     playSound("button-pressed.wav");
                     router.push(`/question/${question.question.questionId}`);
                   }}
-                  className="w-full px-4 py-2 rounded-xl border-2 border-b-4 font-bold transition-all duration-200 bg-gray-500 hover:bg-gray-600 border-gray-700 text-white"
+                  className="assessment-modal-button assessment-modal-button--secondary w-full text-sm"
                 >
                   <MonochromeSymbol symbol="link" size={17}/> View Question Page
                 </Button>
               </div>
             )}
 
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-neutral-500 dark:text-neutral-400">
               Anyone with this link can view this specific question.
             </div>
           </div>

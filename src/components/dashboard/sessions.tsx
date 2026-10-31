@@ -614,17 +614,17 @@ export function SessionsTab() {
 
       {/* Duolingo-styled Delete Confirmation Modal */}
       {deleteModalOpen && sessionToDelete && (
-        <div className="fixed inset-0 flex items-center justify-center z-[200] bg-black/20">
-          <div className="bg-red-50 border-4 border-red-200 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
+        <div className="assessment-modal-overlay">
+          <div className="assessment-modal assessment-modal--compact" role="dialog" aria-modal="true" aria-labelledby="delete-practice-title">
             <div className="text-center">
               <div className="mb-6">
-                <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                  <AlertTriangle className="w-8 h-8 text-red-600" />
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800">
+                  <AlertTriangle className="h-8 w-8 text-neutral-700 dark:text-neutral-200" />
                 </div>
-                <h3 className="text-xl font-bold text-red-900 mb-2">
+                <h3 id="delete-practice-title" className="assessment-modal-title mb-3 text-2xl">
                   Delete Practice Session?
                 </h3>
-                <div className="text-red-700 text-sm space-y-2">
+                <div className="assessment-modal-copy space-y-2 text-sm">
                   <p>
                     Are you sure you want to delete this practice session from{" "}
                     <strong>
@@ -645,12 +645,12 @@ export function SessionsTab() {
                     )}
                   </p>
                   {isCurrentSession && (
-                    <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded-2xl">
-                      <div className="flex items-center gap-2 text-red-800">
-                        <AlertTriangle className="w-4 h-4" />
+                    <div className="assessment-modal-inset mt-4 text-left">
+                      <div className="flex items-center gap-2 text-neutral-900 dark:text-neutral-100">
+                        <AlertTriangle className="h-4 w-4" />
                         <span className="text-xs font-medium">Warning!</span>
                       </div>
-                      <p className="text-xs text-red-700 mt-1">
+                      <p className="mt-1 text-xs">
                         This is your current active practice session. Deleting
                         it will also remove your current progress.
                       </p>
@@ -659,17 +659,17 @@ export function SessionsTab() {
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="assessment-modal-actions flex gap-3">
                 <Button
                   onClick={cancelDeleteSession}
                   variant="outline"
-                  className="flex-1 bg-white hover:bg-gray-50 text-gray-700 font-bold text-sm py-3 px-4 rounded-2xl border-2 border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md transform transition-all duration-200"
+                  className="assessment-modal-button assessment-modal-button--secondary flex-1"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={confirmDeleteSession}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-sm py-3 px-4 rounded-2xl border-b-4 border-red-600 hover:border-red-700 shadow-lg hover:shadow-xl transform transition-all duration-200 active:translate-y-0.5 active:border-b-2"
+                  className="assessment-modal-button assessment-modal-button--primary flex-1"
                 >
                   Delete Session
                 </Button>

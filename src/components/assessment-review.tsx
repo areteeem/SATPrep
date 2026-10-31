@@ -19,6 +19,7 @@ import { domainNames } from "@/lib/assessment-workspace";
 import type { WorkspaceQuestion } from "@/lib/assessment-workspace";
 import { isCorrectAnswer } from "@/lib/local-assessments";
 import { practiceScore } from "@/lib/practice-score";
+import { ScoreBreakdownTooltip } from "@/components/assessment-score-report";
 export function AssessmentReview({
   sessionId,
   title,
@@ -106,6 +107,12 @@ export function AssessmentReview({
             {score.score !== null &&
               ` · Estimated ${score.score}/1600${score.projected ? " (single-section projection)" : ""}`}
           </p>
+          <div className="mt-2">
+            <ScoreBreakdownTooltip
+              questions={questions}
+              label="View score breakdown"
+            />
+          </div>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <label className="sr-only" htmlFor={`section-${sessionId}`}>
@@ -232,23 +239,25 @@ export function AssessmentReview({
                         )}
                       />
                     )}
-                    {!detail.answerOptions && <div className="rounded-xl border p-4 text-sm">
-                      <p>
-                        <strong>Student answer:</strong>{" "}
-                        {showAnswers ? q.answer || "Unanswered" : "Hidden"}
-                      </p>
-                      {showAnswers && (
-                        <p className="mt-2">
-                          <strong>Correct answer:</strong>{" "}
-                          {detail.correct_answer?.join(", ") || "Unavailable"}
-                          {q.answer && known
-                            ? isCorrectAnswer(q.answer, detail.correct_answer)
-                              ? " · Correct"
-                              : " · Incorrect"
-                            : ""}
+                    {!detail.answerOptions && (
+                      <div className="rounded-xl border p-4 text-sm">
+                        <p>
+                          <strong>Student answer:</strong>{" "}
+                          {showAnswers ? q.answer || "Unanswered" : "Hidden"}
                         </p>
-                      )}
-                    </div>}
+                        {showAnswers && (
+                          <p className="mt-2">
+                            <strong>Correct answer:</strong>{" "}
+                            {detail.correct_answer?.join(", ") || "Unavailable"}
+                            {q.answer && known
+                              ? isCorrectAnswer(q.answer, detail.correct_answer)
+                                ? " · Correct"
+                                : " · Incorrect"
+                              : ""}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </>
                 ) : (
                   <p>
@@ -288,9 +297,23 @@ export function AssessmentReview({
         >
           <ArrowLeft size={18} />
         </button>
-        <div className="teacher-review-progress" role="progressbar" aria-valuemin={0} aria-valuemax={filtered.length} aria-valuenow={filtered.length ? index + 1 : 0} aria-label="Review progress">
-          <div className="teacher-review-progress-fill" style={{ width: `${filtered.length ? ((index + 1) / filtered.length) * 100 : 0}%` }} />
-          <span>{filtered.length ? index + 1 : 0} / {filtered.length}</span>
+        <div
+          className="teacher-review-progress"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={filtered.length}
+          aria-valuenow={filtered.length ? index + 1 : 0}
+          aria-label="Review progress"
+        >
+          <div
+            className="teacher-review-progress-fill"
+            style={{
+              width: `${filtered.length ? ((index + 1) / filtered.length) * 100 : 0}%`,
+            }}
+          />
+          <span>
+            {filtered.length ? index + 1 : 0} / {filtered.length}
+          </span>
         </div>
         <button
           className={`${button} assessment-icon-button`}

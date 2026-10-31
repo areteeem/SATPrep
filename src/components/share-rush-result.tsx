@@ -7,7 +7,13 @@ import {
   AssessmentCompletion,
   SendLocalResult,
 } from "@/components/assessment-completion";
-export function ShareRushResult({ session }: { session: PracticeSession }) {
+export function ShareRushResult({
+  session,
+  onResultReady,
+}: {
+  session: PracticeSession;
+  onResultReady?: (url: string) => void;
+}) {
   const [questions, setQuestions] = useState<ResultQuestion[]>([]);
   useEffect(() => {
     const saved =
@@ -26,8 +32,10 @@ export function ShareRushResult({ session }: { session: PracticeSession }) {
     <div className="mx-auto max-w-xl p-5">
       {session.status === "completed" ? (
         <AssessmentCompletion
+          redirect={false}
           localId={session.sessionId}
           result={{ mode: "rush", questions }}
+          onResultReady={onResultReady}
         />
       ) : (
         <SendLocalResult result={{ mode: "rush", questions }} />

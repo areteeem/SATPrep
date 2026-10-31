@@ -25,6 +25,7 @@ const AnnotatedMarkup = memo(function AnnotatedMarkup({
     <MathJax inline dynamic>
       <div
         ref={passageRef}
+        className="assessment-passage-content"
         onMouseUp={onSelection}
         onTouchEnd={onSelection}
         dangerouslySetInnerHTML={{ __html: html }}
@@ -51,12 +52,20 @@ function AnnotatedPassageView({
   const selectionRange = useRef<Range | null>(null);
   const [content, setContent] = useState(html);
   const [message, setMessage] = useState("");
+  const [highlightColor, setHighlightColor] = useState("#fff1a6");
   const [popover, setPopover] = useState<{
     x: number;
     y: number;
     highlightOptions: boolean;
   } | null>(null);
   const key = `sat-passage-annotations-v1:${questionId}`;
+  useEffect(() => {
+    try {
+      const savedColor = localStorage.getItem("sat-passage-highlight-color-v1");
+      if (["#fff1a6", "#ccefcf", "#cde4ff", "#ffd7e5"].includes(savedColor || ""))
+        setHighlightColor(savedColor!);
+    } catch {}
+  }, []);
   useEffect(() => {
     try {
       setContent(
@@ -275,16 +284,27 @@ function AnnotatedPassageView({
           </div>
           {!popover.highlightOptions ? (
             <div className="grid grid-cols-3 gap-2">
+              <div className="group relative">
               <button
                 type="button"
-                className="flex flex-col items-center gap-1 rounded-lg border border-neutral-200 px-2 py-2 text-xs hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                aria-label="Highlight selected text"
+                className="flex h-full w-full flex-col items-center gap-1 rounded-lg border border-neutral-200 px-2 py-2 text-xs hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                onClick={() => mark(`background-color: ${highlightColor}; color: #171717`)}
+              >
+                <Highlighter size={16} />
+                <span>Highlight</span>
+              </button>
+              <button
+                type="button"
+                aria-label={`Current highlight color ${highlightColor}. Choose a color for future highlights.`}
+                title="Choose a color for future highlights"
+                className="assessment-highlight-color-trigger absolute right-1 top-1 size-3 rounded-sm border border-neutral-500 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                style={{ backgroundColor: highlightColor }}
                 onClick={() =>
                   setPopover((p) => (p ? { ...p, highlightOptions: true } : p))
                 }
-              >
-                <Highlighter size={16} />
-                Highlight
-              </button>
+              />
+              </div>
               <button
                 type="button"
                 className="flex flex-col items-center gap-1 rounded-lg border border-neutral-200 px-2 py-2 text-xs hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
@@ -304,7 +324,7 @@ function AnnotatedPassageView({
             </div>
           ) : (
             <div>
-              <p className="mb-2 text-sm">Choose a highlight color</p>
+              <p className="mb-2 text-sm">Choose a color for future highlights</p>
               <div className="flex gap-2">
                 {[
                   ["Yellow", "#fff1a6"],
@@ -317,11 +337,16 @@ function AnnotatedPassageView({
                     type="button"
                     aria-label={`${name} highlight`}
                     title={`${name} highlight`}
-                    className="size-8 rounded-full border border-neutral-300"
+                    className="size-8 rounded-full border border-neutral-300 aria-pressed:ring-2 aria-pressed:ring-neutral-800"
                     style={{ backgroundColor: color }}
-                    onClick={() =>
-                      mark(`background-color: ${color}; color: #171717`)
-                    }
+                    aria-pressed={highlightColor === color}
+                    onClick={() => {
+                      setHighlightColor(color);
+                      try {
+                        localStorage.setItem("sat-passage-highlight-color-v1", color);
+                      } catch {}
+                      setPopover((p) => (p ? { ...p, highlightOptions: false } : p));
+                    }}
                   />
                 ))}
               </div>

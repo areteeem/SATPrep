@@ -2,14 +2,14 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { MathJax } from "better-react-mathjax";
 import {
   AssessmentWorkspaceActions,
   AssessmentExplanation,
 } from "@/components/assessment-workspace-actions";
 import { AssessmentCompletion } from "@/components/assessment-completion";
-import { practiceScore } from "@/lib/practice-score";
+import { AssessmentScoreReport } from "@/components/assessment-score-report";
+import { PracticeResultsActions } from "@/components/practice-results-actions";
 import { fillQuestionBlank } from "@/lib/assessment-blanks";
 import { Save } from "lucide-react";
 import {
@@ -24,7 +24,7 @@ import {
   assessmentButton as button,
   hasAssessmentContent,
 } from "@/components/assessment-controls";
-import { resultPath, satRequest } from "@/lib/satSharing";
+import { satRequest } from "@/lib/satSharing";
 import {
   isCorrectAnswer,
   readLocalAssessments,
@@ -142,7 +142,6 @@ function Countdown({
   return children(Math.max(0, Math.ceil((deadline - now) / 1000)));
 }
 export default function FullTest() {
-  const router = useRouter();
   const [session, setSession] = useState<Saved>(empty),
     [hydrated, setHydrated] = useState(false),
     [busy, setBusy] = useState(false),
@@ -152,7 +151,9 @@ export default function FullTest() {
     [retry, setRetry] = useState(0),
     [assignmentToken, setAssignmentToken] = useState(""),
     [storageKey, setStorageKey] = useState(KEY),
-    [shareUrl, setShareUrl] = useState(""),
+    [deliveryNotice, setDeliveryNotice] = useState(""),
+    [publishedResultToken, setPublishedResultToken] = useState(""),
+    [scoreKeysLoading, setScoreKeysLoading] = useState(false),
     [confirmation, setConfirmation] = useState<"finish" | "restart" | null>(
       null,
     );
@@ -243,7 +244,7 @@ export default function FullTest() {
     hasStimulus = hasAssessmentContent(detail?.stimulus),
     showMathPanel = Boolean(isMath && !hasStimulus);
   useEffect(() => {
-    if (!item || detail) return;
+    if (!item || detail || (stage === "done" && !review)) return;
     const controller = new AbortController();
     setError("");
     fetch(
@@ -265,7 +266,61 @@ export default function FullTest() {
         if (e.name !== "AbortError") setError(e.message);
       });
     return () => controller.abort();
-  }, [item, detail, retry]);
+  }, [item, detail, retry, stage, review]);
+  useEffect(() => {
+    if (stage !== "done" || !session.id) return;
+    const missing = session.modules
+      .flat()
+      .filter(
+        (question) =>
+          !session.details[question.questionId] &&
+          (question.external_id || question.ibn),
+      );
+    if (!missing.length) {
+      setScoreKeysLoading(false);
+      return;
+    }
+    const controller = new AbortController();
+    let stopped = false;
+    setScoreKeysLoading(true);
+    void (async () => {
+      try {
+        for (let i = 0; i < missing.length; i += 6) {
+          const batch = await Promise.all(
+            missing.slice(i, i + 6).map(async (question) => {
+              try {
+                const response = await fetch(
+                  `/api/question/${encodeURIComponent(question.external_id || question.ibn || "")}`,
+                  { signal: controller.signal },
+                );
+                const payload = await response.json();
+                return response.ok && payload.data
+                  ? ([question.questionId, payload.data] as const)
+                  : null;
+              } catch {
+                return null;
+              }
+            }),
+          );
+          if (stopped) return;
+          const loaded = Object.fromEntries(
+            batch.filter((entry) => entry !== null),
+          );
+          if (Object.keys(loaded).length)
+            setSession((old) => ({
+              ...old,
+              details: { ...old.details, ...loaded },
+            }));
+        }
+      } finally {
+        if (!stopped) setScoreKeysLoading(false);
+      }
+    })();
+    return () => {
+      stopped = true;
+      controller.abort();
+    };
+  }, [stage, session.id]);
   const advance = useCallback(
     () =>
       setSession((old) => {
@@ -338,57 +393,6 @@ export default function FullTest() {
       setBusy(false);
     }
   }
-  async function shareResult() {
-    setBusy(true);
-    setError("");
-    try {
-      const result = {
-        mode: "full",
-        questions: session.modules.flat().map((q) => ({
-          id: q.questionId,
-          externalId: q.external_id || q.ibn || "",
-          domain: q.primary_class_cd,
-          answer: session.answers[q.questionId] || "",
-        })),
-      };
-      const data = await satRequest<{ url: string }>("create_result", {
-        result,
-        ...(assignmentToken ? { assignmentToken } : {}),
-      });
-      if (assignmentToken) {
-        const resultToken = new URL(data.url, location.origin).hash.slice(1);
-        let deliveryNotice = "";
-        try {
-          const delivery = await satRequest<{
-            status: string;
-            reason?: string;
-          }>("notify_teacher", {
-            assignmentToken,
-            resultToken,
-          });
-          deliveryNotice = satResultDeliveryMessage(
-            delivery.status,
-            delivery.reason,
-          );
-        } catch (notifyError) {
-          deliveryNotice = notifyError instanceof Error
-            ? `The result was published, but Telegram could not be queued: ${notifyError.message}`
-            : "The result was published, but Telegram could not be queued.";
-        }
-        sessionStorage.setItem(
-          `sat-result-delivery:${resultToken}`,
-          deliveryNotice,
-        );
-        router.replace(resultPath(data.url, assignmentToken));
-        return;
-      }
-      setShareUrl(data.url);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not share result.");
-    } finally {
-      setBusy(false);
-    }
-  }
   const beginMath = () =>
     setSession((old) => ({
       ...old,
@@ -402,13 +406,6 @@ export default function FullTest() {
       ...old,
       answers: { ...old.answers, [item.questionId]: value || "" },
     }));
-  const all = session.modules.flat(),
-    points = all.filter((q) =>
-      isCorrectAnswer(
-        session.answers[q.questionId] || "",
-        session.details[q.questionId]?.correct_answer,
-      ),
-    ).length;
   const workspaceQuestions = session.modules.flatMap((mod, m) =>
     mod.map((q) => ({
       id: q.questionId,
@@ -425,7 +422,6 @@ export default function FullTest() {
       notes: session.notes[q.questionId],
     })),
   );
-  const estimated = practiceScore(workspaceQuestions);
   return (
     <main
       className="assessment-full-page min-h-dvh bg-background px-5 py-6 text-foreground"
@@ -578,95 +574,98 @@ export default function FullTest() {
           </section>
         )}
         {stage === "done" && !review && (
-          <section className="py-16">
-            <h1 className="text-3xl font-semibold">Practice complete</h1>
-            <AssessmentCompletion
-              localId={session.id || ""}
-              assignmentToken={assignmentToken}
-              result={{
-                mode: "full",
-                questions: workspaceQuestions.map(
-                  ({ id, externalId, domain, answer }) => ({
-                    id,
-                    externalId,
-                    domain,
-                    answer,
-                  }),
-                ),
-              }}
-            />
-            {estimated.score !== null && (
-              <p className="mt-3 text-xl">
-                Estimated practice score: {estimated.score}/1600
-              </p>
-            )}
-            <p className="mt-4 text-xl">
-              {points} correct out of {all.length}
-            </p>
-            <p className="mt-2 text-neutral-500">
-              Unofficial practice result. This is not an SAT score.
-            </p>
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              {Object.entries(names).map(([key, name]) => {
-                const questions = all.filter((q) => q.primary_class_cd === key);
-                return (
-                  <div key={key} className="rounded-xl border p-4">
-                    {name}
-                    <strong className="float-right">
-                      {
-                        questions.filter((q) =>
-                          isCorrectAnswer(
-                            session.answers[q.questionId] || "",
-                            session.details[q.questionId]?.correct_answer,
-                          ),
-                        ).length
-                      }{" "}
-                      / {questions.length}
-                    </strong>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-8 flex flex-wrap gap-3">
-              {hydrated && !assignmentToken && (
-                <button
-                  className={button}
-                  disabled={busy}
-                  onClick={() => void shareResult()}
-                >
-                  {busy ? "Creating link…" : "Create result link"}
-                </button>
-              )}
-              <Link
-                className={button}
-                href={`/review-session?local=${encodeURIComponent(session.id || "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Review answers ↗
-              </Link>
-              <Link className={button} href={`/results?local=${session.id}`}>
-                Practice mistakes by category
-              </Link>
-              <button
-                className={button}
-                onClick={() => setConfirmation("restart")}
-              >
-                Start over
-              </button>
-            </div>
-            {shareUrl && (
-              <p className="mt-4 break-all">
-                {shareUrl}{" "}
-                <button
-                  className="underline"
-                  onClick={() => void navigator.clipboard.writeText(shareUrl)}
-                >
-                  Copy link
-                </button>
-              </p>
-            )}
-          </section>
+          <AssessmentScoreReport
+            title="Full-Length Test results"
+            questions={workspaceQuestions}
+            subtitle="Your estimated score and performance by SAT question category."
+            scoreLoading={scoreKeysLoading}
+            onReview={() => setReview(true)}
+            actions={
+              <div className="min-w-full space-y-3">
+                <AssessmentCompletion
+                  redirect={false}
+                  localId={session.id || ""}
+                  assignmentToken={assignmentToken}
+                  onPublished={async (url) => {
+                    if (!assignmentToken) return;
+                    const resultToken = new URL(
+                      url,
+                      location.origin,
+                    ).hash.slice(1);
+                    let message = "";
+                    try {
+                      const delivery = await satRequest<{
+                        status: string;
+                        reason?: string;
+                      }>("notify_teacher", {
+                        assignmentToken,
+                        resultToken,
+                      });
+                      message = satResultDeliveryMessage(
+                        delivery.status,
+                        delivery.reason,
+                      );
+                    } catch (notifyError) {
+                      message =
+                        notifyError instanceof Error
+                          ? `The result was published, but Telegram could not be queued: ${notifyError.message}`
+                          : "The result was published, but Telegram could not be queued.";
+                    }
+                    sessionStorage.setItem(
+                      `sat-result-delivery:${resultToken}`,
+                      message,
+                    );
+                    setDeliveryNotice(message);
+                  }}
+                  onResultReady={(url) =>
+                    setPublishedResultToken(
+                      new URL(url, location.origin).hash.slice(1),
+                    )
+                  }
+                  result={{
+                    mode: "full",
+                    questions: workspaceQuestions.map(
+                      ({ id, externalId, domain, answer }) => ({
+                        id,
+                        externalId,
+                        domain,
+                        answer,
+                      }),
+                    ),
+                  }}
+                />
+                <PracticeResultsActions
+                  title="Full-Length Test results"
+                  sessionId={session.id || "full-test"}
+                  questions={workspaceQuestions}
+                  resultToken={publishedResultToken}
+                  assignmentToken={assignmentToken || undefined}
+                />
+                {deliveryNotice && (
+                  <p
+                    role="status"
+                    className="text-sm text-neutral-600 dark:text-neutral-400"
+                  >
+                    {deliveryNotice}
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    className={button}
+                    href={`/results?local=${encodeURIComponent(session.id || "")}`}
+                  >
+                    Practice mistakes by category
+                  </Link>
+                  <button
+                    className={button}
+                    onClick={() => setConfirmation("restart")}
+                  >
+                    Start over
+                  </button>
+                </div>
+              </div>
+            }
+          />
         )}
         {(active || (stage === "done" && review)) &&
           !session.paused &&
@@ -711,7 +710,15 @@ export default function FullTest() {
                   <div className="sat-test-passage rounded-xl border border-neutral-200 p-5 dark:border-neutral-700">
                     <AnnotatedPassage
                       questionId={item.questionId}
-                      html={!isMath ? fillQuestionBlank(detail?.stimulus || "", detail?.answerOptions, session.answers[item.questionId]) : detail?.stimulus || ""}
+                      html={
+                        !isMath
+                          ? fillQuestionBlank(
+                              detail?.stimulus || "",
+                              detail?.answerOptions,
+                              session.answers[item.questionId],
+                            )
+                          : detail?.stimulus || ""
+                      }
                       blankOptions={!isMath ? detail?.answerOptions : undefined}
                       selectedBlankAnswer={session.answers[item.questionId]}
                     />
@@ -722,7 +729,15 @@ export default function FullTest() {
                     <>
                       <AnnotatedPassage
                         questionId={`${item.questionId}:stem`}
-                        html={!isMath ? fillQuestionBlank(detail.stem, detail.answerOptions, session.answers[item.questionId]) : detail.stem}
+                        html={
+                          !isMath
+                            ? fillQuestionBlank(
+                                detail.stem,
+                                detail.answerOptions,
+                                session.answers[item.questionId],
+                              )
+                            : detail.stem
+                        }
                         className="mb-6"
                       />
                       {detail.answerOptions ? (

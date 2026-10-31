@@ -15,6 +15,7 @@ export type WhiteboardDocument = {
   snapshots?: Record<string, Snapshot>;
   cameras?: Record<string, { x: number; y: number; z: number }>;
   contentWidth?: number;
+  singlePage?: boolean;
 };
 export const domainNames: Record<string, string> = {
   INI: "Information and Ideas",
@@ -81,6 +82,7 @@ export async function openWhiteboard(
   questions: WorkspaceQuestion[],
   showSolutions = false,
   identity = title,
+  singlePage = false,
 ) {
   const windowRef = window.open("about:blank", "_blank");
   if (!windowRef) throw new Error("Allow a new tab to open the whiteboard.");
@@ -89,7 +91,7 @@ export async function openWhiteboard(
     const bytes = await crypto.subtle.digest(
       "SHA-256",
       new TextEncoder().encode(
-        `${identity}:${questions.map((q) => q.id).join(",")}`,
+        `${identity}:${singlePage ? "single-page" : "question-pages"}:${questions.map((q) => q.id).join(",")}`,
       ),
     );
     const id = Array.from(new Uint8Array(bytes))
@@ -104,6 +106,7 @@ export async function openWhiteboard(
       questions,
       createdAt: existing?.createdAt || new Date().toISOString(),
       showSolutions,
+      singlePage,
     });
     windowRef.location.href = `/whiteboard?board=${id}`;
   } catch (e) {

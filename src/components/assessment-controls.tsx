@@ -23,6 +23,21 @@ export function hasAssessmentContent(html?: string | null) {
         /<(img|svg|math|table)\b/i.test(html)),
   );
 }
+
+function formatAnswerOptionHtml(html: string) {
+  const separators = html.match(/\s+\/\s+/g);
+  if (!separators || separators.length < 2 || /\\(?:frac|dfrac|tfrac|sqrt)|<math\b/i.test(html))
+    return html;
+
+  const lines = html
+    .split(/\s+\/\s+/)
+    .map((line) => line.replace(/<[^>]*>/g, " ").replace(/&nbsp;|&#160;/gi, " ").trim());
+  const wordCounts = lines.map((line) => (line.match(/[\p{L}]{2,}/gu) || []).length);
+  if (lines.length < 3 || wordCounts.some((count) => count < 2)) return html;
+  if (wordCounts.reduce((sum, count) => sum + count, 0) < 12) return html;
+
+  return html.replace(/\s+\/\s+/g, "<br />");
+}
 export function AssessmentActivePage({ active }: { active: boolean }) {
   useEffect(() => {
     if (!active) return;
@@ -53,17 +68,26 @@ export function AssessmentConfirm({
         if (!value) onCancel();
       }}
     >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+      <DialogContent
+        hideCloseButton
+        overlayClassName="bg-black/20 backdrop-blur-[2px] dark:bg-black/50"
+        className="assessment-modal assessment-modal--confirm gap-8"
+      >
+        <DialogHeader className="items-center text-center">
+          <DialogTitle className="assessment-modal-title">{title}</DialogTitle>
+          <DialogDescription className="assessment-modal-copy text-center">
+            {description}
+          </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <button className={assessmentButton} onClick={onCancel}>
+        <DialogFooter className="assessment-modal-actions w-full gap-4 sm:space-x-0">
+          <button
+            className="assessment-modal-button assessment-modal-button--secondary flex-1"
+            onClick={onCancel}
+          >
             Cancel
           </button>
           <button
-            className={`${assessmentButton} assessment-primary`}
+            className="assessment-modal-button assessment-modal-button--primary flex-1"
             onClick={onConfirm}
           >
             {confirmLabel}
@@ -131,6 +155,7 @@ export function AssessmentAnswerOptions({
     <div className="flex flex-col gap-3">
       {Object.entries(options).map(([key, html], index) => {
         const label = String.fromCharCode(65 + index);
+        const displayHtml = formatAnswerOptionHtml(html);
         const isCorrect =
           checked &&
           (correctAnswers || []).some(
@@ -160,7 +185,7 @@ export function AssessmentAnswerOptions({
                 {label}
               </span>
               <MathJax inline dynamic>
-                <span dangerouslySetInnerHTML={{ __html: html }} />
+                <span dangerouslySetInnerHTML={{ __html: displayHtml }} />
               </MathJax>
             </button>
             {onEliminate && (
