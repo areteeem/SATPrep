@@ -671,6 +671,21 @@ export default function FullTest() {
           !session.paused &&
           item && (
             <section className="py-7">
+              {stage === "done" && (
+                <div className="mb-6 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
+                  <h2 className="mb-3 text-sm font-semibold">
+                    Export this full practice
+                  </h2>
+                  <PracticeResultsActions
+                    title="Full-Length Test results"
+                    sessionId={session.id || "full-test"}
+                    questions={workspaceQuestions}
+                    resultToken={publishedResultToken}
+                    assignmentToken={assignmentToken || undefined}
+                    loading={scoreKeysLoading}
+                  />
+                </div>
+              )}
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <h1 className="font-semibold">
                   {stage === "done"

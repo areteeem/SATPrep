@@ -20,6 +20,7 @@ import type { WorkspaceQuestion } from "@/lib/assessment-workspace";
 import { isCorrectAnswer } from "@/lib/local-assessments";
 import { practiceScore } from "@/lib/practice-score";
 import { ScoreBreakdownTooltip } from "@/components/assessment-score-report";
+import { PracticeResultsActions } from "@/components/practice-results-actions";
 export function AssessmentReview({
   sessionId,
   title,
@@ -159,6 +160,14 @@ export function AssessmentReview({
         </div>
       </header>
       <div className="teacher-review-scroll">
+        <div className="border-b border-neutral-200 py-4 dark:border-neutral-800">
+          <PracticeResultsActions
+            title={title}
+            sessionId={sessionId}
+            questions={questions}
+            loading={loading}
+          />
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-3 py-4">
           <p className="text-sm font-medium">
             Question {filtered.length ? index + 1 : 0} of {filtered.length}

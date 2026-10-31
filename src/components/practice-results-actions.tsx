@@ -214,12 +214,14 @@ export function PracticeResultsActions({
   questions,
   resultToken,
   assignmentToken,
+  loading = false,
 }: {
   title: string;
   sessionId: string;
   questions: WorkspaceQuestion[];
   resultToken?: string;
   assignmentToken?: string;
+  loading?: boolean;
 }) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -298,7 +300,7 @@ export function PracticeResultsActions({
         <button
           type="button"
           className={button}
-          disabled={busy || !questions.length}
+          disabled={loading || busy || !questions.length}
           onClick={() => void copy()}
         >
           <Clipboard size={16} /> Copy full practice
@@ -306,7 +308,7 @@ export function PracticeResultsActions({
         <button
           type="button"
           className={button}
-          disabled={busy || !questions.length}
+          disabled={loading || busy || !questions.length}
           onClick={() => void exportPdf()}
         >
           <FileDown size={16} /> {busy ? "Preparing PDF…" : "Export full PDF"}
@@ -314,7 +316,7 @@ export function PracticeResultsActions({
         <button
           type="button"
           className={button}
-          disabled={!questions.length}
+          disabled={loading || !questions.length}
           onClick={() => void board(false)}
         >
           <Presentation size={16} /> Export to whiteboard
@@ -322,7 +324,7 @@ export function PracticeResultsActions({
         <button
           type="button"
           className={button}
-          disabled={!questions.length}
+          disabled={loading || !questions.length}
           onClick={() => void board(true)}
         >
           <Presentation size={16} /> All questions on one page
