@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ListFilter } from "lucide-react";
 import { AnnotatedPassage } from "@/components/annotated-passage";
 import {
   AssessmentAnswerOptions,
@@ -21,6 +21,15 @@ import { isCorrectAnswer } from "@/lib/local-assessments";
 import { practiceScore } from "@/lib/practice-score";
 import { ScoreBreakdownTooltip } from "@/components/assessment-score-report";
 import { PracticeResultsActions } from "@/components/practice-results-actions";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 export function AssessmentReview({
   sessionId,
   title,
@@ -87,87 +96,112 @@ export function AssessmentReview({
   return (
     <section className="teacher-review" data-assessment-content>
       <header className="teacher-review-header">
-        <div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/results"
-              className={`${button} inline-flex shrink-0 items-center gap-2`}
-            >
-              <ArrowLeft size={15} />
-              All results
-            </Link>
-            <h1 className="text-xl font-semibold">{title}</h1>
-          </div>
-          <p className="mt-1 text-xs uppercase tracking-wide text-neutral-500">
-            Teaching review
-          </p>
-          <p className="mt-1 text-sm text-neutral-500">
-            {loading
-              ? "Loading explanations…"
-              : `${score.correct} correct / ${score.known} available · ${score.answered} answered`}
-            {score.score !== null &&
-              ` · Estimated ${score.score}/1600${score.projected ? " (single-section projection)" : ""}`}
-          </p>
-          <div className="mt-2">
-            <ScoreBreakdownTooltip
-              questions={questions}
-              label="View score breakdown"
-            />
+        <div className="flex min-w-0 items-center gap-3">
+          <Link
+            href="/results"
+            className={`${button} inline-flex size-9 shrink-0 items-center justify-center p-0`}
+            aria-label="Back to results"
+            title="Back to results"
+          >
+            <ArrowLeft size={16} />
+          </Link>
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-3">
+              <h1 className="truncate text-base font-semibold sm:text-lg">
+                {title}
+              </h1>
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500">
+              <span>
+                {loading
+                  ? "Loading review…"
+                  : `${score.correct} correct · ${score.known} scored · ${score.answered} answered`}
+                {score.score !== null && ` · Est. ${score.score}/1600`}
+              </span>
+              <ScoreBreakdownTooltip
+                questions={questions}
+                label="Score breakdown"
+              />
+            </div>
           </div>
         </div>
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          <label className="sr-only" htmlFor={`section-${sessionId}`}>
-            Review section
-          </label>
-          <select
-            id={`section-${sessionId}`}
-            aria-label="Review section"
-            className={`${button} review-section-select`}
-            value={section}
-            onChange={(e) => {
-              setSection(e.target.value);
-              setIndex(0);
-            }}
-          >
-            <option value="all">All sections</option>
-            {[
-              ...new Set(
-                questions.map(
-                  (q) => q.module || domainNames[q.domain] || q.domain,
-                ),
-              ),
-            ].map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <select
-            aria-label="Review answer filter"
-            className={button}
-            value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
-              setIndex(0);
-            }}
-          >
-            <option value="all">All questions</option>
-            <option value="incorrect">Mistakes</option>
-            <option value="correct">Correct</option>
-            <option value="unanswered">Unanswered</option>
-            <option value="marked">Marked for review</option>
-          </select>
-        </div>
-      </header>
-      <div className="teacher-review-scroll">
-        <div className="border-b border-neutral-200 py-4 dark:border-neutral-800">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className={`${button} inline-flex items-center gap-2 px-3`}
+                aria-label="Filter review questions"
+                title="Filter review questions"
+              >
+                <ListFilter size={16} />
+                <span className="hidden sm:inline">Filter</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-72">
+              <DropdownMenuLabel>Section</DropdownMenuLabel>
+              <DropdownMenuRadioGroup
+                value={section}
+                onValueChange={(value) => {
+                  setSection(value);
+                  setIndex(0);
+                }}
+              >
+                <DropdownMenuRadioItem value="all">
+                  All sections
+                </DropdownMenuRadioItem>
+                {[
+                  ...new Set(
+                    questions.map(
+                      (question) =>
+                        question.module ||
+                        domainNames[question.domain] ||
+                        question.domain,
+                    ),
+                  ),
+                ].map((item) => (
+                  <DropdownMenuRadioItem key={item} value={item}>
+                    {item}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Answers</DropdownMenuLabel>
+              <DropdownMenuRadioGroup
+                value={status}
+                onValueChange={(value) => {
+                  setStatus(value);
+                  setIndex(0);
+                }}
+              >
+                <DropdownMenuRadioItem value="all">
+                  All questions
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="incorrect">
+                  Mistakes
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="correct">
+                  Correct
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="unanswered">
+                  Unanswered
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="marked">
+                  Marked for review
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <PracticeResultsActions
             title={title}
             sessionId={sessionId}
             questions={questions}
             loading={loading}
+            compact
           />
         </div>
+      </header>
+      <div className="teacher-review-scroll">
         <div className="flex flex-wrap items-center justify-between gap-3 py-4">
           <p className="text-sm font-medium">
             Question {filtered.length ? index + 1 : 0} of {filtered.length}

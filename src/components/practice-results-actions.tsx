@@ -10,6 +10,14 @@ import { assessmentButton as button } from "@/components/assessment-controls";
 import { satRequest } from "@/lib/satSharing";
 import { signInWithTutPro, tutproClient } from "@/lib/tutproAccount";
 import { satResultDeliveryMessage } from "@/components/send-sat-result";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 function plainText(html?: string | null) {
   if (!html) return "";
@@ -215,6 +223,7 @@ export function PracticeResultsActions({
   resultToken,
   assignmentToken,
   loading = false,
+  compact = false,
 }: {
   title: string;
   sessionId: string;
@@ -222,6 +231,7 @@ export function PracticeResultsActions({
   resultToken?: string;
   assignmentToken?: string;
   loading?: boolean;
+  compact?: boolean;
 }) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -292,6 +302,60 @@ export function PracticeResultsActions({
           : "Could not open the whiteboard.",
       );
     }
+  }
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={`${button} inline-flex items-center gap-2 px-3`}
+              disabled={loading || !questions.length}
+              aria-label="Export practice"
+              title="Export practice"
+            >
+              <FileDown size={16} />
+              <span>Export</span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuLabel>Export this practice</DropdownMenuLabel>
+            <DropdownMenuItem disabled={loading} onSelect={() => void copy()}>
+              <Clipboard /> Copy full practice
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={loading || busy}
+              onSelect={() => void exportPdf()}
+            >
+              <FileDown /> Download full PDF
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              disabled={loading}
+              onSelect={() => void board(false)}
+            >
+              <Presentation /> Export to whiteboard
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={loading}
+              onSelect={() => void board(true)}
+            >
+              <Presentation /> All questions on one page
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {message && (
+          <span
+            role="status"
+            className="max-w-48 truncate text-xs text-neutral-500"
+          >
+            {message}
+          </span>
+        )}
+      </div>
+    );
   }
 
   return (

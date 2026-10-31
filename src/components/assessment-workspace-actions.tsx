@@ -3,10 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   Bookmark,
+  BookOpen,
   Check,
-  Ellipsis,
+  Grid2X2,
   NotebookPen,
   Presentation,
+  SlidersHorizontal,
 } from "lucide-react";
 import { FloatingToolWindow } from "@/components/floating-tool-window";
 import { assessmentButton as button } from "@/components/assessment-controls";
@@ -162,7 +164,8 @@ export function AssessmentWorkspaceActions({
   const [marks, setMarks] = useState<string[]>([]),
     [notesOpen, setNotesOpen] = useState(false),
     [localNote, setLocalNote] = useState(""),
-    [menuError, setMenuError] = useState("");
+    [menuError, setMenuError] = useState(""),
+    [menuOpen, setMenuOpen] = useState(false);
   const key = `sat-workspace-notes-v1:${sessionId}:${question?.id}`;
   useEffect(() => {
     const update = () => setMarks(readReviewMarks(sessionId));
@@ -206,18 +209,24 @@ export function AssessmentWorkspaceActions({
   if (compactMenu) {
     return (
       <div className="assessment-workspace-actions relative">
-        <DropdownMenu>
+        <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
           <DropdownMenuTrigger asChild>
             <button
               type="button"
               className={`${button} assessment-icon-button`}
               aria-label="More question tools"
               title="More question tools"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
             >
-              <Ellipsis size={18} />
+              <SlidersHorizontal size={18} />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-60">
+          <DropdownMenuContent
+            align="end"
+            sideOffset={8}
+            className="z-[240] w-60"
+          >
             <DropdownMenuLabel>Question tools</DropdownMenuLabel>
             {question && (
               <DropdownMenuCheckboxItem
@@ -230,6 +239,7 @@ export function AssessmentWorkspaceActions({
                   setMarks(next);
                 }}
               >
+                <Bookmark size={16} aria-hidden="true" />
                 {marked ? "Remove review mark" : "Mark for review"}
               </DropdownMenuCheckboxItem>
             )}
@@ -251,19 +261,19 @@ export function AssessmentWorkspaceActions({
                 )
               }
             >
-              <Presentation /> Marked questions
+              <Bookmark size={16} aria-hidden="true" /> Marked questions
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!questions.length}
               onSelect={() => openSet(markedQuestions, "collection")}
             >
-              <Presentation /> Question collection
+              <BookOpen size={16} aria-hidden="true" /> Question collection
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!questions.length}
               onSelect={() => openSet(markedQuestions, "single-page", true)}
             >
-              <Presentation /> All questions on one page
+              <Grid2X2 size={16} aria-hidden="true" /> All questions on one page
             </DropdownMenuItem>
             {extraMenuActions.length > 0 && <DropdownMenuSeparator />}
             {extraMenuActions.map((action) => (
