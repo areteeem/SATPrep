@@ -226,6 +226,7 @@ export function AssessmentWorkspaceActions({
             align="end"
             sideOffset={8}
             className="z-[240] w-60"
+            style={{ zIndex: 240 }}
           >
             <DropdownMenuLabel>Question tools</DropdownMenuLabel>
             {question && (
