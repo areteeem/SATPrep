@@ -934,17 +934,23 @@ a img,
 .assessment-question,.assessment-question-grid { line-height:1.65; }
 .assessment-question .text-xl,.assessment-question-grid .text-xl { font-size:1rem!important;line-height:1.65!important; }
 .assessment-answer[data-answer-state="selected"] { border-color:var(--foreground)!important;background:var(--muted)!important; }
+.assessment-answer[data-eliminated="true"] { text-decoration:line-through!important;opacity:.5!important; }
 .assessment-answer[data-answer-state="correct"],.assessment-answer-input[data-answer-state="correct"] { border-color:#15803d!important;background:#f0fdf4!important;color:#14532d!important; }
 .assessment-answer[data-answer-state="incorrect"],.assessment-answer-input[data-answer-state="incorrect"] { border-color:#b91c1c!important;background:#fef2f2!important;color:#7f1d1d!important; }
 .dark .assessment-answer[data-answer-state="correct"],.dark .assessment-answer-input[data-answer-state="correct"] { background:#052e16!important;color:#bbf7d0!important; }
 .dark .assessment-answer[data-answer-state="incorrect"],.dark .assessment-answer-input[data-answer-state="incorrect"] { background:#450a0a!important;color:#fecaca!important; }
 @media (hover:hover) and (pointer:fine) and (min-width:768px) {
-  .assessment-option {position:relative;width:100%;gap:0!important;}
-  .assessment-option .assessment-answer {flex:1 1 0%;width:auto;min-width:0;transition:flex-grow 200ms cubic-bezier(.2,.8,.2,1),flex-basis 200ms cubic-bezier(.2,.8,.2,1);}
-  .assessment-option .assessment-eliminate {flex:0 0 0;width:0!important;min-width:0!important;height:44px;overflow:hidden;border-color:transparent!important;padding:0!important;opacity:0;pointer-events:none;transition:flex-basis 200ms cubic-bezier(.2,.8,.2,1),width 200ms cubic-bezier(.2,.8,.2,1),margin 200ms cubic-bezier(.2,.8,.2,1),opacity 140ms ease,border-color 140ms ease;}
-  .assessment-option:hover .assessment-eliminate,.assessment-option:focus-within .assessment-eliminate {flex-basis:44px;width:44px!important;min-width:44px!important;margin-left:8px;opacity:1;pointer-events:auto;border-color:var(--border)!important;}
+  .assessment-option {position:relative;width:100%;}
+  .assessment-option .assessment-answer {flex:0 0 100%;width:100%;min-width:0;transition:flex-basis 200ms cubic-bezier(.2,.8,.2,1),width 200ms cubic-bezier(.2,.8,.2,1);}
+  .assessment-option .assessment-eliminate {position:absolute;top:50%;right:0;z-index:2;transform:translateY(-50%) translateX(4px);opacity:0;pointer-events:none;transition:opacity 140ms ease,transform 200ms cubic-bezier(.2,.8,.2,1);}
+  .assessment-option:hover .assessment-answer,.assessment-option:focus-within .assessment-answer {flex-basis:calc(100% - 52px);width:calc(100% - 52px);}
+  .assessment-option:hover .assessment-eliminate,.assessment-option:focus-within .assessment-eliminate {opacity:1;pointer-events:auto;transform:translateY(-50%) translateX(0);}
 }
-@media (any-pointer:coarse) { .assessment-eliminate { opacity:1!important;pointer-events:auto!important; } }
+@media (any-pointer:coarse) {
+  .assessment-option {gap:8px!important;}
+  .assessment-option .assessment-answer {flex:1 1 0%;width:auto;}
+  .assessment-option .assessment-eliminate {position:static;flex:0 0 44px;transform:none;opacity:1!important;pointer-events:auto!important;}
+}
 @media (prefers-reduced-motion:reduce) { .assessment-option .assessment-answer,.assessment-option .assessment-eliminate {transition:none!important;} }
 @media (max-width:900px) {
   /* Rush sets its desktop split with an inline gridTemplateColumns value. Keep

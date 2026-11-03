@@ -177,6 +177,7 @@ export function AssessmentAnswerOptions({
                       ? "selected"
                       : "unanswered"
               }
+              data-eliminated={Boolean(eliminated[key])}
               disabled={disabled || eliminated[key]}
               onClick={() => onSelect(key)}
               className={`assessment-answer flex min-h-14 flex-1 items-start gap-3 rounded-xl border border-neutral-300 bg-transparent p-3 text-left text-base dark:border-neutral-700 ${eliminated[key] ? "line-through opacity-50" : ""}`}
