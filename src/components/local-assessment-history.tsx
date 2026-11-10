@@ -219,7 +219,7 @@ export function LocalAssessmentHistory() {
           }),
         );
         similarQuestions = loaded.filter(
-          (question): question is LocalQuestion => Boolean(question),
+          (question): question is LocalQuestion => question !== null,
         );
         if (similarQuestions.length) {
           setDetails((old) => ({
