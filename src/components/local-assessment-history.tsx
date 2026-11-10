@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { MathJax } from "better-react-mathjax";
 import { BookOpen, Clock3, History, Play } from "lucide-react";
@@ -9,7 +9,10 @@ import {
   saveLocalAssessment,
 } from "@/lib/local-assessments";
 import type { LocalAssessment, LocalQuestion } from "@/lib/local-assessments";
-import type { API_Response_Question } from "@/types/question";
+import type {
+  API_Response_Question,
+  PlainQuestionType,
+} from "@/types/question";
 import { AssessmentExplanation } from "@/components/assessment-workspace-actions";
 import { AnnotatedPassage } from "@/components/annotated-passage";
 import {
@@ -51,17 +54,33 @@ export function LocalAssessmentHistory() {
   const [practice, setPractice] = useState<LocalQuestion[] | null>(null),
     [answers, setAnswers] = useState<Record<string, string>>({}),
     [checked, setChecked] = useState(false),
-    [finished, setFinished] = useState(false);
+    [finished, setFinished] = useState(false),
+    [practiceBusy, setPracticeBusy] = useState(false),
+    [practiceNotice, setPracticeNotice] = useState(""),
+    [practiceIncludesSimilar, setPracticeIncludesSimilar] = useState(false),
+    [loadedSessionId, setLoadedSessionId] = useState(""),
+    [launchPractice, setLaunchPractice] = useState<{
+      sessionId: string;
+      includeSimilar: boolean;
+    } | null>(null),
+    [autoPracticeStarted, setAutoPracticeStarted] = useState("");
   useEffect(() => {
     const saved = readLocalAssessments();
     setSessions(saved);
-    const id = new URLSearchParams(location.search).get("local");
+    const params = new URLSearchParams(location.search);
+    const id = params.get("local");
     if (id) setSelected(saved.find((session) => session.id === id) || null);
+    if (id && params.get("practice") === "mistakes")
+      setLaunchPractice({
+        sessionId: id,
+        includeSimilar: params.get("similar") === "1",
+      });
   }, []);
   useEffect(() => {
     if (!selected) return;
     let stopped = false;
     setLoading(true);
+    setLoadedSessionId("");
     setError("");
     setDetails(
       Object.fromEntries(
@@ -96,7 +115,10 @@ export function LocalAssessmentHistory() {
           ...Object.fromEntries(entries.filter((entry) => entry !== null)),
         }));
       }
-      if (!stopped) setLoading(false);
+      if (!stopped) {
+        setLoadedSessionId(selected.id);
+        setLoading(false);
+      }
     })();
     return () => {
       stopped = true;
@@ -129,16 +151,126 @@ export function LocalAssessmentHistory() {
       ? answers[question.id] || ""
       : question.answer
     : "";
-  const startMistakes = () => {
+  const startMistakes = useCallback(async (includeSimilar = false) => {
     const mistakes = wrong.filter(
       (q) => category === "all" || q.domain === category,
     );
-    setPractice(mistakes);
+    if (!mistakes.length) {
+      setError("There are no answered mistakes in this practice set.");
+      return;
+    }
+    setError("");
+    setPracticeNotice("");
+    setPracticeBusy(true);
+    let similarQuestions: LocalQuestion[] = [];
+    if (includeSimilar) {
+      try {
+        const domains = [
+          ...new Set(mistakes.map((q) => q.domain).filter(Boolean)),
+        ];
+        const skills = [
+          ...new Set(mistakes.map((q) => q.skill).filter(Boolean)),
+        ];
+        const params = new URLSearchParams({
+          assessment: selected?.selections?.assessment || "SAT",
+          domains: domains.join(","),
+          excludeIds: source.map((q) => q.id).join(","),
+        });
+        if (skills.length) params.set("skills", skills.join(","));
+        const response = await fetch(`/api/get-questions?${params}`);
+        const payload = (await response.json()) as {
+          success?: boolean;
+          data?: PlainQuestionType[];
+        };
+        if (!response.ok || !payload.success || !payload.data)
+          throw new Error("Could not find similar questions.");
+        const candidates = payload.data.filter(
+          (candidate) =>
+            candidate.questionId &&
+            (candidate.external_id || candidate.ibn) &&
+            !source.some((q) => q.id === candidate.questionId),
+        );
+        for (let i = candidates.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+        }
+        const chosen = candidates.slice(0, Math.min(mistakes.length, 10));
+        const loaded = await Promise.all(
+          chosen.map(async (candidate) => {
+            const externalId = candidate.external_id || candidate.ibn || "";
+            try {
+              const detailResponse = await fetch(
+                `/api/question/${encodeURIComponent(externalId)}`,
+              );
+              const detailPayload = await detailResponse.json();
+              if (!detailResponse.ok || !detailPayload.data) return null;
+              return {
+                id: candidate.questionId,
+                externalId,
+                domain: candidate.primary_class_cd,
+                skill: candidate.skill_cd,
+                answer: "",
+                correctAnswers: detailPayload.data.correct_answer,
+                detail: detailPayload.data as API_Response_Question,
+              } satisfies LocalQuestion;
+            } catch {
+              return null;
+            }
+          }),
+        );
+        similarQuestions = loaded.filter(
+          (question): question is LocalQuestion => Boolean(question),
+        );
+        if (similarQuestions.length) {
+          setDetails((old) => ({
+            ...old,
+            ...Object.fromEntries(
+              similarQuestions.map((question) => [
+                question.id,
+                question.detail!,
+              ]),
+            ),
+          }));
+        }
+        setPracticeNotice(
+          similarQuestions.length
+            ? `Added ${similarQuestions.length} similar ${similarQuestions.length === 1 ? "question" : "questions"}, matched by skill.`
+            : "No similar questions were available, so this set contains missed questions only.",
+        );
+      } catch {
+        setPracticeNotice(
+          "Similar questions could not be loaded, so this set contains missed questions only.",
+        );
+      }
+    }
+    setPractice([...mistakes, ...similarQuestions]);
+    setPracticeIncludesSimilar(similarQuestions.length > 0);
     setAnswers({});
     setIndex(0);
     setChecked(false);
     setFinished(false);
-  };
+    setPracticeBusy(false);
+  }, [wrong, category, source, selected?.selections?.assessment]);
+  useEffect(() => {
+    if (
+      !launchPractice ||
+      !selected ||
+      selected.id !== launchPractice.sessionId ||
+      loading ||
+      loadedSessionId !== selected.id ||
+      autoPracticeStarted === `${selected.id}:${launchPractice.includeSimilar}`
+    )
+      return;
+    setAutoPracticeStarted(`${selected.id}:${launchPractice.includeSimilar}`);
+    void startMistakes(launchPractice.includeSimilar);
+  }, [
+    launchPractice,
+    selected,
+    loading,
+    loadedSessionId,
+    autoPracticeStarted,
+    startMistakes,
+  ]);
   function finishPractice() {
     if (!selected || !practice) return;
     const now = new Date().toISOString();
@@ -146,7 +278,7 @@ export function LocalAssessmentHistory() {
       saveLocalAssessment({
         id: `mistakes-${Date.now()}`,
         kind: "rush",
-        title: `Mistake practice · ${category === "all" ? "All categories" : domainNames[category]}`,
+        title: `${practiceIncludesSimilar ? "Mistakes + similar practice" : "Mistake practice"} · ${category === "all" ? "All categories" : domainNames[category]}`,
         startedAt: now,
         updatedAt: now,
         status: "completed",
@@ -374,6 +506,16 @@ export function LocalAssessmentHistory() {
               Close review
             </button>
           </div>
+          {practiceBusy && (
+            <p role="status" className="text-sm text-neutral-500">
+              Finding skill-matched questions for your practice set…
+            </p>
+          )}
+          {practice && practiceNotice && (
+            <p role="status" className="text-sm text-neutral-500">
+              {practiceNotice}
+            </p>
+          )}
           {!practice && (
             <div className="flex flex-wrap items-center gap-3">
               <select
@@ -396,13 +538,14 @@ export function LocalAssessmentHistory() {
                 className={button}
                 disabled={
                   loading ||
+                  practiceBusy ||
                   !wrong.some(
                     (q) => category === "all" || q.domain === category,
                   )
                 }
-                onClick={startMistakes}
+                onClick={() => void startMistakes(false)}
               >
-                Practice mistakes in this category
+                {practiceBusy ? "Preparing practice…" : "Practice mistakes in this category"}
               </button>
             </div>
           )}

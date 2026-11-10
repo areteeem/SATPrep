@@ -9,9 +9,10 @@ import {
 } from "@/components/assessment-workspace-actions";
 import { AssessmentCompletion } from "@/components/assessment-completion";
 import { AssessmentScoreReport } from "@/components/assessment-score-report";
+import { AssessmentResultsSidebar } from "@/components/assessment-results-sidebar";
 import { PracticeResultsActions } from "@/components/practice-results-actions";
 import { fillQuestionBlank } from "@/lib/assessment-blanks";
-import { Save } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 import {
   AssessmentCalculatorTools,
   AssessmentMathPanel,
@@ -429,11 +430,25 @@ export default function FullTest() {
     >
       <AssessmentActivePage active={active || stage === "break"} />
       <div className="mx-auto max-w-7xl">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 pb-5 dark:border-neutral-700">
+        <header className="assessment-test-header grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 border-b border-neutral-200 pb-5 dark:border-neutral-700">
           <Link href="/results" className="font-semibold">
             ← Practice sessions
           </Link>
-          <div className="flex flex-wrap items-center gap-3">
+          {(active || stage === "break") && !session.paused && (
+            <div className="assessment-test-header-center">
+              <Countdown deadline={session.deadline}>
+                {(seconds) => (
+                  <span
+                    aria-label="Time remaining"
+                    className="assessment-test-countdown font-mono"
+                  >
+                    {clock(seconds)}
+                  </span>
+                )}
+              </Countdown>
+            </div>
+          )}
+          <div className="assessment-test-header-actions flex flex-wrap items-center justify-end gap-3">
             {stage === "done" && review && (
               <>
                 <select
@@ -466,18 +481,6 @@ export default function FullTest() {
                   compact
                 />
               </>
-            )}
-            {(active || stage === "break") && !session.paused && (
-              <Countdown deadline={session.deadline}>
-                {(seconds) => (
-                  <span
-                    aria-label="Time remaining"
-                    className="font-mono text-lg"
-                  >
-                    {clock(seconds)}
-                  </span>
-                )}
-              </Countdown>
             )}
             {active && isMath && hasStimulus && !session.paused && (
               <AssessmentCalculatorTools />
@@ -590,11 +593,17 @@ export default function FullTest() {
             questions={workspaceQuestions}
             subtitle="Your estimated score and performance by SAT question category."
             scoreLoading={scoreKeysLoading}
-            onReview={() => setReview(true)}
+            assessmentId={session.id}
+            showNavigation
+            onNavigateReview={() => setReview(true)}
+            onNavigateSharing={() =>
+              document.getElementById("export-sharing")?.scrollIntoView({ behavior: "smooth", block: "center" })
+            }
             actions={
               <div className="min-w-full space-y-3">
                 <AssessmentCompletion
                   redirect={false}
+                  showStatus={false}
                   localId={session.id || ""}
                   assignmentToken={assignmentToken}
                   onPublished={async (url) => {
@@ -651,6 +660,10 @@ export default function FullTest() {
                   questions={workspaceQuestions}
                   resultToken={publishedResultToken}
                   assignmentToken={assignmentToken || undefined}
+                  onPracticeMistakes={(includeSimilar) => {
+                    window.location.href = `/results?local=${encodeURIComponent(session.id || "")}&practice=mistakes${includeSimilar ? "&similar=1" : ""}`;
+                  }}
+                  onStartOver={() => setConfirmation("restart")}
                 />
                 {deliveryNotice && (
                   <p
@@ -660,20 +673,6 @@ export default function FullTest() {
                     {deliveryNotice}
                   </p>
                 )}
-                <div className="flex flex-wrap gap-3">
-                  <Link
-                    className={button}
-                    href={`/results?local=${encodeURIComponent(session.id || "")}`}
-                  >
-                    Practice mistakes by category
-                  </Link>
-                  <button
-                    className={button}
-                    onClick={() => setConfirmation("restart")}
-                  >
-                    Start over
-                  </button>
-                </div>
               </div>
             }
           />
@@ -681,6 +680,19 @@ export default function FullTest() {
         {(active || (stage === "done" && review)) &&
           !session.paused &&
           item && (
+            <div className={stage === "done" && review ? "assessment-full-review-layout" : ""}>
+            {stage === "done" && review && (
+              <AssessmentResultsSidebar
+                active="review"
+                onSelect={(section) => {
+                  if (section === "summary") setReview(false);
+                  if (section === "sharing") {
+                    setReview(false);
+                    window.setTimeout(() => document.getElementById("export-sharing")?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+                  }
+                }}
+              />
+            )}
             <section className="py-7">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <h1 className="font-semibold">
@@ -811,22 +823,26 @@ export default function FullTest() {
               </div>
               <div className="assessment-sticky-navigation mt-8">
                 <button
-                  className={button}
+                  className={`${button} assessment-icon-button`}
+                  aria-label="Previous question"
+                  title="Previous question"
                   disabled={session.index === 0}
                   onClick={() =>
                     setSession((old) => ({ ...old, index: old.index - 1 }))
                   }
                 >
-                  Previous
+                  <ArrowLeft size={18} aria-hidden="true" />
                 </button>
                 <button
-                  className={button}
+                  className={`${button} assessment-icon-button`}
+                  aria-label="Next question"
+                  title="Next question"
                   disabled={session.index >= module.length - 1}
                   onClick={() =>
                     setSession((old) => ({ ...old, index: old.index + 1 }))
                   }
                 >
-                  Next
+                  <ArrowRight size={18} aria-hidden="true" />
                 </button>
                 {active && (
                   <button
@@ -845,6 +861,7 @@ export default function FullTest() {
                 )}
               </div>
             </section>
+            </div>
           )}
       </div>
       <AssessmentConfirm

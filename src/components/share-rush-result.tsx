@@ -28,18 +28,20 @@ export function ShareRushResult({
       })),
     );
   }, [session]);
-  return questions.length ? (
+  if (!questions.length) return null;
+  if (session.status === "completed")
+    return (
+      <AssessmentCompletion
+        redirect={false}
+        showStatus={false}
+        localId={session.sessionId}
+        result={{ mode: "rush", questions }}
+        onResultReady={onResultReady}
+      />
+    );
+  return (
     <div className="mx-auto max-w-xl p-5">
-      {session.status === "completed" ? (
-        <AssessmentCompletion
-          redirect={false}
-          localId={session.sessionId}
-          result={{ mode: "rush", questions }}
-          onResultReady={onResultReady}
-        />
-      ) : (
-        <SendLocalResult result={{ mode: "rush", questions }} />
-      )}
+      <SendLocalResult result={{ mode: "rush", questions }} />
     </div>
-  ) : null;
+  );
 }

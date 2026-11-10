@@ -26,7 +26,13 @@ export function hasAssessmentContent(html?: string | null) {
 
 function formatAnswerOptionHtml(html: string) {
   const separators = html.match(/\s+\/\s+/g);
-  if (!separators || separators.length < 2 || /\\(?:frac|dfrac|tfrac|sqrt)|<math\b/i.test(html))
+  if (
+    !separators ||
+    separators.length < 2 ||
+    /\\(?:frac|dfrac|tfrac|sqrt)|<math\b|class=["'][^"']*\bmath-container\b/i.test(
+      html,
+    )
+  )
     return html;
 
   const lines = html
@@ -71,7 +77,7 @@ export function AssessmentConfirm({
       <DialogContent
         hideCloseButton
         overlayClassName="bg-black/20 backdrop-blur-[2px] dark:bg-black/50"
-        className="assessment-modal assessment-modal--confirm gap-8"
+        className="assessment-modal assessment-modal--confirm gap-6"
       >
         <DialogHeader className="items-center text-center">
           <DialogTitle className="assessment-modal-title">{title}</DialogTitle>

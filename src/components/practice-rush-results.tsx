@@ -38,17 +38,14 @@ export default function PracticeRushResults({
             sessionId={sessionData.sessionId}
             questions={questions}
             resultToken={resultToken}
-          />
-          <button
-            type="button"
-            onClick={() => {
+            onPracticeMistakes={(includeSimilar) => {
+              window.location.href = `/results?local=${encodeURIComponent(sessionData.sessionId)}&practice=mistakes${includeSimilar ? "&similar=1" : ""}`;
+            }}
+            onStartOver={() => {
               playSound("button-pressed.wav");
               onContinue();
             }}
-            className="inline-flex min-h-12 items-center justify-center rounded-xl border border-neutral-300 px-5 py-3 font-medium text-neutral-800 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800"
-          >
-            Start new practice
-          </button>
+          />
         </>
       }
     />

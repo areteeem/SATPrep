@@ -6,7 +6,6 @@ import { MathJax } from "better-react-mathjax";
 import { fillQuestionBlank } from "@/lib/assessment-blanks";
 import {
   Highlighter,
-  Calculator,
   Minus,
   Underline as UnderlineIcon,
   X,
@@ -91,58 +90,6 @@ function AnnotatedPassageView({
       wrapper.className = "assessment-table-wrap";
       table.parentNode?.insertBefore(wrapper, table);
       wrapper.appendChild(table);
-      const copy = document.createElement("button");
-      copy.type = "button";
-      copy.className = "assessment-table-desmos";
-      copy.dataset.tableCopyControl = "true";
-      copy.setAttribute("aria-label", "Copy table to Desmos");
-      copy.title = "Copy table to Desmos";
-      copy.innerHTML = '<span class="assessment-table-desmos-icon">▦</span><span>Desmos</span>';
-      copy.addEventListener("click", async () => {
-        const rows = Array.from(table.rows).map((row) =>
-          Array.from(row.cells).map((cell) =>
-            cell.innerText.trim().replace(/\s+/g, " "),
-          ),
-        );
-        const hasHeader = Boolean(
-          table.tHead || table.rows[0]?.querySelector("th"),
-        );
-        const headers = hasHeader ? rows[0] || [] : [];
-        const dataRows = hasHeader ? rows.slice(1) : rows;
-        const columnCount = Math.max(0, ...rows.map((row) => row.length));
-        const columns = Array.from({ length: columnCount }, (_, index) => {
-          const candidate = (headers[index] || "").trim();
-          const latex = /^[a-zA-Z][a-zA-Z0-9_]*$/.test(candidate)
-            ? candidate
-            : index === 0
-              ? "x"
-              : index === 1
-                ? "y"
-                : `x_${index + 1}`;
-          return {
-            latex,
-            values: dataRows.map((row) => row[index] || ""),
-          };
-        });
-        const text = rows
-          .map((row) => row.join("\t"))
-          .join("\n");
-        try {
-          if (!process.env.NEXT_PUBLIC_DESMOS_API_KEY)
-            await navigator.clipboard.writeText(text);
-          window.dispatchEvent(
-            new CustomEvent("sat-open-desmos", { detail: { columns } }),
-          );
-          setMessage(
-            process.env.NEXT_PUBLIC_DESMOS_API_KEY
-              ? "Table added to Desmos."
-              : "Table copied. Paste it into Desmos to use it.",
-          );
-        } catch {
-          setMessage("Allow clipboard access to copy this table into Desmos.");
-        }
-      });
-      wrapper.append(copy);
     });
   }, [content]);
   useEffect(() => {
@@ -225,7 +172,6 @@ function AnnotatedPassageView({
       selectionRange.current = null;
       setPopover(null);
       const clone = root.cloneNode(true) as HTMLDivElement;
-      clone.querySelectorAll("[data-table-copy-control]").forEach((el) => el.remove());
       clone.querySelectorAll(".assessment-table-wrap").forEach((wrapper) => {
         const parent = wrapper.parentNode;
         while (wrapper.firstChild) parent?.insertBefore(wrapper.firstChild, wrapper);

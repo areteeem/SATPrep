@@ -9,6 +9,7 @@ export function AssessmentCompletion({
   localId,
   assignmentToken,
   redirect = true,
+  showStatus = true,
   onPublished,
   onResultReady,
 }: {
@@ -16,6 +17,7 @@ export function AssessmentCompletion({
   localId: string;
   assignmentToken?: string;
   redirect?: boolean;
+  showStatus?: boolean;
   onPublished?: (url: string) => void | Promise<void>;
   onResultReady?: (url: string) => void;
 }) {
@@ -79,6 +81,7 @@ export function AssessmentCompletion({
     onResultReady,
     router,
   ]);
+  if (!redirect && !showStatus) return null;
   if (!redirect)
     return (
       <p role="status" className="my-3 text-sm text-neutral-500">

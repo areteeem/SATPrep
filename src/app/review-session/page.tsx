@@ -1,8 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { AssessmentReview } from "@/components/assessment-review";
-import { SendLocalResult } from "@/components/assessment-completion";
+import { AssessmentCompletion, SendLocalResult } from "@/components/assessment-completion";
 import { SaveAssessmentToTutPro } from "@/components/save-assessment-to-tutpro";
+import { AssessmentScoreReport } from "@/components/assessment-score-report";
+import { AssessmentResultsSidebar } from "@/components/assessment-results-sidebar";
+import { PracticeResultsActions } from "@/components/practice-results-actions";
 import { readLocalAssessments } from "@/lib/local-assessments";
 import { readReviewMarks } from "@/lib/assessment-workspace";
 import type { WorkspaceQuestion } from "@/lib/assessment-workspace";
@@ -14,7 +17,9 @@ export default function ReviewSession() {
     [assignment, setAssignment] = useState(""),
     [initialQuestion, setInitialQuestion] = useState(""),
     [loading, setLoading] = useState(true),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [view, setView] = useState<"summary" | "review">("review"),
+    [resultToken, setResultToken] = useState("");
   useEffect(() => {
     let alive = true;
     const controller = new AbortController();
@@ -80,10 +85,65 @@ export default function ReviewSession() {
       controller.abort();
     };
   }, []);
+  const sharedResult = {
+    mode,
+    questions: questions.map((q) => ({
+      id: q.id,
+      externalId: q.externalId,
+      domain: q.domain,
+      answer: q.answer,
+    })),
+  };
+  const showSummary = () => setView("summary");
+  const showSharing = () => {
+    setView("summary");
+    window.setTimeout(() => document.getElementById("export-sharing")?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+  };
   return error ? (
     <main className="p-8" role="alert">
       {error}
     </main>
+  ) : view === "summary" ? (
+    <div className="assessment-score-layout has-sidebar">
+      <AssessmentResultsSidebar
+        active="summary"
+        onSelect={(section) => {
+          if (section === "review") setView("review");
+          if (section === "sharing") showSharing();
+        }}
+      />
+      <AssessmentScoreReport
+        title={`${title} results`}
+        questions={questions}
+        subtitle={`${mode === "full" ? "Full-length test" : mode === "rush" ? "Practice Rush" : "Practice"} · Your estimated score and performance by SAT question category.`}
+        assessmentId={mode === "full" ? id : undefined}
+        actions={
+          <div className="space-y-2">
+            <AssessmentCompletion
+              result={sharedResult}
+              localId={id}
+              assignmentToken={assignment || undefined}
+              redirect={false}
+              showStatus={false}
+              onResultReady={(url) => setResultToken(new URL(url, location.origin).hash.slice(1))}
+            />
+            <PracticeResultsActions
+              title={`${title} results`}
+              sessionId={id}
+              questions={questions}
+              resultToken={resultToken}
+              assignmentToken={assignment || undefined}
+              onPracticeMistakes={(includeSimilar) => {
+                window.location.href = `/results?local=${encodeURIComponent(id)}&practice=mistakes${includeSimilar ? "&similar=1" : ""}`;
+              }}
+              onStartOver={() => {
+                window.location.href = mode === "full" ? "/full-test" : "/practice";
+              }}
+            />
+          </div>
+        }
+      />
+    </div>
   ) : (
     <AssessmentReview
       sessionId={id}
@@ -91,31 +151,17 @@ export default function ReviewSession() {
       questions={questions}
       initialQuestionId={initialQuestion}
       loading={loading}
+      onNavigateSummary={showSummary}
+      onNavigateSharing={showSharing}
       actions={
         assignment ? (
           <SendLocalResult
-            result={{
-              mode,
-              questions: questions.map((q) => ({
-                id: q.id,
-                externalId: q.externalId,
-                domain: q.domain,
-                answer: q.answer,
-              })),
-            }}
+            result={sharedResult}
             assignmentToken={assignment}
           />
         ) : (
           <SaveAssessmentToTutPro
-            result={{
-              mode,
-              questions: questions.map((q) => ({
-                id: q.id,
-                externalId: q.externalId,
-                domain: q.domain,
-                answer: q.answer,
-              })),
-            }}
+            result={sharedResult}
           />
         )
       }

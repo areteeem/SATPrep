@@ -21,6 +21,7 @@ import { isCorrectAnswer } from "@/lib/local-assessments";
 import { practiceScore } from "@/lib/practice-score";
 import { ScoreBreakdownTooltip } from "@/components/assessment-score-report";
 import { PracticeResultsActions } from "@/components/practice-results-actions";
+import { AssessmentResultsSidebar, type ResultsSection } from "@/components/assessment-results-sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +38,8 @@ export function AssessmentReview({
   initialQuestionId = "",
   loading = false,
   actions,
+  onNavigateSummary,
+  onNavigateSharing,
 }: {
   sessionId: string;
   title: string;
@@ -44,6 +47,8 @@ export function AssessmentReview({
   initialQuestionId?: string;
   loading?: boolean;
   actions?: React.ReactNode;
+  onNavigateSummary?: () => void;
+  onNavigateSharing?: () => void;
 }) {
   const [marks, setMarks] = useState<string[]>([]);
   useEffect(() => {
@@ -56,7 +61,8 @@ export function AssessmentReview({
     [section, setSection] = useState("all"),
     [status, setStatus] = useState("all"),
     [zoom, setZoom] = useState(100),
-    [showAnswers, setShowAnswers] = useState(true);
+    [showAnswers, setShowAnswers] = useState(true),
+    [navigationActive, setNavigationActive] = useState<ResultsSection>("review");
   const filtered = useMemo(
     () =>
       questions.filter(
@@ -95,6 +101,18 @@ export function AssessmentReview({
   const known = (q?.correctAnswers || detail?.correct_answer)?.length;
   return (
     <section className="teacher-review" data-assessment-content>
+      <AssessmentResultsSidebar
+        active={navigationActive}
+        onSelect={(section) => {
+          setNavigationActive(section);
+          if (section === "summary") onNavigateSummary?.();
+          if (section === "sharing") {
+            if (onNavigateSharing) onNavigateSharing();
+            else document.getElementById("review-export-sharing")?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }}
+      />
+      <div className="teacher-review-main">
       <header className="teacher-review-header">
         <div className="flex min-w-0 items-center gap-3">
           <Link
@@ -192,6 +210,7 @@ export function AssessmentReview({
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
+          <div id="review-export-sharing">
           <PracticeResultsActions
             title={title}
             sessionId={sessionId}
@@ -199,6 +218,7 @@ export function AssessmentReview({
             loading={loading}
             compact
           />
+          </div>
         </div>
       </header>
       <div className="teacher-review-scroll">
@@ -368,6 +388,7 @@ export function AssessmentReview({
           <ArrowRight size={18} />
         </button>
       </nav>
+      </div>
     </section>
   );
 }

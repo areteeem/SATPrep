@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import {
   Bookmark,
@@ -44,15 +44,6 @@ export function WhiteboardButton({
 }) {
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
-  const root = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const close = (event: PointerEvent) => {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", close);
-    return () => document.removeEventListener("pointerdown", close);
-  }, [open]);
   const marked = questions.filter((q) => q.marked);
   const openSet = (
     items: WorkspaceQuestion[],
@@ -74,57 +65,64 @@ export function WhiteboardButton({
     );
   };
   return (
-    <span
-      ref={root}
-      className="assessment-whiteboard-menu-root relative inline-flex flex-col gap-1"
-    >
-      <button
-        type="button"
-        className={`${button} assessment-icon-button`}
-        aria-label="Whiteboard options"
-        title="Whiteboard options"
-        aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
-      >
-        <Presentation size={17} />
-      </button>
-      {open && (
-        <div className="assessment-whiteboard-menu absolute right-0 top-full z-[220] mt-2 grid min-w-52 gap-1 rounded-xl border bg-white p-2 text-neutral-900 shadow-xl">
-          {question && (
+    <span className="assessment-whiteboard-menu-root relative inline-flex flex-col gap-1">
+      {question ? (
+        <button
+          type="button"
+          className={`${button} assessment-icon-button`}
+          aria-label="Open this question on the whiteboard"
+          title="Open this question on the whiteboard"
+          onClick={() => openSet([question], "question")}
+        >
+          <Presentation size={17} />
+        </button>
+      ) : (
+        <DropdownMenu open={open} onOpenChange={setOpen}>
+          <DropdownMenuTrigger asChild>
             <button
-              className="assessment-whiteboard-menu-item"
-              onClick={() => openSet([question], "question")}
+              type="button"
+              className={`${button} assessment-icon-button`}
+              aria-label={`${label} options`}
+              title={`${label} options`}
+              aria-haspopup="menu"
+              aria-expanded={open}
             >
-              This question
+              <Presentation size={17} />
             </button>
-          )}
-          <button
-            className="assessment-whiteboard-menu-item"
-            disabled={!marked.length}
-            onClick={() => openSet(marked, "marked")}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            sideOffset={8}
+            collisionPadding={12}
+            className="z-[240] min-w-56"
+            style={{ zIndex: 240 }}
           >
-            Marked questions{marked.length ? ` (${marked.length})` : ""}
-          </button>
-          <button
-            className="assessment-whiteboard-menu-item"
-            disabled={!questions.length}
-            onClick={() => openSet(questions, "collection")}
-          >
-            Question collection
-            {questions.length ? ` (${questions.length})` : ""}
-          </button>
-          <button
-            className="assessment-whiteboard-menu-item"
-            disabled={!questions.length}
-            onClick={() => openSet(questions, "single-page", true)}
-          >
-            All questions on one page
-            {questions.length ? ` (${questions.length})` : ""}
-          </button>
-        </div>
+            <DropdownMenuItem
+              disabled={!marked.length}
+              onSelect={() => openSet(marked, "marked")}
+            >
+              <Bookmark aria-hidden="true" />
+              Marked questions{marked.length ? ` (${marked.length})` : ""}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={!questions.length}
+              onSelect={() => openSet(questions, "collection")}
+            >
+              <BookOpen aria-hidden="true" />
+              Question collection{questions.length ? ` (${questions.length})` : ""}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={!questions.length}
+              onSelect={() => openSet(questions, "single-page", true)}
+            >
+              <Grid2X2 aria-hidden="true" />
+              All questions on one page{questions.length ? ` (${questions.length})` : ""}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
       {error && (
-        <span role="alert" className="text-xs">
+        <span role="alert" className="max-w-56 text-xs">
           {error}
         </span>
       )}
@@ -225,6 +223,7 @@ export function AssessmentWorkspaceActions({
           <DropdownMenuContent
             align="end"
             sideOffset={8}
+            collisionPadding={12}
             className="z-[240] w-60"
             style={{ zIndex: 240 }}
           >

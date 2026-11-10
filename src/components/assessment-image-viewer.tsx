@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import { motion } from "framer-motion";
 import { Eraser, RotateCcw } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 type Point = { x: number; y: number };
 type Stroke = { color: string; points: Point[] };
 type ImageTarget = { src: string; alt: string };
+type ImageRect = { left: number; top: number; width: number; height: number };
 
 const colors = ["#171717", "#dc2626", "#2563eb"];
 const annotationKey = (src: string) =>
@@ -18,18 +20,26 @@ const iconButtonClass =
 /** Opens assessment figures in a viewport-sized viewer and stores pen marks per image URL. */
 export function AssessmentImageViewer() {
   const [image, setImage] = useState<ImageTarget | null>(null);
+  const [origin, setOrigin] = useState<ImageRect | null>(null);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [color, setColor] = useState(colors[0]);
   const [drawing, setDrawing] = useState<Point[] | null>(null);
   const activeStroke = useRef<Point[] | null>(null);
 
   const [aspect, setAspect] = useState(1.5);
-  const [viewport, setViewport] = useState({ width: 900, height: 650 });
+  const [viewport, setViewport] = useState({
+    width: 900,
+    height: 650,
+    screenWidth: 924,
+    screenHeight: 726,
+  });
   useEffect(() => {
     const update = () =>
       setViewport({
-        width: window.innerWidth - 24,
-        height: window.innerHeight - 120,
+        width: Math.max(1, window.innerWidth - 24),
+        height: Math.max(1, window.innerHeight - 96),
+        screenWidth: window.innerWidth,
+        screenHeight: window.innerHeight,
       });
     update();
     window.addEventListener("resize", update);
@@ -59,6 +69,13 @@ export function AssessmentImageViewer() {
     if (target) {
       const src = target.currentSrc || target.getAttribute("src");
       if (!src) return;
+      const rect = target.getBoundingClientRect();
+      setOrigin({
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+      });
       setAspect(
         target.naturalWidth && target.naturalHeight
           ? target.naturalWidth / target.naturalHeight
@@ -71,6 +88,12 @@ export function AssessmentImageViewer() {
       svg.style.background = "white";
       svg.style.color = "black";
       const box = mathSvg.getBoundingClientRect();
+      setOrigin({
+        left: box.left,
+        top: box.top,
+        width: box.width,
+        height: box.height,
+      });
       setAspect(box.width / box.height || 1.5);
       setImage({
         src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(svg))}`,
@@ -150,12 +173,28 @@ export function AssessmentImageViewer() {
       })),
     [strokes],
   );
+  const imageWidth = Math.max(
+    1,
+    Math.min(viewport.width, viewport.height * aspect),
+  );
+  const imageHeight = Math.max(
+    1,
+    Math.min(viewport.height, viewport.width / aspect),
+  );
+  const imageLeft = Math.max(12, (viewport.screenWidth - imageWidth) / 2);
+  const imageTop = Math.max(
+    72,
+    (viewport.screenHeight + 48 - imageHeight) / 2,
+  );
 
   return (
     <Dialog
       open={Boolean(image)}
       onOpenChange={(open) => {
-        if (!open) setImage(null);
+        if (!open) {
+          setImage(null);
+          setOrigin(null);
+        }
       }}
     >
       <DialogContent
@@ -210,11 +249,23 @@ export function AssessmentImageViewer() {
         </div>
         <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto">
           {image && (
-            <div
-              className="relative shrink-0 touch-none"
+            <motion.div
+              initial={
+                origin || {
+                  left: imageLeft,
+                  top: imageTop,
+                  width: imageWidth,
+                  height: imageHeight,
+                }
+              }
+              animate={{ left: imageLeft, top: imageTop, width: imageWidth, height: imageHeight }}
+              transition={{ duration: 0.46, ease: [0.22, 1, 0.36, 1] }}
+              className="fixed z-[1001] shrink-0 touch-none overflow-hidden rounded-lg"
               style={{
-                width: Math.min(viewport.width, viewport.height * aspect),
-                height: Math.min(viewport.height, viewport.width / aspect),
+                left: imageLeft,
+                top: imageTop,
+                width: imageWidth,
+                height: imageHeight,
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -288,7 +339,7 @@ export function AssessmentImageViewer() {
                   />
                 )}
               </svg>
-            </div>
+            </motion.div>
           )}
         </div>
         <p className="text-center text-xs text-neutral-500">

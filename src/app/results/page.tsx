@@ -8,6 +8,9 @@ import { LocalAssessmentHistory } from "@/components/local-assessment-history";
 import { AssessmentReview } from "@/components/assessment-review";
 import { SendIndependentSatResult } from "@/components/send-independent-sat-result";
 import { SendSatResult } from "@/components/send-sat-result";
+import { AssessmentScoreReport } from "@/components/assessment-score-report";
+import { AssessmentResultsSidebar } from "@/components/assessment-results-sidebar";
+import { PracticeResultsActions } from "@/components/practice-results-actions";
 export default function Results() {
   const [result, setResult] = useState<SharedResult | null>(null),
     [questions, setQuestions] = useState<WorkspaceQuestion[]>([]),
@@ -17,12 +20,15 @@ export default function Results() {
     [error, setError] = useState(""),
     [assigned, setAssigned] = useState(false),
     [savedToTutPro, setSavedToTutPro] = useState(false),
-    [deliveryNotice, setDeliveryNotice] = useState("");
+    [deliveryNotice, setDeliveryNotice] = useState(""),
+    [resultView, setResultView] = useState<"summary" | "review">("review");
   useEffect(() => {
     const controller = new AbortController();
     let stopped = false;
     const local = new URLSearchParams(location.search).get("local");
     if (local) {
+      if (new URLSearchParams(location.search).get("practice") === "mistakes")
+        return;
       location.replace(`/review-session?local=${encodeURIComponent(local)}`);
       return;
     }
@@ -94,6 +100,44 @@ export default function Results() {
       controller.abort();
     };
   }, []);
+  const showSharing = () => {
+    setResultView("summary");
+    window.setTimeout(() => document.getElementById("export-sharing")?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+  };
+  if (result && resultView === "summary")
+    return (
+      <div className="assessment-score-layout has-sidebar">
+        <AssessmentResultsSidebar
+          active="summary"
+          onSelect={(section) => {
+            if (section === "review") setResultView("review");
+            if (section === "sharing")
+              document.getElementById("export-sharing")?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }}
+        />
+        <AssessmentScoreReport
+          title={result.mode === "full" ? "Full-length test results" : "Practice results"}
+          questions={questions}
+          subtitle="Your estimated score and performance by SAT question category."
+          actions={
+            <div className="space-y-3">
+              <PracticeResultsActions
+                title={result.mode === "full" ? "Full-length test results" : "Practice results"}
+                sessionId={`shared-${token}`}
+                questions={questions}
+                resultToken={token}
+                assignmentToken={assignmentToken || undefined}
+                onStartOver={() => { window.location.href = "/practice"; }}
+              />
+              {assigned && assignmentToken && (
+                <SendSatResult assignmentToken={assignmentToken} resultUrl={`${location.origin}/results#${token}`} />
+              )}
+              {deliveryNotice && <p role="status" className="text-sm text-neutral-600">{deliveryNotice}</p>}
+            </div>
+          }
+        />
+      </div>
+    );
   if (result)
     return (
       <AssessmentReview
@@ -105,6 +149,8 @@ export default function Results() {
         }
         questions={questions}
         loading={loading}
+        onNavigateSummary={() => setResultView("summary")}
+        onNavigateSharing={showSharing}
         actions={
           assigned ? (
             assignmentToken ? (
