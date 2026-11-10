@@ -218,9 +218,10 @@ export function LocalAssessmentHistory() {
             }
           }),
         );
-        similarQuestions = loaded.filter(
-          (question): question is LocalQuestion => question !== null,
-        );
+        similarQuestions = loaded.reduce<LocalQuestion[]>((valid, question) => {
+          if (question) valid.push(question);
+          return valid;
+        }, []);
         if (similarQuestions.length) {
           setDetails((old) => ({
             ...old,
